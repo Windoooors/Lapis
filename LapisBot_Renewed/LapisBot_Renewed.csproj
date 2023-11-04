@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Mirai-CSharp" />
+    <None Remove="Mirai-CSharp.HttpApi" />
+    <None Remove="CocoaFramework" />
+    <None Remove="Maila.Cocoa.Framework" />
+    <None Remove="Mirai.Net" />
+    <None Remove="Magick.NET.Core" />
+    <None Remove="Magick.NET-Q16-AnyCPU" />
+    <None Remove="Font" />
+    <None Remove="System.Drawing.Common" />
+    <None Remove="Xamarin.Forms" />
+    <None Remove="System.Drawing.Primitives" />
+    <None Remove="Aspose.Drawing" />
+    <None Remove="ZKWeb.System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Mirai.Net" Version="2.5.1" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.2.0" />
+    <PackageReference Include="Font" Version="0.3.0.3" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2578" />
+    <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
+    <PackageReference Include="MineStat" Version="3.1.2" />
+    <PackageReference Include="DNS" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.editorconfig" />
+  </ItemGroup>
+</Project>

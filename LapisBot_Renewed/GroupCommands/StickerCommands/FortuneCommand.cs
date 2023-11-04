@@ -1,0 +1,80 @@
+﻿using System;
+using System.Text.RegularExpressions;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Mirai.Net.Data.Messages.Receivers;
+using Mirai.Net.Sessions;
+using Mirai.Net.Sessions.Http.Managers;
+using ImageMagick;
+using Mirai.Net.Data.Messages.Concretes;
+
+namespace LapisBot_Renewed
+{
+    public class FortuneCommand : StickerCommand
+    {
+        public override void Initialize()
+        {
+            headCommand = new Regex(@"^喜报\s");
+        }
+
+        private Regex fontSizeCommand = new Regex(@"^-s\s(([0-7][0-2]\s)|([0-9]\s)|([0-6][0-9]\s))");
+        private Regex topCommand = new Regex(@"^-t\s(([0-2][0-9][0-9]\s)|([0-9][0-9]\s)|([0-9]\s))");
+
+        public override void Parse(string command, GroupMessageReceiver source)
+        {
+            var image = new MagickImage(Environment.CurrentDirectory + @"/resources/stickers/xibao.png");
+            var fontSize = 72;
+            var top = 200;
+
+            if (fontSizeCommand.IsMatch(command))
+            {
+                fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
+                command = fontSizeCommand.Replace(command, string.Empty);
+                if (topCommand.IsMatch(command))
+                {
+                    top = int.Parse(topCommand.Match(command).ToString().Substring(3));
+                    command = topCommand.Replace(command, string.Empty);
+                }
+            }
+            else
+            {
+                if (topCommand.IsMatch(command))
+                {
+                    top = int.Parse(topCommand.Match(command).ToString().Substring(3));
+                    command = topCommand.Replace(command, string.Empty);
+                }
+            }
+            if (topCommand.IsMatch(command))
+            {
+                top = int.Parse(topCommand.Match(command).ToString().Substring(3));
+                command = topCommand.Replace(command, string.Empty);
+                if (fontSizeCommand.IsMatch(command))
+                {
+                    fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
+                    command = fontSizeCommand.Replace(command, string.Empty);
+                }
+            }
+            else
+            {
+                if (fontSizeCommand.IsMatch(command))
+                {
+                    fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
+                    command = fontSizeCommand.Replace(command, string.Empty);
+                }
+            }
+            new Drawables()
+                .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                //.Font(Environment.CurrentDirectory + @"/resources/emoji.ttc")
+                .TextAlignment(TextAlignment.Center)
+                .FontPointSize(fontSize)
+                .FillColor(new MagickColor(65535, 0, 0, 65535))
+                .Text(233, top, command)
+                .Draw(image);
+            var _image = new ImageMessage
+            {
+                Base64 = image.ToBase64(),
+            };
+            MessageManager.SendGroupMessageAsync(source.GroupId, _image);
+        }
+    }
+}

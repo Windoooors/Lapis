@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CA1051: 不要声明可见实例字段
+dotnet_diagnostic.CA1051.severity = warning
