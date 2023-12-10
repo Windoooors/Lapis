@@ -10,12 +10,13 @@ namespace LapisBot_Renewed
 {
     public class QuestionMarkRepeatCommand : GroupCommand
     {
-        public override void Initialize()
+        public override Task Initialize()
         {
             //headCommand = new Regex(@"^？|^?|^¿");
+            return Task.CompletedTask;
         }
 
-        public override void ParseWithoutPreparse(string command, GroupMessageReceiver source)
+        public override Task ParseWithoutPreparse(string command, GroupMessageReceiver source)
         {
             switch (command)
             {
@@ -29,6 +30,7 @@ namespace LapisBot_Renewed
                     MessageManager.SendGroupMessageAsync(source.GroupId, "?");
                     break;
             }
+            return Task.CompletedTask;
         }
     }
 }

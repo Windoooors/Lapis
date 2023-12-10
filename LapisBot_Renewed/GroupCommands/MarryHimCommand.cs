@@ -9,6 +9,8 @@ using System.Threading;
 using Newtonsoft.Json;
 using Xamarin.Forms.Internals;
 using System.Numerics;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace LapisBot_Renewed
 {
@@ -30,26 +32,36 @@ namespace LapisBot_Renewed
             couplesInGroups.Clear();
         }
 
-        public override void Initialize()
+        public override Task Initialize()
         {
             headCommand = new Regex(@"^娶群友$|^娶$|^嫁$");
+            directCommand = new Regex(@"^娶群友$|^娶$|^嫁$");
+            defaultSettings.SettingsName = "娶群友";
+                        _groupCommandSettings = defaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                
+            }
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                var settingsString = File.ReadAllText(path);
+                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+            }
             Program.DateChanged += Reload;
             Start();
             if (System.IO.File.Exists(Environment.CurrentDirectory + "/couples.json"))
             {
                 couplesInGroups = JsonConvert.DeserializeObject<Dictionary<string, List<KeyValuePair<string, string>>>>(System.IO.File.ReadAllText(Environment.CurrentDirectory + "/couples.json"));
             }
+            return Task.CompletedTask;
         }
 
-        public override void Unload()
+        public override Task Unload()
         {
             System.IO.File.WriteAllText(Environment.CurrentDirectory + "/couples.json", JsonConvert.SerializeObject(couplesInGroups));
             Console.WriteLine("Couples data have been saved.");
-        }
-
-        public override void ParseWithoutPreparse(string command, GroupMessageReceiver source)
-        {
-
+            return Task.CompletedTask;
         }
 
         int unmarriedCount(List<KeyValuePair<string, string>> couples, List<string> memberList)
@@ -79,7 +91,7 @@ namespace LapisBot_Renewed
             return false;
         }
         
-        public override void Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, GroupMessageReceiver source)
         {
             if (groups.Count != 0)
             {
@@ -125,7 +137,7 @@ namespace LapisBot_Renewed
                                 Parse(command, source);
                             }
                             MessageManager.SendGroupMessageAsync(source.GroupId, message);
-                            return;
+                            return Task.CompletedTask;
                         }
                     }
                     if (unmarriedCount(couples, _memberList) != 1 || (isMarried(source.Sender.Id, couples) && unmarriedCount(couples, _memberList) == 1))
@@ -198,6 +210,7 @@ namespace LapisBot_Renewed
                     Parse(command, source);
                 }
             }
+            return Task.CompletedTask;
         }
     }
 }

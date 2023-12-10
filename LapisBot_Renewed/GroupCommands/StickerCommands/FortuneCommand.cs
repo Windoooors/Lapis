@@ -7,74 +7,99 @@ using Mirai.Net.Sessions;
 using Mirai.Net.Sessions.Http.Managers;
 using ImageMagick;
 using Mirai.Net.Data.Messages.Concretes;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace LapisBot_Renewed
 {
     public class FortuneCommand : StickerCommand
     {
-        public override void Initialize()
+        public override Task Initialize()
         {
             headCommand = new Regex(@"^喜报\s");
+            directCommand = new Regex(@"^喜报\s");
+            defaultSettings.SettingsName = "喜报";
+            _groupCommandSettings = defaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                
+            }
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                var settingsString = File.ReadAllText(path);
+                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+            }
+            return Task.CompletedTask;
         }
 
         private Regex fontSizeCommand = new Regex(@"^-s\s(([0-7][0-2]\s)|([0-9]\s)|([0-6][0-9]\s))");
         private Regex topCommand = new Regex(@"^-t\s(([0-2][0-9][0-9]\s)|([0-9][0-9]\s)|([0-9]\s))");
 
-        public override void Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, GroupMessageReceiver source)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resources/stickers/xibao.png");
-            var fontSize = 72;
-            var top = 200;
+            if (command != string.Empty)
+            {
+                var image = new MagickImage(Environment.CurrentDirectory + @"/resources/stickers/xibao.png");
+                var fontSize = 72;
+                var top = 200;
 
-            if (fontSizeCommand.IsMatch(command))
-            {
-                fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
-                command = fontSizeCommand.Replace(command, string.Empty);
-                if (topCommand.IsMatch(command))
-                {
-                    top = int.Parse(topCommand.Match(command).ToString().Substring(3));
-                    command = topCommand.Replace(command, string.Empty);
-                }
-            }
-            else
-            {
-                if (topCommand.IsMatch(command))
-                {
-                    top = int.Parse(topCommand.Match(command).ToString().Substring(3));
-                    command = topCommand.Replace(command, string.Empty);
-                }
-            }
-            if (topCommand.IsMatch(command))
-            {
-                top = int.Parse(topCommand.Match(command).ToString().Substring(3));
-                command = topCommand.Replace(command, string.Empty);
                 if (fontSizeCommand.IsMatch(command))
                 {
                     fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
                     command = fontSizeCommand.Replace(command, string.Empty);
+                    if (topCommand.IsMatch(command))
+                    {
+                        top = int.Parse(topCommand.Match(command).ToString().Substring(3));
+                        command = topCommand.Replace(command, string.Empty);
+                    }
                 }
+                else
+                {
+                    if (topCommand.IsMatch(command))
+                    {
+                        top = int.Parse(topCommand.Match(command).ToString().Substring(3));
+                        command = topCommand.Replace(command, string.Empty);
+                    }
+                }
+                if (topCommand.IsMatch(command))
+                {
+                    top = int.Parse(topCommand.Match(command).ToString().Substring(3));
+                    command = topCommand.Replace(command, string.Empty);
+                    if (fontSizeCommand.IsMatch(command))
+                    {
+                        fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
+                        command = fontSizeCommand.Replace(command, string.Empty);
+                    }
+                }
+                else
+                {
+                    if (fontSizeCommand.IsMatch(command))
+                    {
+                        fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
+                        command = fontSizeCommand.Replace(command, string.Empty);
+                    }
+                }
+                new Drawables()
+                    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                    //.Font(Environment.CurrentDirectory + @"/resources/emoji.ttc")
+                    .TextAlignment(TextAlignment.Center)
+                    .FontPointSize(fontSize)
+                    .FillColor(new MagickColor(65535, 0, 0, 65535))
+                    .Text(233, top, command)
+                    .Draw(image);
+                var _image = new ImageMessage
+                {
+                    Base64 = image.ToBase64(),
+                };
+                MessageManager.SendGroupMessageAsync(source.GroupId, _image);
+                return Task.CompletedTask;
             }
             else
             {
-                if (fontSizeCommand.IsMatch(command))
-                {
-                    fontSize = int.Parse(fontSizeCommand.Match(command).ToString().Substring(3));
-                    command = fontSizeCommand.Replace(command, string.Empty);
-                }
+                Program.helpCommand.Parse(command, source);
+                return Task.CompletedTask;
             }
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font.otf")
-                //.Font(Environment.CurrentDirectory + @"/resources/emoji.ttc")
-                .TextAlignment(TextAlignment.Center)
-                .FontPointSize(fontSize)
-                .FillColor(new MagickColor(65535, 0, 0, 65535))
-                .Text(233, top, command)
-                .Draw(image);
-            var _image = new ImageMessage
-            {
-                Base64 = image.ToBase64(),
-            };
-            MessageManager.SendGroupMessageAsync(source.GroupId, _image);
         }
     }
 }

@@ -8,6 +8,7 @@ using LapisBot_Renewed.Collections;
 using System.DrawingCore;
 using System.Xml.Linq;
 using Flurl;
+using System.Diagnostics;
 
 namespace LapisBot_Renewed
 {
@@ -15,6 +16,27 @@ namespace LapisBot_Renewed
     {
         private readonly string _baseUrl;
         public string BaseUrl { get { return _baseUrl; } }
+
+        public static string Bash(string command)
+        {
+            var escapedArgs = command.Replace("\"", "\\\"");
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"{escapedArgs}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            process.Start();
+            string result = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            process.Dispose();
+            return result;
+        }
 
         public ApiOperator(string baseUrl)
         {

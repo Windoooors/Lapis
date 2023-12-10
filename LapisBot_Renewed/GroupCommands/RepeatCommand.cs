@@ -6,19 +6,36 @@ using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions;
 using Mirai.Net.Sessions.Http.Managers;
 using Mirai.Net.Data.Messages;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace LapisBot_Renewed
 {
     public class RepeatCommand : GroupCommand
     {
-        public override void Initialize()
+        public override Task Initialize()
         {
             headCommand = new Regex(@"^repeat\s");
+            directCommand = new Regex(@"^repeat\s");
+            defaultSettings.SettingsName = "重复";
+            _groupCommandSettings = defaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                
+            }
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                var settingsString = File.ReadAllText(path);
+                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+            }
+            return Task.CompletedTask;
         }
 
-        public override void Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, GroupMessageReceiver source)
         {
             MessageManager.SendGroupMessageAsync(source.GroupId, command);
+            return Task.CompletedTask;
         }
     }
 }

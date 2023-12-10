@@ -11,17 +11,16 @@ namespace LapisBot_Renewed
 
         public Regex subHeadCommand;
 
-        public virtual async Task Initialize() { }
+        public virtual Task Initialize() { return Task.CompletedTask; }
 
-        public virtual async Task Parse(string command, FriendMessageReceiver source) { }
+        public virtual Task Parse(string command, FriendMessageReceiver source) { return Task.CompletedTask; }
 
-        public virtual async Task Parse(string command, FriendMessageReceiver source, bool isSubParse) { }
+        public virtual Task Parse(string command, FriendMessageReceiver source, bool isSubParse) { return Task.CompletedTask; }
 
-        public virtual async Task ParseWithoutPreparse(string command, FriendMessageReceiver source) { }
+        public virtual Task ParseWithoutPreparse(string command, FriendMessageReceiver source) { return Task.CompletedTask; }
 
-        public virtual async Task Unload() { }
+        public virtual Task Unload() { return Task.CompletedTask; }
     }
 }
-	
 
 

@@ -7,34 +7,54 @@ using Mirai.Net.Sessions;
 using Mirai.Net.Sessions.Http.Managers;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace LapisBot_Renewed
 {
     public class StickerCommand : GroupCommand
     {
-        public Dictionary<string, StickerCommand> subCommands = new Dictionary<string, StickerCommand>();
 
-        public override void Initialize()
+        public override Task Initialize()
         {
             subCommands.Clear();
             headCommand = new Regex(@"^sticker\s");
+            defaultSettings.SettingsName = "表情包";
+            _groupCommandSettings = defaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                
+            }
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                var settingsString = File.ReadAllText(path);
+                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+            }
             //MessageManager.SendGroupMessageAsync(source.GroupId, "傻逼");
-            subCommands.Add("喜报", new FortuneCommand());
+            subCommands.Add(new FortuneCommand());
 
-            foreach (KeyValuePair<string, StickerCommand> stickerCommand in subCommands)
-                stickerCommand.Value.Initialize();
+            foreach (StickerCommand stickerCommand in subCommands)
+            {
+                stickerCommand.Initialize();
+                stickerCommand.parentCommand = this;
+            }
+            return Task.CompletedTask;
         }
 
-        public override void Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, GroupMessageReceiver source)
         {
-            foreach (KeyValuePair<string, StickerCommand> subCommand in subCommands)
+            foreach (StickerCommand subCommand in subCommands)
             {
-                if (subCommand.Value.headCommand.IsMatch(command) && subCommand.Value.headCommand.Replace(command, "") != string.Empty)
+                if (subCommand.headCommand.IsMatch(command) && subCommand.headCommand.Replace(command, "") != string.Empty)
                 {
-                    command = subCommand.Value.headCommand.Replace(command, "");
-                    subCommand.Value.Parse(command, source);
+                    command = subCommand.headCommand.Replace(command, "");
+                    subCommand.PreParse(command, source);
+                    return Task.CompletedTask;
                 }
             }
+            Program.helpCommand.Parse("", source);
+            return Task.CompletedTask;
         }
     }
 }

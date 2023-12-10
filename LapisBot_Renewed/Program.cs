@@ -20,6 +20,10 @@ namespace LapisBot_Renewed
 
         public static List<PrivateCommand> privateCommands = new List<PrivateCommand>();
 
+        public static HelpCommand helpCommand;
+
+        public static BotSettingsCommand settingsCommand;
+
         private static DateTime lastDateTime;
 
         public static ApiOperator apiOperator = new ApiOperator(@"https://www.diving-fish.com");
@@ -54,15 +58,24 @@ namespace LapisBot_Renewed
                     await RequestManager.HandleNewInvitationRequestedAsync(e, NewInvitationRequestHandlers.Approve, "");
                 });
 
-            groupCommands.Add(new MaiCommand());
+            var _helpCommand = new HelpCommand();
+            var _botSettingsCommand = new BotSettingsCommand();
+
             groupCommands.Add(new RepeatCommand());
             groupCommands.Add(new AbuseCommand());
             groupCommands.Add(new McPingCommand());
-            groupCommands.Add(new HelpCommand());
+            groupCommands.Add(_helpCommand);
+            groupCommands.Add(_botSettingsCommand);
             groupCommands.Add(new StickerCommand());
+            groupCommands.Add(new AboutCommand());
+            groupCommands.Add(new MaiCommand());
             groupCommands.Add(new DoSomethingWithHimCommand());
 
+            helpCommand = _helpCommand;
+            settingsCommand = _botSettingsCommand;
+
             privateCommands.Add(new GetGroupsCommand());
+            privateCommands.Add(new UpdateMessageCommand());
 
             foreach (GroupCommand _command in groupCommands)
                 await _command.Initialize();

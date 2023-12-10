@@ -7,28 +7,40 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using DNS.Protocol;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace LapisBot_Renewed
 {
-	public class GetHimFuckedCommand : DoSomethingWithHimCommand
-	{
-        public override void Initialize()
+    public class GetHimFuckedCommand : DoSomethingWithHimCommand
+    {
+        public override Task Initialize()
         {
             headCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
             subHeadCommand = new Regex(@"^日蛇精$");
+            directCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
+            subDirectCommand = new Regex(@"^日蛇精$");
+            defaultSettings.SettingsName = "透群友";
+            _groupCommandSettings = defaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                
+            }
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                var settingsString = File.ReadAllText(path);
+                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+            }
+            return Task.CompletedTask;
         }
 
-        public override void Unload()
+        public override Task Unload()
         {
-            
+            return Task.CompletedTask;
         }
 
-        public override void ParseWithoutPreparse(string command, GroupMessageReceiver source)
-        {
-
-        }
-
-        public override void Parse(string command, GroupMessageReceiver source, bool isSubParse)
+        public Task Process(string command, GroupMessageReceiver source, bool isSubParse)
         {
             if (groups.Count != 0)
             {
@@ -52,14 +64,14 @@ namespace LapisBot_Renewed
                             {
                                 var message = new MessageChain() { new PlainMessage("得了吧") };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, message);
-                                return;
+                                return Task.CompletedTask;
                             }
                         }
                         else
                         {
                             var message = new MessageChain() { new PlainMessage("这货没在这群发过言") };
                             MessageManager.SendGroupMessageAsync(source.GroupId, message);
-                            return;
+                            return Task.CompletedTask;
                         }
                     }
                     try
@@ -102,6 +114,19 @@ namespace LapisBot_Renewed
                     MessageManager.SendGroupMessageAsync(source.GroupId, message);
                 }
             }
+            return Task.CompletedTask;
+        }
+
+        public override Task Parse(string command, GroupMessageReceiver source)
+        {
+            Process(command, source, false);
+            return Task.CompletedTask;
+        }
+
+        public override Task Parse(string command, GroupMessageReceiver source, bool isSubParse)
+        {
+            Process(command, source, true);
+            return Task.CompletedTask;
         }
     }
 }

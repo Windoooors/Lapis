@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -27,13 +27,14 @@
     <None Remove="ZKWeb.System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Magick.NET.Core" Version="13.4.0" />
     <PackageReference Include="Mirai.Net" Version="2.5.1" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.2.0" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.4.0" />
     <PackageReference Include="Font" Version="0.3.0.3" />
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2578" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2612" />
     <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
-    <PackageReference Include="MineStat" Version="3.1.2" />
     <PackageReference Include="DNS" Version="7.0.0" />
+    <PackageReference Include="mcswlib" Version="2.1.1" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig" />

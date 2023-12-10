@@ -8,19 +8,36 @@ using Mirai.Net.Data.Messages;
 using Mirai.Net.Data.Messages.Concretes;
 using Mirai.Net.Data;
 using Mirai.Net.Sessions.Http.Managers;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace LapisBot_Renewed
 {
     public class AbuseCommand : GroupCommand
     {
-        public override void Initialize()
+        public override Task Initialize()
         {
             headCommand = new Regex(@"^骂我$");
+            directCommand = new Regex(@"^骂我$");
+            defaultSettings.SettingsName = "骂";
+                        _groupCommandSettings = defaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                
+            }
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            {
+                var settingsString = File.ReadAllText(path);
+                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+            }
+            return Task.CompletedTask;
         }
 
-        public override void Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, GroupMessageReceiver source)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 别骂了 好好过好每一天吧 ( ´▽｀)\nGreetings from Lapis Build 2023072903!\n二号机账号由 桃子亲 （3231743481） 提供 ( ´▽｀)") });
+            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new PlainMessage("6") });
+            return Task.CompletedTask;
         }
     }
 }

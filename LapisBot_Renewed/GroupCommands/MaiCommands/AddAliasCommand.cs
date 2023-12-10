@@ -96,13 +96,14 @@ namespace LapisBot_Renewed
             return false;
         }
 
-        public override void Unload()
+        public override Task Unload()
         {
             System.IO.File.WriteAllText(Environment.CurrentDirectory + "/alias.json", JsonConvert.SerializeObject(songAliases));
             Console.WriteLine("Alias data have been saved");
+            return Task.CompletedTask;
         }
 
-        public override void Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, GroupMessageReceiver source)
         {
             var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+\s");
             var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
@@ -129,7 +130,7 @@ namespace LapisBot_Renewed
                 {
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
                                 new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲") });
-                    return;
+                    return Task.CompletedTask;
                 }
             }
             if (index != -1)
@@ -169,7 +170,7 @@ namespace LapisBot_Renewed
                         {
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
                                 new AtMessage(source.Sender.Id), new PlainMessage(" 别名重复！") });
-                            return;
+                            return Task.CompletedTask;
                         }
                     }
                     else
@@ -191,6 +192,7 @@ namespace LapisBot_Renewed
             else
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
                                 new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲") });
+            return Task.CompletedTask;
         }
     }
 }
