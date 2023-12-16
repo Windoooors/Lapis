@@ -238,7 +238,16 @@ namespace LapisBot_Renewed
             {
                 var idString = obj.Key;
                 var id = idString.ToInt32();
-                songAliases.Add(new Alias() { aliases = obj.Value.ToList(), id = id });
+                if (id == 11422)
+                {
+                    var aliasesList = new List<string>();
+                    foreach (string alias in obj.Value)
+                        if (!(alias == "\u200e\u200e" || alias == "ㅤ" || alias == String.Empty))
+                            aliasesList.Add(alias);
+                    songAliases.Add(new Alias() { aliases = aliasesList, id = id });
+                }
+                else
+                    songAliases.Add(new Alias() { aliases = obj.Value.ToList(), id = id });
             }
 
             levelDictionary.Add("1", 0);

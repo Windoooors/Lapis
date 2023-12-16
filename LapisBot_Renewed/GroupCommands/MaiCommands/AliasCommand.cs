@@ -106,7 +106,7 @@ namespace LapisBot_Renewed
                     return Task.CompletedTask;
                 }
             }
-            var aliases = maiCommand.GetAliasByAliasStringUsingStartsWith(command);
+            var aliases = maiCommand.GetAliasByAliasString(command);
             if (aliases.Length != 0)
             {
                 if (aliases.Length == 1)

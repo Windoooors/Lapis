@@ -401,7 +401,7 @@ namespace LapisBot_Renewed
         }
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            var aliases = maiCommand.GetAliasByAliasStringUsingStartsWith(command);
+            var aliases = maiCommand.GetAliasByAliasString(command);
             if (aliases.Length != 0)
             {
                 if (aliases.Length == 1)
