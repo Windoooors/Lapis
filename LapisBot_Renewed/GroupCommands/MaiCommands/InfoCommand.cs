@@ -401,7 +401,7 @@ namespace LapisBot_Renewed
         }
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            var aliases = maiCommand.GetAliasByAliasString(command);
+            var aliases = maiCommand.GetAliasByAliasStringUsingStartsWith(command);
             if (aliases.Length != 0)
             {
                 if (aliases.Length == 1)
@@ -446,7 +446,7 @@ namespace LapisBot_Renewed
                     }
                     if (idsList.Count == 1)
                     {
-                        Parse("ID " + idsList[0], source);
+                        Parse("ID " + idsList[0] + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command), string.Empty), source);
                         return Task.CompletedTask;
                     }
                     int index = maiCommand.GetSongIndexById(idsList[0]);
