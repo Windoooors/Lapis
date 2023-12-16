@@ -14,6 +14,7 @@ using Mirai.Net.Data.Messages.Concretes;
 using static LapisBot_Renewed.InfoCommand;
 using static LapisBot_Renewed.AliasCommand;
 using System.IO;
+using LapisBot_Renewed.Collections;
 
 namespace LapisBot_Renewed
 {
@@ -232,39 +233,12 @@ namespace LapisBot_Renewed
             {
                 aliasObject = new Dictionary<string, string[]>();
             }
+
             foreach (KeyValuePair<string, string[]> obj in aliasObject)
             {
-                if (obj.Key != "‎‎")
-                {
-                    foreach (string idString in obj.Value)
-                    {
-                        if (idString != "未找到")
-                        {
-                            var id = idString.ToInt32();
-                            if (songAliases.Count == 0)
-                            {
-                                songAliases.Add(new Alias() { aliases = new List<string>() { obj.Key }, id = id });
-                                continue;
-                            }
-                            var i = 0;
-                            foreach (Alias alias in songAliases)
-                            {
-                                i++;
-                                if (alias.id == id)
-                                {
-                                    alias.aliases.Add(obj.Key);
-                                    break;
-                                }
-                                else if (i == songAliases.Count)
-                                {
-                                    songAliases.Add(new Alias() { aliases = new List<string>() { obj.Key }, id = id });
-                                    i = 0;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
+                var idString = obj.Key;
+                var id = idString.ToInt32();
+                songAliases.Add(new Alias() { aliases = obj.Value.ToList(), id = id });
             }
 
             levelDictionary.Add("1", 0);
