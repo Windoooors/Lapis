@@ -50,10 +50,10 @@ namespace LapisBot_Renewed
                     //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
                     BestDto best = JsonConvert.DeserializeObject<BestDto>(content);
                     var image = BestImageGenerator.Generate(best, source.Sender.Id, false);
-                    image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
+                    //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                     var _image = new ImageMessage
                     {
-                        Path = Environment.CurrentDirectory + @"/temp/b50.png"
+                        Base64 = image
                     };
 
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
@@ -139,10 +139,10 @@ namespace LapisBot_Renewed
                         score.rate = Rate.D;
                 }
                 var image = BestImageGenerator.Generate(best, source.Sender.Id, true);
-                image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
+                //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 var _image = new ImageMessage
                 {
-                    Path = Environment.CurrentDirectory + @"/temp/b50.png"
+                    Base64 = image
                 };
 
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });

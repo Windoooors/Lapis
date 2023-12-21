@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using ImageMagick;
 namespace LapisBot_Renewed
 {
     public class BotSettingsImageGenerator
     {
-        public static MagickImage Generate(BotSettingsCommand.Settings settings)
+        public static string Generate(BotSettingsCommand.Settings settings)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resources/settings/background.png");
 
@@ -44,7 +45,11 @@ namespace LapisBot_Renewed
                 image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
                 i++;
             }
-            return image;
+            
+            image.SetCompression(CompressionMethod.JPEG);
+            image.Format = MagickFormat.Jpeg;
+            image.Quality = 90;
+            return image.ToBase64();
         }
     }
 }

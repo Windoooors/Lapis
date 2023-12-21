@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using ImageMagick;
 
@@ -11,7 +12,7 @@ namespace LapisBot_Renewed
 
         }
 
-        public static MagickImage Generate(BestDto best, string userId, bool usingHead)
+        public static string Generate(BestDto best, string userId, bool usingHead)
         {
             MagickImage head;
             if (usingHead)
@@ -232,7 +233,11 @@ namespace LapisBot_Renewed
                 image.Composite(GenerateItem(best.Charts.DxCharts[i], i + 1), x, y, CompositeOperator.Atop);
             }
 
-            return image;
+            image.SetCompression(CompressionMethod.JPEG);
+            image.Format = MagickFormat.Jpeg;
+            image.Quality = 90;
+
+            return image.ToBase64();
         }
 
         public static MagickImage GenerateItem(BestDto.ScoreDto score, int rank)

@@ -193,7 +193,7 @@ namespace LapisBot_Renewed
             return difficultyLayerImage;
         }
 
-        public static MagickImage Generate(int index, SongDto[] songs, string title, InfoCommand.GetScore.Level[] levels)
+        public static string Generate(int index, SongDto[] songs, string title, InfoCommand.GetScore.Level[] levels)
         {
             var image = GenerateBackground(index, songs, title, Program.apiOperator);
 
@@ -243,7 +243,10 @@ namespace LapisBot_Renewed
             songTypeLayer.Rotate(-90);
             image.Composite(songTypeLayer, 30, 214, CompositeOperator.Atop);
             //image.Resize(1047, 952);
-            return image;
+            image.SetCompression(CompressionMethod.JPEG);
+            image.Format = MagickFormat.Jpeg;
+            image.Quality = 90;
+            return image.ToBase64();
         }
     }
 }

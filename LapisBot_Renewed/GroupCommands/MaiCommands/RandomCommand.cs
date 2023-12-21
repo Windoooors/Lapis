@@ -85,7 +85,7 @@ namespace LapisBot_Renewed
 
                 var _image = new ImageMessage
                 {
-                    Base64 = InfoImageGenerator.Generate(j, _songs, "随机歌曲", null).ToBase64(),
+                    Base64 = InfoImageGenerator.Generate(j, _songs, "随机歌曲", null)
                 };
 
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });

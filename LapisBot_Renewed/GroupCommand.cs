@@ -200,7 +200,7 @@ namespace LapisBot_Renewed
                 File.WriteAllText(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" + _groupCommandSettings.GroupId + ".json", JsonConvert.SerializeObject(_groupCommandSettings));
             }
             Console.WriteLine(_groupCommandSettings.SettingsName);
-            var image = BotSettingsImageGenerator.Generate(_groupCommandSettings).ToBase64();
+            var image = BotSettingsImageGenerator.Generate(_groupCommandSettings);
             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } });
             return Task.CompletedTask;
         }

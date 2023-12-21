@@ -68,7 +68,7 @@ namespace LapisBot_Renewed
             {
                 if (settings.GroupId == source.GroupId)
                 {
-                    var _image = BotSettingsImageGenerator.Generate(settings).ToBase64();
+                    var _image = BotSettingsImageGenerator.Generate(settings);
                     var _messageChain = new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = _image } };
                     //MessageManager.SendGroupMessageAsync()
                     MessageManager.SendGroupMessageAsync(source.GroupId, _messageChain);
@@ -79,7 +79,7 @@ namespace LapisBot_Renewed
             _settings.GroupId = source.GroupId;
             botSettingsList.Add(_settings);
             File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json", JsonConvert.SerializeObject(_settings));
-            var image = BotSettingsImageGenerator.Generate(_settings).ToBase64();
+            var image = BotSettingsImageGenerator.Generate(_settings);
             var messageChain = new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } };
             //MessageManager.SendGroupMessageAsync()
             MessageManager.SendGroupMessageAsync(source.GroupId, messageChain);

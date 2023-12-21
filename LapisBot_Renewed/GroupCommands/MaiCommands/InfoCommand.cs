@@ -273,7 +273,7 @@ namespace LapisBot_Renewed
                         GetScore.getScore.Get(command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty), songs[i].BasicInfo.Version, songs[i].Id);
                         var _image = new ImageMessage
                         {
-                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels).ToBase64(),
+                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels)
                         };
                         MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
@@ -334,7 +334,7 @@ namespace LapisBot_Renewed
                                 GetScore.getScore.Get(idRegex.Replace(command, "").TrimStart(), songs[index].BasicInfo.Version, songs[index].Id);
                                 var _image = new ImageMessage
                                 {
-                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels).ToBase64(),
+                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
                                 };
 
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
@@ -373,7 +373,7 @@ namespace LapisBot_Renewed
                             GetScore.getScore.Get(command.Replace(songs[index].Title + " ", string.Empty), songs[index].BasicInfo.Version, songs[index].Id);
                             var _image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels).ToBase64(),
+                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
@@ -412,7 +412,7 @@ namespace LapisBot_Renewed
                         GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[i].BasicInfo.Version, songs[i].Id);
                         var _image = new ImageMessage
                         {
-                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels).ToBase64(),
+                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels)
                         };
                         MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
@@ -472,7 +472,7 @@ namespace LapisBot_Renewed
                                 GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version, songs[index].Id);
                                 var _image = new ImageMessage
                                 {
-                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels).ToBase64(),
+                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
                                 };
 
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
@@ -510,7 +510,7 @@ namespace LapisBot_Renewed
                             GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version, songs[index].Id);
                             var _image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels).ToBase64(),
+                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
