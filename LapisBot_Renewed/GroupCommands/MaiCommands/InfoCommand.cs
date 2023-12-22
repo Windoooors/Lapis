@@ -86,8 +86,8 @@ namespace LapisBot_Renewed
 
             public void Get(string name, string version, int id)
             {
-                try
-                {
+                //try
+                //{
                     var content = Program.apiOperator.Post("api/maimaidxprober/query/plate", new { username = name, version = new string[] { version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
@@ -150,12 +150,12 @@ namespace LapisBot_Renewed
                         }
                     }
                     levels = levelList.ToArray();
-                }
-                catch
+                //}
+                /*catch
                 {
                     List<Level> levelList = new List<Level>();
                     levels = levelList.ToArray();
-                }
+                }*/
             }
 
             public void Get(long number, string version, int id)
@@ -269,7 +269,7 @@ namespace LapisBot_Renewed
                     try
                     {
                         var i = maiCommand.GetSongIndexById(aliases[0].id);
-                        var name = command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty);
+                        //var name = command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty);
                         GetScore.getScore.Get(command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty), songs[i].BasicInfo.Version, songs[i].Id);
                         var _image = new ImageMessage
                         {
@@ -467,8 +467,8 @@ namespace LapisBot_Renewed
                         int index = maiCommand.GetSongIndexById(id);
                         if (index != -1)
                         {
-                            try
-                            {
+                            //try
+                            //{
                                 GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version, songs[index].Id);
                                 var _image = new ImageMessage
                                 {
@@ -485,11 +485,11 @@ namespace LapisBot_Renewed
                                     };
                                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
                                 }
-                            }
+                            /*}
                             catch
                             {
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定") });
-                            }
+                            }*/
                         }
                         else
                             ParseWithArgument(command, source);
