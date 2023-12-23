@@ -110,6 +110,7 @@ namespace LapisBot_Renewed
 
         public void GetSettings(GroupMessageReceiver source)
         {
+            CurrentBotSettings = botDefaultSettings.Clone();
             foreach (BotSettings settings in botSettingsList)
             {
                 if (settings.GroupId == source.GroupId)
@@ -121,7 +122,6 @@ namespace LapisBot_Renewed
 
             if (CurrentBotSettings.GroupId == null)
             {
-                CurrentBotSettings = botDefaultSettings.Clone();
                 CurrentBotSettings.GroupId = source.GroupId;
                 botSettingsList.Add(CurrentBotSettings);
                 File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
