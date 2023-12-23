@@ -32,6 +32,8 @@ namespace LapisBot_Renewed
             public bool HeadlessCommand { get; set; }
             public bool UpdateMessage { get; set; }
 
+            public bool CompressedImage { get; set; }
+
             public BotSettings Clone()
             {
                 return JsonConvert.DeserializeObject<BotSettings>(JsonConvert.SerializeObject(this));
@@ -41,12 +43,13 @@ namespace LapisBot_Renewed
         public List<BotSettings> botSettingsList = new List<BotSettings>();
 
         public BotSettings botDefaultSettings = new BotSettings()
-        { SettingsName = "Lapis", HeadlessCommand = false, UpdateMessage = true };
+            { SettingsName = "Lapis Bot", HeadlessCommand = true, UpdateMessage = true, CompressedImage = true };
 
         public override Task Initialize()
         {
-            botDefaultSettings.DisplayNames.Add("HeadlessCommand", "(实验性) 无指令头触发指令");
+            botDefaultSettings.DisplayNames.Add("HeadlessCommand", "无指令头触发指令");
             botDefaultSettings.DisplayNames.Add("UpdateMessage", "更新提醒");
+            botDefaultSettings.DisplayNames.Add("CompressedImage", "图片压缩");
             if (!Directory.Exists(AppContext.BaseDirectory + "settings"))
                 Directory.CreateDirectory(AppContext.BaseDirectory + "settings");
             foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + "settings"))
@@ -54,6 +57,7 @@ namespace LapisBot_Renewed
                 var settingsString = File.ReadAllText(path);
                 botSettingsList.Add(JsonConvert.DeserializeObject<BotSettings>(settingsString));
             }
+
             _groupCommandSettings = new GroupCommandSettings() { Enabled = true };
             headCommand = new Regex(@"^settings$");
             subHeadCommand = new Regex(@"^settings\s");
@@ -64,23 +68,27 @@ namespace LapisBot_Renewed
 
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            foreach (Settings settings in botSettingsList)
+            foreach (BotSettings settings in botSettingsList)
             {
                 if (settings.GroupId == source.GroupId)
                 {
-                    var _image = BotSettingsImageGenerator.Generate(settings);
-                    var _messageChain = new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = _image } };
+                    var _image = BotSettingsImageGenerator.Generate(settings, settings.CompressedImage);
+                    var _messageChain = new MessageChain()
+                        { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = _image } };
                     //MessageManager.SendGroupMessageAsync()
                     MessageManager.SendGroupMessageAsync(source.GroupId, _messageChain);
                     return Task.CompletedTask;
                 }
             }
+
             var _settings = botDefaultSettings.Clone();
             _settings.GroupId = source.GroupId;
             botSettingsList.Add(_settings);
-            File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json", JsonConvert.SerializeObject(_settings));
-            var image = BotSettingsImageGenerator.Generate(_settings);
-            var messageChain = new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } };
+            File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
+                JsonConvert.SerializeObject(_settings));
+            var image = BotSettingsImageGenerator.Generate(_settings, _settings.CompressedImage);
+            var messageChain = new MessageChain()
+                { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } };
             //MessageManager.SendGroupMessageAsync()
             MessageManager.SendGroupMessageAsync(source.GroupId, messageChain);
             return Task.CompletedTask;
@@ -98,50 +106,73 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
+        public BotSettings CurrentBotSettings;
+
+        public void GetSettings(GroupMessageReceiver source)
+        {
+            foreach (BotSettings settings in botSettingsList)
+            {
+                if (settings.GroupId == source.GroupId)
+                {
+                    CurrentBotSettings = settings;
+                    break;
+                }
+            }
+
+            if (CurrentBotSettings.GroupId == null)
+            {
+                CurrentBotSettings = botDefaultSettings.Clone();
+                CurrentBotSettings.GroupId = source.GroupId;
+                botSettingsList.Add(CurrentBotSettings);
+                File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
+                    JsonConvert.SerializeObject(CurrentBotSettings));
+            }
+        }
+
         public override Task Parse(string command, GroupMessageReceiver source, bool isSubParse)
         {
-            if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator || source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
+            if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator ||
+                source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
             {
-                var _settings = new BotSettings();
-                var regex = new Regex(@"[1-2]\s((true)|(false))$");
-                foreach (BotSettings settings in botSettingsList)
-                {
-                    if (settings.GroupId == source.GroupId)
-                    {
-                        _settings = settings;
-                        break;
-                    }
-                }
-                if (_settings.GroupId == null)
-                {
-                    _settings = botDefaultSettings.Clone();
-                    _settings.GroupId = source.GroupId;
-                    botSettingsList.Add(_settings);
-                    File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json", JsonConvert.SerializeObject(_settings));
-                }
+                //var _settings = new BotSettings();
+                var regex = new Regex(@"[1-3]\s((true)|(false))$");
+                GetSettings(source);
                 if (regex.IsMatch(command))
                 {
                     if (command.Contains("true"))
                     {
-                        _settings.GetType().GetProperty(_settings.DisplayNames.ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key).SetValue(_settings, true);
+                        CurrentBotSettings.GetType()
+                            .GetProperty(CurrentBotSettings.DisplayNames
+                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                            .SetValue(CurrentBotSettings, true);
                     }
+
                     if (command.Contains("false"))
                     {
-                        _settings.GetType().GetProperty(_settings.DisplayNames.ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key).SetValue(_settings, false);
+                        CurrentBotSettings.GetType()
+                            .GetProperty(CurrentBotSettings.DisplayNames
+                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                            .SetValue(CurrentBotSettings, false);
                     }
+
                     File.Delete(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json");
-                    File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json", JsonConvert.SerializeObject(_settings));
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
+                    File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
+                        JsonConvert.SerializeObject(CurrentBotSettings));
+                    MessageManager.SendGroupMessageAsync(source.GroupId,
+                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
                 }
                 else
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 输入格式有误") });
+                    MessageManager.SendGroupMessageAsync(source.GroupId,
+                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 输入格式有误") });
                 }
+
                 return Task.CompletedTask;
             }
             else
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您无权执行该命令") });
+                MessageManager.SendGroupMessageAsync(source.GroupId,
+                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您无权执行该命令") });
                 return Task.CompletedTask;
             }
         }

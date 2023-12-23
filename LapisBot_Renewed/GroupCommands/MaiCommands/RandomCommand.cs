@@ -83,9 +83,10 @@ namespace LapisBot_Renewed
                 Random random = new Random();
                 int j = random.Next(0, _songs.Length);
 
+                Program.settingsCommand.GetSettings(source);
                 var _image = new ImageMessage
                 {
-                    Base64 = InfoImageGenerator.Generate(j, _songs, "随机歌曲", null)
+                    Base64 = InfoImageGenerator.Generate(j, _songs, "随机歌曲", null, Program.settingsCommand.CurrentBotSettings.CompressedImage)
                 };
 
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });

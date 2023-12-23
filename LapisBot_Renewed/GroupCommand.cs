@@ -33,11 +33,20 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public virtual Task Parse(string command, GroupMessageReceiver source) { return Task.CompletedTask; }
+        public virtual Task Parse(string command, GroupMessageReceiver source)
+        {
+            return Task.CompletedTask;
+        }
 
-        public virtual Task Parse(string command, GroupMessageReceiver source, bool isSubParse) { return Task.CompletedTask; }
+        public virtual Task Parse(string command, GroupMessageReceiver source, bool isSubParse)
+        {
+            return Task.CompletedTask;
+        }
 
-        public virtual Task ParseWithoutPreparse(string command, GroupMessageReceiver source) { return Task.CompletedTask; }
+        public virtual Task ParseWithoutPreparse(string command, GroupMessageReceiver source)
+        {
+            return Task.CompletedTask;
+        }
 
         public Task PreParse(string command, GroupMessageReceiver source)
         {
@@ -54,6 +63,7 @@ namespace LapisBot_Renewed
                     }
                 }
             }
+
             if (_parentGroupCommandSettings.Enabled == true)
             {
                 GetDefaultSettings();
@@ -62,6 +72,7 @@ namespace LapisBot_Renewed
                     if (groupCommandSettings.GroupId == source.GroupId)
                         _groupCommandSettings = groupCommandSettings;
                 }
+
                 if (_groupCommandSettings != null)
                 {
                     if (_groupCommandSettings.Enabled)
@@ -70,8 +81,10 @@ namespace LapisBot_Renewed
                 else
                     Program.helpCommand.Parse(command, source);
             }
+
             return Task.CompletedTask;
         }
+
         public Task PreParse(string command, GroupMessageReceiver source, bool isSubParse)
         {
             var _parentGroupCommandSettings = defaultSettings;
@@ -87,6 +100,7 @@ namespace LapisBot_Renewed
                     }
                 }
             }
+
             if (_parentGroupCommandSettings.Enabled == true)
             {
                 GetDefaultSettings();
@@ -95,6 +109,7 @@ namespace LapisBot_Renewed
                     if (groupCommandSettings.GroupId == source.GroupId)
                         _groupCommandSettings = groupCommandSettings;
                 }
+
                 if (_groupCommandSettings != null)
                 {
                     if (_groupCommandSettings.Enabled)
@@ -103,10 +118,14 @@ namespace LapisBot_Renewed
                 else
                     Program.helpCommand.Parse(command, source);
             }
+
             return Task.CompletedTask;
         }
 
-        public virtual Task Unload() { return Task.CompletedTask; }
+        public virtual Task Unload()
+        {
+            return Task.CompletedTask;
+        }
 
         public virtual Task GetDefaultSettings()
         {
@@ -116,7 +135,8 @@ namespace LapisBot_Renewed
 
         public virtual Task SettingsParse(string command, GroupMessageReceiver source, bool isSubParse)
         {
-            if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator || source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
+            if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator ||
+                source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
             {
                 var regex = new Regex(@"[1-" + defaultSettings.DisplayNames.Count + @"]\s((true)|(false))$");
                 _groupCommandSettings = (GroupCommandSettings)Activator.CreateInstance(defaultSettings.GetType());
@@ -127,38 +147,58 @@ namespace LapisBot_Renewed
                     if (settingsList[i].GroupId == source.GroupId)
                         _groupCommandSettings = settingsList[i];
                 }
+
                 if (_groupCommandSettings.GroupId == null)
                 {
                     _groupCommandSettings.GroupId = source.GroupId;
                     settingsList.Add(_groupCommandSettings);
                     if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
-                        Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
-                    File.WriteAllText(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" + _groupCommandSettings.GroupId + ".json", JsonConvert.SerializeObject(_groupCommandSettings));
+                        Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName +
+                                                  " Settings");
+                    File.WriteAllText(
+                        AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" +
+                        _groupCommandSettings.GroupId + ".json", JsonConvert.SerializeObject(_groupCommandSettings));
                 }
+
                 if (regex.IsMatch(command))
                 {
                     if (command.Contains("true"))
                     {
-                        _groupCommandSettings.GetType().GetProperty(_groupCommandSettings.DisplayNames.ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key).SetValue(_groupCommandSettings, true);
+                        _groupCommandSettings.GetType()
+                            .GetProperty(_groupCommandSettings.DisplayNames
+                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                            .SetValue(_groupCommandSettings, true);
                     }
+
                     if (command.Contains("false"))
                     {
-                        _groupCommandSettings.GetType().GetProperty(_groupCommandSettings.DisplayNames.ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key).SetValue(_groupCommandSettings, false);
+                        _groupCommandSettings.GetType()
+                            .GetProperty(_groupCommandSettings.DisplayNames
+                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                            .SetValue(_groupCommandSettings, false);
                     }
-                    File.Delete(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" + source.GroupId + ".json");
-                    File.WriteAllText(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" + source.GroupId + ".json", JsonConvert.SerializeObject(_groupCommandSettings));
+
+                    File.Delete(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" +
+                                source.GroupId + ".json");
+                    File.WriteAllText(
+                        AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" + source.GroupId +
+                        ".json", JsonConvert.SerializeObject(_groupCommandSettings));
                     //settings = _groupCommandSettings;
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
+                    MessageManager.SendGroupMessageAsync(source.GroupId,
+                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
                 }
                 else
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 输入格式有误") });
+                    MessageManager.SendGroupMessageAsync(source.GroupId,
+                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 输入格式有误") });
                 }
+
                 return Task.CompletedTask;
             }
             else
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您无权执行该命令") });
+                MessageManager.SendGroupMessageAsync(source.GroupId,
+                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您无权执行该命令") });
                 return Task.CompletedTask;
             }
         }
@@ -172,12 +212,14 @@ namespace LapisBot_Renewed
             var tInType = tIn.GetType();
             foreach (var itemOut in tOut.GetType().GetProperties())
             {
-                var itemIn = tInType.GetProperty(itemOut.Name); ;
+                var itemIn = tInType.GetProperty(itemOut.Name);
+                ;
                 if (itemIn != null)
                 {
                     itemOut.SetValue(tOut, itemIn.GetValue(tIn));
                 }
             }
+
             return tOut;
         }
 
@@ -191,17 +233,25 @@ namespace LapisBot_Renewed
                 if (settingsList[i].GroupId == source.GroupId)
                     _groupCommandSettings = settingsList[i];
             }
+
             if (_groupCommandSettings.GroupId == null)
             {
                 _groupCommandSettings.GroupId = source.GroupId;
                 settingsList.Add(_groupCommandSettings);
                 if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
-                    Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
-                File.WriteAllText(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" + _groupCommandSettings.GroupId + ".json", JsonConvert.SerializeObject(_groupCommandSettings));
+                    Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName +
+                                              " Settings");
+                File.WriteAllText(
+                    AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings/" +
+                    _groupCommandSettings.GroupId + ".json", JsonConvert.SerializeObject(_groupCommandSettings));
             }
+
             Console.WriteLine(_groupCommandSettings.SettingsName);
-            var image = BotSettingsImageGenerator.Generate(_groupCommandSettings);
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } });
+            Program.settingsCommand.GetSettings(source);
+            var image = BotSettingsImageGenerator.Generate(_groupCommandSettings,
+                Program.settingsCommand.CurrentBotSettings.CompressedImage);
+            MessageManager.SendGroupMessageAsync(source.GroupId,
+                new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } });
             return Task.CompletedTask;
         }
 
@@ -217,7 +267,8 @@ namespace LapisBot_Renewed
 
         public GroupCommandSettings _groupCommandSettings;
 
-        public GroupCommandSettings defaultSettings = new GroupCommandSettings() { Enabled = true, DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" } } };
+        public GroupCommandSettings defaultSettings = new GroupCommandSettings()
+            { Enabled = true, DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" } } };
     }
 }
 

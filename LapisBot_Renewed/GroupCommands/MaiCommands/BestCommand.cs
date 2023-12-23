@@ -49,7 +49,8 @@ namespace LapisBot_Renewed
                     var content = Program.apiOperator.Post("api/maimaidxprober/query/player", new { username = command, b50 = true });
                     //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
                     BestDto best = JsonConvert.DeserializeObject<BestDto>(content);
-                    var image = BestImageGenerator.Generate(best, source.Sender.Id, false);
+                    Program.settingsCommand.GetSettings(source);
+                    var image = BestImageGenerator.Generate(best, source.Sender.Id, false, Program.settingsCommand.CurrentBotSettings.CompressedImage);
                     //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                     var _image = new ImageMessage
                     {
@@ -138,7 +139,10 @@ namespace LapisBot_Renewed
                     else if (50 > achievement)
                         score.rate = Rate.D;
                 }
-                var image = BestImageGenerator.Generate(best, source.Sender.Id, true);
+                
+                Program.settingsCommand.GetSettings(source);
+                
+                var image = BestImageGenerator.Generate(best, source.Sender.Id, true, Program.settingsCommand.CurrentBotSettings.CompressedImage);
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 var _image = new ImageMessage
                 {

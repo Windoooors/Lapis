@@ -30,6 +30,7 @@ namespace LapisBot_Renewed
             return JsonConvert.DeserializeObject<InfoSettings>(JsonConvert.SerializeObject(infoSettings));
         }
     }
+
     public class InfoCommand : MaiCommand
     {
         //public new InfoSettings _groupCommandSettings;
@@ -58,18 +59,48 @@ namespace LapisBot_Renewed
                 Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
 
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName +
+                                                       " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<InfoSettings>(settingsString));
             }
+
             return Task.CompletedTask;
         }
 
-        public enum Rate { D, C, B, BB, BBB, A, AA, AAA, S, Sp, SS, SSp, SSS, SSSp }
+        public enum Rate
+        {
+            D,
+            C,
+            B,
+            BB,
+            BBB,
+            A,
+            AA,
+            AAA,
+            S,
+            Sp,
+            SS,
+            SSp,
+            SSS,
+            SSSp
+        }
 
-        public enum FCState { None, FC, FCp }
-        public enum FSState { None, FS, FSd }
+        public enum FCState
+        {
+            None,
+            FC,
+            FCp
+        }
+
+        public enum FSState
+        {
+            None,
+            FS,
+            FSd
+        }
 
         public class GetScore
         {
@@ -88,68 +119,74 @@ namespace LapisBot_Renewed
             {
                 //try
                 //{
-                    var content = Program.apiOperator.Post("api/maimaidxprober/query/plate", new { username = name, version = new string[] { version } });
-                    ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+                var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                    new { username = name, version = new string[] { version } });
+                ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
-                    List<Level> levelList = new List<Level>();
-                    foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
+                List<Level> levelList = new List<Level>();
+                foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
+                {
+                    if (score.Id == id)
                     {
-                        if (score.Id == id)
+                        var rate = new Rate();
+
+                        var achievement = score.Achievements;
+                        if (achievement >= 100.5)
+                            rate = Rate.SSSp;
+                        else if (100.5 > achievement && achievement >= 100)
+                            rate = Rate.SSS;
+                        else if (100 > achievement && achievement >= 99.5)
+                            rate = Rate.SSp;
+                        else if (99.5 > achievement && achievement >= 99)
+                            rate = Rate.SS;
+                        else if (99 > achievement && achievement >= 98)
+                            rate = Rate.Sp;
+                        else if (98 > achievement && achievement >= 97)
+                            rate = Rate.S;
+                        else if (97 > achievement && achievement >= 94)
+                            rate = Rate.AAA;
+                        else if (94 > achievement && achievement >= 90)
+                            rate = Rate.AA;
+                        else if (90 > achievement && achievement >= 80)
+                            rate = Rate.A;
+                        else if (80 > achievement && achievement >= 75)
+                            rate = Rate.BBB;
+                        else if (75 > achievement && achievement >= 70)
+                            rate = Rate.BB;
+                        else if (70 > achievement && achievement >= 60)
+                            rate = Rate.B;
+                        else if (60 > achievement && achievement >= 50)
+                            rate = Rate.C;
+                        else if (50 > achievement)
+                            rate = Rate.D;
+
+                        var fc = new FCState();
+                        var fs = new FSState();
+
+                        if (score.Fc == "fc")
+                            fc = FCState.FC;
+                        else if (score.Fc == "fcp")
+                            fc = FCState.FCp;
+                        else if (score.Fc == "")
+                            fc = FCState.None;
+                        /*
+                        if (score.Fsd == "fs")
+                            fs = FSState.FS;
+                        else if (score.Fsd == "fsd")
+                            fs = FSState.FSd;
+                        else if (score.Fsd == "")
+                            fs = FSState.None;
+                        */
+                        levelList.Add(new Level()
                         {
-                            var rate = new Rate();
+                            achievement = score.Achievements, rate = rate, levelIndex = score.LevelIndex, fc = fc,
+                            fs = fs
+                        });
 
-                            var achievement = score.Achievements;
-                            if (achievement >= 100.5)
-                                rate = Rate.SSSp;
-                            else if (100.5 > achievement && achievement >= 100)
-                                rate = Rate.SSS;
-                            else if (100 > achievement && achievement >= 99.5)
-                                rate = Rate.SSp;
-                            else if (99.5 > achievement && achievement >= 99)
-                                rate = Rate.SS;
-                            else if (99 > achievement && achievement >= 98)
-                                rate = Rate.Sp;
-                            else if (98 > achievement && achievement >= 97)
-                                rate = Rate.S;
-                            else if (97 > achievement && achievement >= 94)
-                                rate = Rate.AAA;
-                            else if (94 > achievement && achievement >= 90)
-                                rate = Rate.AA;
-                            else if (90 > achievement && achievement >= 80)
-                                rate = Rate.A;
-                            else if (80 > achievement && achievement >= 75)
-                                rate = Rate.BBB;
-                            else if (75 > achievement && achievement >= 70)
-                                rate = Rate.BB;
-                            else if (70 > achievement && achievement >= 60)
-                                rate = Rate.B;
-                            else if (60 > achievement && achievement >= 50)
-                                rate = Rate.C;
-                            else if (50 > achievement)
-                                rate = Rate.D;
-
-                            var fc = new FCState();
-                            var fs = new FSState();
-
-                            if (score.Fc == "fc")
-                                fc = FCState.FC;
-                            else if (score.Fc == "fcp")
-                                fc = FCState.FCp;
-                            else if (score.Fc == "")
-                                fc = FCState.None;
-                            /*
-                            if (score.Fsd == "fs")
-                                fs = FSState.FS;
-                            else if (score.Fsd == "fsd")
-                                fs = FSState.FSd;
-                            else if (score.Fsd == "")
-                                fs = FSState.None;
-                            */
-                            levelList.Add(new Level() { achievement = score.Achievements, rate = rate, levelIndex = score.LevelIndex, fc = fc, fs = fs });
-
-                        }
                     }
-                    levels = levelList.ToArray();
+                }
+
+                levels = levelList.ToArray();
                 //}
                 /*catch
                 {
@@ -162,7 +199,8 @@ namespace LapisBot_Renewed
             {
                 try
                 {
-                    var content = Program.apiOperator.Post("api/maimaidxprober/query/plate", new { qq = number, version = new string[] { version } });
+                    var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                        new { qq = number, version = new string[] { version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
                     List<Level> levelList = new List<Level>();
@@ -219,10 +257,15 @@ namespace LapisBot_Renewed
                             else if (score.Fsd == "")
                                 fs = FSState.None;
                             */
-                            levelList.Add(new Level() { achievement = score.Achievements, rate = rate, levelIndex = score.LevelIndex, fc = fc, fs = fs });
+                            levelList.Add(new Level()
+                            {
+                                achievement = score.Achievements, rate = rate, levelIndex = score.LevelIndex, fc = fc,
+                                fs = fs
+                            });
 
                         }
                     }
+
                     levels = levelList.ToArray();
                 }
                 catch
@@ -234,25 +277,19 @@ namespace LapisBot_Renewed
 
             public class ScoresDto
             {
-                [JsonProperty("verlist")]
-                public ScoreDto[] ScoreDtos;
+                [JsonProperty("verlist")] public ScoreDto[] ScoreDtos;
 
                 public class ScoreDto
                 {
-                    [JsonProperty("achievements")]
-                    public float Achievements;
+                    [JsonProperty("achievements")] public float Achievements;
 
-                    [JsonProperty("fc")]
-                    public string Fc;
+                    [JsonProperty("fc")] public string Fc;
 
-                    [JsonProperty("fsd")]
-                    public string Fsd;
+                    [JsonProperty("fsd")] public string Fsd;
 
-                    [JsonProperty("Id")]
-                    public int Id;
+                    [JsonProperty("Id")] public int Id;
 
-                    [JsonProperty("level_index")]
-                    public int LevelIndex;
+                    [JsonProperty("level_index")] public int LevelIndex;
                 }
             }
 
@@ -270,12 +307,17 @@ namespace LapisBot_Renewed
                     {
                         var i = maiCommand.GetSongIndexById(aliases[0].id);
                         //var name = command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty);
-                        GetScore.getScore.Get(command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty), songs[i].BasicInfo.Version, songs[i].Id);
+                        GetScore.getScore.Get(
+                            command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty),
+                            songs[i].BasicInfo.Version, songs[i].Id);
+                        Program.settingsCommand.GetSettings(source);
                         var _image = new ImageMessage
                         {
-                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels)
+                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels,
+                                Program.settingsCommand.CurrentBotSettings.CompressedImage)
                         };
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
+                        MessageManager.SendGroupMessageAsync(source.GroupId,
+                            new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
                         if (((InfoSettings)_groupCommandSettings).SongPreview)
                         {
@@ -288,7 +330,8 @@ namespace LapisBot_Renewed
                     }
                     catch
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                        MessageManager.SendGroupMessageAsync(source.GroupId,
+                            new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
                     }
                 }
                 else
@@ -300,20 +343,30 @@ namespace LapisBot_Renewed
                         if (idsList.Contains(aliases[i].id))
                             continue;
                         int _index = maiCommand.GetSongIndexById(aliases[i].id);
-                        ids += "ID " + aliases[i].id + " - " + maiCommand.songs[_index].Title + " [" + maiCommand.songs[_index].Type + "]";
+                        ids += "ID " + aliases[i].id + " - " + maiCommand.songs[_index].Title + " [" +
+                               maiCommand.songs[_index].Type + "]";
                         idsList.Add(aliases[i].id);
                         if (i != aliases.Length - 1)
                             ids += "\n";
                     }
+
                     if (idsList.Count == 1)
                     {
-                        Parse("ID " + idsList[0] + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command), string.Empty), source);
+                        Parse(
+                            "ID " + idsList[0] + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command),
+                                string.Empty), source);
                         return Task.CompletedTask;
                     }
+
                     int index = maiCommand.GetSongIndexById(idsList[0]);
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
+                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                    {
                         new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai info ID " + idsList[0] + " " + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty) + "\" 指令即可查询歌曲 " + maiCommand.songs[index].Title + " [" + maiCommand.songs[index].Type + "] 的相关信息")});
+                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai info ID " + idsList[0] + " " +
+                                         command.Replace(maiCommand.GetAliasStringUsingStartsWith(command) + " ",
+                                             string.Empty) + "\" 指令即可查询歌曲 " + maiCommand.songs[index].Title + " [" +
+                                         maiCommand.songs[index].Type + "] 的相关信息")
+                    });
                 }
                 //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定") });
             }
@@ -331,13 +384,17 @@ namespace LapisBot_Renewed
                         {
                             try
                             {
-                                GetScore.getScore.Get(idRegex.Replace(command, "").TrimStart(), songs[index].BasicInfo.Version, songs[index].Id);
+                                GetScore.getScore.Get(idRegex.Replace(command, "").TrimStart(),
+                                    songs[index].BasicInfo.Version, songs[index].Id);
+                                Program.settingsCommand.GetSettings(source);
                                 var _image = new ImageMessage
                                 {
-                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
+                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels,
+                                        Program.settingsCommand.CurrentBotSettings.CompressedImage)
                                 };
 
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
+                                MessageManager.SendGroupMessageAsync(source.GroupId,
+                                    new MessageChain() { new AtMessage(source.Sender.Id), _image });
                                 if (((InfoSettings)_groupCommandSettings).SongPreview)
                                 {
                                     var _voice = new VoiceMessage
@@ -349,17 +406,23 @@ namespace LapisBot_Renewed
                             }
                             catch
                             {
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                                MessageManager.SendGroupMessageAsync(source.GroupId,
+                                    new MessageChain()
+                                        { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
                             }
                         }
                         else
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
-                                new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲") });
+                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                            {
+                                new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
+                            });
                     }
                     catch
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
-                                new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲") });
+                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                        {
+                            new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
+                        });
                     }
 
                 }
@@ -370,12 +433,16 @@ namespace LapisBot_Renewed
                     {
                         try
                         {
-                            GetScore.getScore.Get(command.Replace(songs[index].Title + " ", string.Empty), songs[index].BasicInfo.Version, songs[index].Id);
+                            GetScore.getScore.Get(command.Replace(songs[index].Title + " ", string.Empty),
+                                songs[index].BasicInfo.Version, songs[index].Id);
+                            Program.settingsCommand.GetSettings(source);
                             var _image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
+                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels,
+                                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
+                            MessageManager.SendGroupMessageAsync(source.GroupId,
+                                new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
                             if (((InfoSettings)_groupCommandSettings).SongPreview)
                             {
@@ -388,17 +455,22 @@ namespace LapisBot_Renewed
                         }
                         catch
                         {
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                            MessageManager.SendGroupMessageAsync(source.GroupId,
+                                new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
                         }
                     }
                     else
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
-                                new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲") });
+                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                        {
+                            new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
+                        });
                 }
                 //MessageManager.SendGroupMessageAsync(source.GroupId, " ");
             }
+
             return Task.CompletedTask;
         }
+
         public override Task Parse(string command, GroupMessageReceiver source)
         {
             var aliases = maiCommand.GetAliasByAliasString(command);
@@ -410,11 +482,14 @@ namespace LapisBot_Renewed
                     {
                         var i = maiCommand.GetSongIndexById(aliases[0].id);
                         GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[i].BasicInfo.Version, songs[i].Id);
+                        Program.settingsCommand.GetSettings(source);
                         var _image = new ImageMessage
                         {
-                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels)
+                            Base64 = InfoImageGenerator.Generate(i, songs, "歌曲信息", GetScore.getScore.levels,
+                                Program.settingsCommand.CurrentBotSettings.CompressedImage)
                         };
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
+                        MessageManager.SendGroupMessageAsync(source.GroupId,
+                            new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
                         if (((InfoSettings)_groupCommandSettings).SongPreview)
                         {
@@ -427,7 +502,13 @@ namespace LapisBot_Renewed
                     }
                     catch
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定") });
+                        MessageManager.SendGroupMessageAsync(source.GroupId,
+                            new MessageChain()
+                            {
+                                new AtMessage(source.Sender.Id),
+                                new PlainMessage(
+                                    " 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+                            });
                     }
                 }
                 else
@@ -439,20 +520,29 @@ namespace LapisBot_Renewed
                         if (idsList.Contains(aliases[i].id))
                             continue;
                         int _index = maiCommand.GetSongIndexById(aliases[i].id);
-                        ids += "ID " + aliases[i].id + " - " + maiCommand.songs[_index].Title + " [" + maiCommand.songs[_index].Type + "]";
+                        ids += "ID " + aliases[i].id + " - " + maiCommand.songs[_index].Title + " [" +
+                               maiCommand.songs[_index].Type + "]";
                         idsList.Add(aliases[i].id);
                         if (i != aliases.Length - 1)
                             ids += "\n";
                     }
+
                     if (idsList.Count == 1)
                     {
-                        Parse("ID " + idsList[0] + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command), string.Empty), source);
+                        Parse(
+                            "ID " + idsList[0] + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command),
+                                string.Empty), source);
                         return Task.CompletedTask;
                     }
+
                     int index = maiCommand.GetSongIndexById(idsList[0]);
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
+                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                    {
                         new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai info ID " + idsList[0] + "\" 指令即可查询歌曲 " + maiCommand.songs[index].Title + " [" + maiCommand.songs[index].Type + "] 的相关信息")});
+                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai info ID " + idsList[0] +
+                                         "\" 指令即可查询歌曲 " + maiCommand.songs[index].Title + " [" +
+                                         maiCommand.songs[index].Type + "] 的相关信息")
+                    });
                 }
             }
             else
@@ -469,22 +559,26 @@ namespace LapisBot_Renewed
                         {
                             //try
                             //{
-                                GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version, songs[index].Id);
-                                var _image = new ImageMessage
+                            GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version,
+                                songs[index].Id);
+                            Program.settingsCommand.GetSettings(source);
+                            var _image = new ImageMessage
+                            {
+                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels,
+                                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
+                            };
+
+                            MessageManager.SendGroupMessageAsync(source.GroupId,
+                                new MessageChain() { new AtMessage(source.Sender.Id), _image });
+
+                            if (((InfoSettings)_groupCommandSettings).SongPreview)
+                            {
+                                var _voice = new VoiceMessage
                                 {
-                                    Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
+                                    Path = SongToVoiceConverter.Convert(id)
                                 };
-
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
-
-                                if (((InfoSettings)_groupCommandSettings).SongPreview)
-                                {
-                                    var _voice = new VoiceMessage
-                                    {
-                                        Path = SongToVoiceConverter.Convert(id)
-                                    };
-                                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
-                                }
+                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
+                            }
                             /*}
                             catch
                             {
@@ -507,12 +601,16 @@ namespace LapisBot_Renewed
                     {
                         try
                         {
-                            GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version, songs[index].Id);
+                            GetScore.getScore.Get(source.Sender.Id.ToInt64(), songs[index].BasicInfo.Version,
+                                songs[index].Id);
+                            Program.settingsCommand.GetSettings(source);
                             var _image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels)
+                                Base64 = InfoImageGenerator.Generate(index, songs, "歌曲信息", GetScore.getScore.levels,
+                                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), _image });
+                            MessageManager.SendGroupMessageAsync(source.GroupId,
+                                new MessageChain() { new AtMessage(source.Sender.Id), _image });
 
                             if (((InfoSettings)_groupCommandSettings).SongPreview)
                             {
@@ -525,7 +623,13 @@ namespace LapisBot_Renewed
                         }
                         catch
                         {
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定") });
+                            MessageManager.SendGroupMessageAsync(source.GroupId,
+                                new MessageChain()
+                                {
+                                    new AtMessage(source.Sender.Id),
+                                    new PlainMessage(
+                                        " 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+                                });
                         }
                     }
                     else
@@ -533,6 +637,7 @@ namespace LapisBot_Renewed
                 }
                 //MessageManager.SendGroupMessageAsync(source.GroupId, " ");
             }
+
             return Task.CompletedTask;
         }
     }

@@ -8,7 +8,7 @@ namespace LapisBot_Renewed
 {
     public class BotSettingsImageGenerator
     {
-        public static string Generate(BotSettingsCommand.Settings settings)
+        public static string Generate(BotSettingsCommand.Settings settings, bool isCompressed)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resources/settings/background.png");
 
@@ -45,10 +45,14 @@ namespace LapisBot_Renewed
                 image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
                 i++;
             }
-            
-            image.SetCompression(CompressionMethod.JPEG);
-            image.Format = MagickFormat.Jpeg;
-            image.Quality = 90;
+
+            if (isCompressed)
+            {
+                image.SetCompression(CompressionMethod.JPEG);
+                image.Format = MagickFormat.Jpeg;
+                image.Quality = 90;
+            }
+
             return image.ToBase64();
         }
     }

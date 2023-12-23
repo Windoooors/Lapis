@@ -12,7 +12,7 @@ namespace LapisBot_Renewed
 
         }
 
-        public static string Generate(BestDto best, string userId, bool usingHead)
+        public static string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
         {
             MagickImage head;
             if (usingHead)
@@ -233,9 +233,18 @@ namespace LapisBot_Renewed
                 image.Composite(GenerateItem(best.Charts.DxCharts[i], i + 1), x, y, CompositeOperator.Atop);
             }
 
-            image.SetCompression(CompressionMethod.JPEG);
-            image.Format = MagickFormat.Jpeg;
-            image.Quality = 90;
+            if (isCompressed)
+            {
+                image.SetCompression(CompressionMethod.JPEG);
+                image.Format = MagickFormat.Jpeg;
+                image.Quality = 90;
+            }
+            else
+            {
+                image.SetCompression(CompressionMethod.JPEG);
+                image.Format = MagickFormat.Jpeg;
+                image.Quality = 100;
+            }
 
             return image.ToBase64();
         }
