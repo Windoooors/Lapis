@@ -26,6 +26,7 @@ namespace LapisBot_Renewed
 			}
 
 			return AppContext.BaseDirectory + "temp/" + id + ".silk";
+			//return AppContext.BaseDirectory + "resources/tracks/" + id + ".mp3";
 
         }
 	}

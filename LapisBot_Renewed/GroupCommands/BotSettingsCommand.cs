@@ -43,7 +43,7 @@ namespace LapisBot_Renewed
         public List<BotSettings> botSettingsList = new List<BotSettings>();
 
         public BotSettings botDefaultSettings = new BotSettings()
-            { SettingsName = "Lapis Bot", HeadlessCommand = true, UpdateMessage = true, CompressedImage = true };
+            { SettingsName = "通用设置", HeadlessCommand = true, UpdateMessage = true, CompressedImage = true };
 
         public override Task Initialize()
         {
