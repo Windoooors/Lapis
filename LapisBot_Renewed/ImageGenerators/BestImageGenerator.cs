@@ -279,8 +279,8 @@ namespace LapisBot_Renewed
             }
             var foreground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/b50_item_foreground_" + difficulty + ".png");
             MagickImage background;
-            if (System.IO.File.Exists(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString("00000") + ".png"))
-                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString("00000") + ".png");
+            if (System.IO.File.Exists(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString() + ".png"))
+                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString() + ".png");
             else
                 background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/01000.png");
 
@@ -372,7 +372,7 @@ namespace LapisBot_Renewed
             var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 1750, Height = 1440 });
             var background = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 1750, Height = 1440 });
             if (best.Charts.SdCharts.Length != 0)
-                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" + best.Charts.SdCharts[0].Id.ToString("00000") + ".png");
+                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" + best.Charts.SdCharts[0].Id.ToString() + ".png");
             background.Scale(75, 75);
             background.GaussianBlur(10);
             background.Resize(1750, 1750);
