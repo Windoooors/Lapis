@@ -46,12 +46,12 @@ namespace LapisBot_Renewed
                 i++;
             }
 
-            if (isCompressed)
+            /*if (isCompressed)
             {
                 image.SetCompression(CompressionMethod.JPEG);
                 image.Format = MagickFormat.Jpeg;
                 image.Quality = 90;
-            }
+            }*/
 
             return image.ToBase64();
         }
