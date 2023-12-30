@@ -62,16 +62,30 @@ namespace LapisBot_Renewed
 
                 var commandString = source.MessageChain.GetPlainMessage();
 
+                RespondWithoutParsingCommand(source, commandString, Program.groupCommands);
+                
                 var currentBotSettings = Program.settingsCommand.CurrentBotSettings;
                 if (currentBotSettings.HeadlessCommand)
                     ParseHeadlessly(source, commandString, Program.groupCommands);
 
                 if (!_headCommandRegex.IsMatch(commandString))
                     return;
-
+                
                 commandString = _headCommandRegex.Replace(commandString, string.Empty);
-
+                
                 Parse(source, commandString, Program.groupCommands);
+            }
+        }
+
+        private async void RespondWithoutParsingCommand(GroupMessageReceiver source, string commandString, List<GroupCommand> commands)
+        {
+            foreach (GroupCommand command in commands)
+            {
+                await command.RespondWithoutParsingCommand(commandString, source);
+                if (command.SubCommands.Count != 0)
+                {
+                    RespondWithoutParsingCommand(source, commandString, command.SubCommands);
+                }
             }
         }
 
@@ -79,7 +93,6 @@ namespace LapisBot_Renewed
         {
             foreach (GroupCommand command in commands)
             {
-                await command.RespondWithoutParsingCommand(commandString, source);
                 if (command.SubHeadCommand != null && command.SubHeadCommand.IsMatch(commandString))
                 {
                     commandString = command.SubHeadCommand.Replace(commandString, string.Empty);
