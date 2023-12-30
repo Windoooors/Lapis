@@ -81,7 +81,8 @@ namespace LapisBot_Renewed
         {
             foreach (GroupCommand command in commands)
             {
-                await command.RespondWithoutParsingCommand(commandString, source);
+                var taskParse = new Task(() => command.RespondWithoutParsingCommand(commandString, source));
+                taskParse.Start();
                 if (command.SubCommands.Count != 0)
                 {
                     RespondWithoutParsingCommand(source, commandString, command.SubCommands);
@@ -103,7 +104,8 @@ namespace LapisBot_Renewed
 
                     if (await SettingsParse(source, commandString, command))
                         return;
-                    await command.SubAbilityCheckingParse(commandString, source);
+                    var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
+                    taskParse.Start();
                 }
                 else if (command.HeadCommand != null && command.HeadCommand.IsMatch(commandString))
                 {
@@ -115,7 +117,8 @@ namespace LapisBot_Renewed
 
                     if (await SettingsParse(source, commandString, command))
                         return;
-                    await command.AbilityCheckingParse(commandString, source);
+                    var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
+                    taskParse.Start();
                 }
             }
         }
@@ -135,14 +138,16 @@ namespace LapisBot_Renewed
                     commandString = command.SubDirectCommand.Replace(commandString, string.Empty);
                     if (await SettingsParse(source, commandString, command))
                         return;
-                    await command.SubAbilityCheckingParse(commandString, source);
+                    var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
+                    taskParse.Start();
                 }
                 else if (command.DirectCommand != null && command.DirectCommand.IsMatch(commandString))
                 {
                     commandString = command.DirectCommand.Replace(commandString, string.Empty);
                     if (await SettingsParse(source, commandString, command))
                         return;
-                    await command.AbilityCheckingParse(commandString, source);
+                    var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
+                    taskParse.Start();
                 }
             }
         }
@@ -154,14 +159,16 @@ namespace LapisBot_Renewed
             var settingsRegex = new Regex(@"^settings\s[0-9]\s(true|false)$");
             if (showSettingsRegex.IsMatch(commandString))
             {
-                await command.SettingsParse(commandString, source);
+                var taskParse = new Task(() => command.SettingsParse(commandString, source));
+                taskParse.Start();
                 return true;
             }
 
             if (settingsRegex.IsMatch(commandString))
             {
                 commandString = settingsRegex.Match(commandString).ToString();
-                await command.SubSettingsParse(commandString, source);
+                var taskParse = new Task(() => command.SubSettingsParse(commandString, source));
+                taskParse.Start();
                 return true;
             }
 
