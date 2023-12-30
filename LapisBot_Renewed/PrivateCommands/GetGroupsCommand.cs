@@ -10,7 +10,7 @@ namespace LapisBot_Renewed
     {
         public override Task Initialize()
         {
-            headCommand = new Regex(@"^groups$");
+            HeadCommand = new Regex(@"^groups$");
             return Task.CompletedTask;
         }
 

@@ -2,30 +2,28 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using LapisBot_Renewed;
 using Mirai.Net.Data.Messages;
 using Mirai.Net.Data.Messages.Concretes;
 using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
 using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
     public class GuessCommand : MaiCommand
     {
         public override Task Initialize()
         {
-            headCommand = new Regex(@"^guess$");
-            directCommand = new Regex(@"^guess$");
-            defaultSettings.SettingsName = "猜歌";
-            _groupCommandSettings = defaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            HeadCommand = new Regex(@"^guess$");
+            DirectCommand = new Regex(@"^guess$");
+            DefaultSettings.SettingsName = "猜歌";
+            CurrentGroupCommandSettings = DefaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
                 
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));

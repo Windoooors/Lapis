@@ -10,22 +10,22 @@ using Mirai.Net.Data.Messages.Concretes;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.GroupCommands.StickerCommands
 {
     public class FortuneCommand : StickerCommand
     {
         public override Task Initialize()
         {
-            headCommand = new Regex(@"^喜报\s");
-            directCommand = new Regex(@"^喜报\s");
-            defaultSettings.SettingsName = "喜报";
-            _groupCommandSettings = defaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            HeadCommand = new Regex(@"^喜报\s");
+            DirectCommand = new Regex(@"^喜报\s");
+            DefaultSettings.SettingsName = "喜报";
+            CurrentGroupCommandSettings = DefaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
                 
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));

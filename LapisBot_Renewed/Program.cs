@@ -4,12 +4,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions;
-using Mirai.Net.Utils.Internal;
 using Mirai.Net.Sessions.Http.Managers;
 using Mirai.Net.Data.Events.Concretes.Request;
 using Mirai.Net.Data.Shared;
-using Mirai.Net.Utils.Scaffolds;
 using Newtonsoft.Json;
+using LapisBot_Renewed.GroupCommands;
 using System.Threading;
 
 namespace LapisBot_Renewed
@@ -88,7 +87,7 @@ namespace LapisBot_Renewed
 
             bot.MessageReceived
                 .OfType<GroupMessageReceiver>()
-                .Subscribe(commandParser.Parse);
+                .Subscribe(commandParser.MainParse);
 
             bot.MessageReceived.OfType<FriendMessageReceiver>().Subscribe(commandParser.Parse);
 

@@ -1,39 +1,37 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using ImageMagick;
-namespace LapisBot_Renewed
+using LapisBot_Renewed.GroupCommands.MaiCommands;
+using LapisBot_Renewed.GroupCommands;
+
+namespace LapisBot_Renewed.ImageGenerators
 {
     public class InfoImageGenerator
     {
-        public InfoImageGenerator()
-        {
-        }
-
         //public static System.Drawing.Text.PrivateFontCollection PrivateFonts;
 
-        private static string GetPictureID(int id)
+        private static string GetPictureId(int id)
         {
             return id.ToString("00000");
         }
 
-        private static string coverImagePath;
+        private static string _coverImagePath;
 
-        public static MagickImage GenerateBackground(int index, SongDto[] songs, string title, ApiOperator apiOperator)
+        private static MagickImage GenerateBackground(int index, SongDto[] songs, string title, ApiOperator apiOperator)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resources/random/background.png");
             try
             {
                 if (File.Exists(Environment.CurrentDirectory + @"/resources/covers_hd/" + songs[index].Id + ".png"))
-                    coverImagePath = Environment.CurrentDirectory + @"/resources/covers_hd/" + songs[index].Id + ".png";
+                    _coverImagePath = Environment.CurrentDirectory + @"/resources/covers_hd/" + songs[index].Id + ".png";
                 else
-                    coverImagePath = apiOperator.ImageToPng("https://www.diving-fish.com/covers/" + GetPictureID(songs[index].Id) + ".png", Environment.CurrentDirectory + @"/temp", "cover_temp.png");
+                    _coverImagePath = apiOperator.ImageToPng("https://www.diving-fish.com/covers/" + GetPictureId(songs[index].Id) + ".png", Environment.CurrentDirectory + @"/temp", "cover_temp.png");
             }
             catch
             {
-                coverImagePath = Environment.CurrentDirectory + @"/resources/covers/01000.png";
+                _coverImagePath = Environment.CurrentDirectory + @"/resources/covers/01000.png";
             }
-            var backgroundCoverImage = new MagickImage(coverImagePath);
+            var backgroundCoverImage = new MagickImage(_coverImagePath);
             backgroundCoverImage.Resize(64, 64);
             backgroundCoverImage.GaussianBlur(20);
             backgroundCoverImage.Resize(1400, 1400);
@@ -67,16 +65,16 @@ namespace LapisBot_Renewed
             return image;
         }
 
-        public static MagickImage GenerateDifficultyLayer(int index, SongDto[] songs, InfoCommand.GetScore.Level[] levels)
+        public static MagickImage GenerateDifficultyLayer(int index, SongDto[] songs, InfoCommand.GetScoreDto.Level[] levels)
         {
             var difficultyLayerImage = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 6600, Height = 1080 });
             if (levels != null)
             {
-                MagickImage _image = null;
-                foreach (InfoCommand.GetScore.Level level in levels)
+                MagickImage image = null;
+                foreach (InfoCommand.GetScoreDto.Level level in levels)
                 {
                     var y = 0;
-                    switch (level.levelIndex)
+                    switch (level.LevelIndex)
                     {
                         case 0:
                             y = 0;
@@ -99,49 +97,49 @@ namespace LapisBot_Renewed
                         .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
                         .FontPointSize(24)
                         .FillColor(new MagickColor(65535, 65535, 65535))
-                        .Text(0, y + 92, Math.Round(level.achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") + "% ")
+                        .Text(0, y + 92, Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") + "% ")
                         .Draw(difficultyLayerImage);
-                    if (Math.Round(level.achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 6)
+                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 6)
                         x = 100;
-                    if (Math.Round(level.achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 5)
+                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 5)
                         x = 87;
-                    if (Math.Round(level.achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 4)
+                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 4)
                         x = 74;
 
-                    if (level.rate == InfoCommand.Rate.SSS)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/sss.png");
-                    else if (level.rate == InfoCommand.Rate.SSSp)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/sss_plus.png");
-                    else if (level.rate == InfoCommand.Rate.SS)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/ss.png");
-                    else if (level.rate == InfoCommand.Rate.SSp)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/ss_plus.png");
-                    else if (level.rate == InfoCommand.Rate.Sp)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/s_plus.png");
-                    else if (level.rate == InfoCommand.Rate.S)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/s.png");
-                    else if (level.rate == InfoCommand.Rate.AAA)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/aaa.png");
-                    else if (level.rate == InfoCommand.Rate.AA)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/aa.png");
-                    else if (level.rate == InfoCommand.Rate.A)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/a.png");
-                    else if (level.rate == InfoCommand.Rate.BBB)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/bbb.png");
-                    else if (level.rate == InfoCommand.Rate.BB)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/bb.png");
-                    else if (level.rate == InfoCommand.Rate.B)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/b.png");
-                    else if (level.rate == InfoCommand.Rate.C)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/c.png");
-                    else if (level.rate == InfoCommand.Rate.D)
-                        _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/d.png");
-                    if (_image != null)
+                    if (level.Rate == InfoCommand.Rate.Sss)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/sss.png");
+                    else if (level.Rate == InfoCommand.Rate.Sssp)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/sss_plus.png");
+                    else if (level.Rate == InfoCommand.Rate.Ss)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/ss.png");
+                    else if (level.Rate == InfoCommand.Rate.Ssp)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/ss_plus.png");
+                    else if (level.Rate == InfoCommand.Rate.Sp)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/s_plus.png");
+                    else if (level.Rate == InfoCommand.Rate.S)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/s.png");
+                    else if (level.Rate == InfoCommand.Rate.Aaa)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/aaa.png");
+                    else if (level.Rate == InfoCommand.Rate.Aa)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/aa.png");
+                    else if (level.Rate == InfoCommand.Rate.A)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/a.png");
+                    else if (level.Rate == InfoCommand.Rate.Bbb)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/bbb.png");
+                    else if (level.Rate == InfoCommand.Rate.Bb)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/bb.png");
+                    else if (level.Rate == InfoCommand.Rate.B)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/b.png");
+                    else if (level.Rate == InfoCommand.Rate.C)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/c.png");
+                    else if (level.Rate == InfoCommand.Rate.D)
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/d.png");
+                    if (image != null)
                     {
-                        if (_image.BaseHeight == 22 || _image.BaseHeight == 23)
-                            difficultyLayerImage.Composite(_image, x, y + 70, CompositeOperator.Blend);
-                        if (_image.BaseHeight == 19 || _image.BaseHeight == 20 || _image.BaseHeight == 18)
-                            difficultyLayerImage.Composite(_image, x, y + 73, CompositeOperator.Blend);
+                        if (image.BaseHeight == 22 || image.BaseHeight == 23)
+                            difficultyLayerImage.Composite(image, x, y + 70, CompositeOperator.Blend);
+                        if (image.BaseHeight == 19 || image.BaseHeight == 20 || image.BaseHeight == 18)
+                            difficultyLayerImage.Composite(image, x, y + 73, CompositeOperator.Blend);
                     }
                 }
             }
@@ -193,7 +191,7 @@ namespace LapisBot_Renewed
             return difficultyLayerImage;
         }
 
-        public static string Generate(int index, SongDto[] songs, string title, InfoCommand.GetScore.Level[] levels, bool isCompressed)
+        public static string Generate(int index, SongDto[] songs, string title, InfoCommand.GetScoreDto.Level[] levels, bool isCompressed)
         {
             var image = GenerateBackground(index, songs, title, Program.apiOperator);
 
@@ -202,7 +200,7 @@ namespace LapisBot_Renewed
             var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resources/random/coverimage.png");
             image.Composite(coverImageShadow, 0, 0, CompositeOperator.Atop);
 
-            var coverImage = new MagickImage(coverImagePath);
+            var coverImage = new MagickImage(_coverImagePath);
             coverImage.Resize(1077, 1077);
             image.Composite(coverImage, 324, 207, CompositeOperator.Atop);
 

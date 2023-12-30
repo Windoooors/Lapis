@@ -1,33 +1,34 @@
 ﻿using System.Text.RegularExpressions;
 using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions.Http.Managers;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using Manganese.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
     public class PlateCommand : MaiCommand
     {
         public override Task Initialize()
         {
-            headCommand = new Regex(@"是什么将");
-            defaultSettings.SettingsName = "牌子查询";
-                        _groupCommandSettings = defaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            HeadCommand = new Regex(@"是什么将");
+            DefaultSettings.SettingsName = "牌子查询";
+            CurrentGroupCommandSettings = DefaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
-                
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
+                                          " Settings");
+
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
+                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
+
             return Task.CompletedTask;
         }
 

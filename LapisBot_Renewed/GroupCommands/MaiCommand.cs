@@ -1,23 +1,16 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Manganese.Text;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using static LapisBot_Renewed.InfoCommand;
-using static LapisBot_Renewed.AliasCommand;
+using LapisBot_Renewed.GroupCommands.MaiCommands;
 using System.IO;
-using System.Linq;
 using LapisBot_Renewed.Collections;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.GroupCommands
 {
 
     public class SongDto
@@ -64,12 +57,12 @@ namespace LapisBot_Renewed
         public Alias[] GetAliasByAliasString(string alias)
         {
             var aliases = new List<Alias>();
-            foreach (Alias _alias in songAliases)
+            foreach (var valueAlias in SongAliases)
             {
-                foreach (string __alias in _alias.aliases)
+                foreach (var valueAliasString in valueAlias.Aliases)
                 {
-                    if (__alias.ToLower() == alias.ToLower())
-                        aliases.Add(_alias);
+                    if (valueAliasString.Equals(alias))
+                        aliases.Add(valueAlias);
                 }
             }
             return aliases.ToArray();
@@ -78,12 +71,12 @@ namespace LapisBot_Renewed
         public Alias[] GetAliasByAliasStringUsingStartsWith(string alias)
         {
             var aliases = new List<Alias>();
-            foreach (Alias _alias in songAliases)
+            foreach (Alias valueAlias in SongAliases)
             {
-                foreach (string __alias in _alias.aliases)
+                foreach (var valueAliasString in valueAlias.Aliases)
                 {
-                    if (alias.ToLower().StartsWith(__alias.ToLower()))
-                        aliases.Add(_alias);
+                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
+                        aliases.Add(valueAlias);
                 }
             }
             return aliases.ToArray();
@@ -91,13 +84,12 @@ namespace LapisBot_Renewed
 
         public string GetAliasStringUsingStartsWith(string alias)
         {
-            var aliases = new List<Alias>();
-            foreach (Alias _alias in songAliases)
+            foreach (Alias valueAlias in SongAliases)
             {
-                foreach (string __alias in _alias.aliases)
+                foreach (string valueAliasString in valueAlias.Aliases)
                 {
-                    if (alias.ToLower().StartsWith(__alias.ToLower()))
-                        return __alias;
+                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
+                        return valueAliasString;
                 }
             }
             return null;
@@ -105,34 +97,34 @@ namespace LapisBot_Renewed
 
         public Alias GetAliasById(int id)
         {
-            foreach (Alias alias in songAliases)
+            foreach (Alias alias in SongAliases)
             {
-                if (alias.id == id)
+                if (alias.Id == id)
                 {
                     return alias;
                 }
             }
-            return new Alias() { id = id, aliases = new List<string>() };
+            return new Alias() { Id = id, Aliases = new List<string>() };
         }
 
-        public Alias GetAliasByIdWithDifferentAliases(int id, List<Alias> _songAliases)
+        public Alias GetAliasByIdWithDifferentAliases(int id, List<Alias> SongAliases)
         {
-            foreach (Alias alias in _songAliases)
+            foreach (Alias alias in SongAliases)
             {
-                if (alias.id == id)
+                if (alias.Id == id)
                 {
                     return alias;
                 }
             }
-            return new Alias() { id = id, aliases = new List<string>() };
+            return new Alias() { Id = id, Aliases = new List<string>() };
         }
 
         public int GetAliasIndexById(int id)
         {
             int i = 0;
-            foreach (Alias alias in songAliases)
+            foreach (Alias alias in SongAliases)
             {
-                if (alias.id == id)
+                if (alias.Id == id)
                 {
                     return i;
                 }
@@ -143,9 +135,9 @@ namespace LapisBot_Renewed
 
         public int GetSongIndexById(int id)
         {
-            for (int i = 0; i < songs.Length; i++)
+            for (int i = 0; i < Songs.Length; i++)
             {
-                if (songs[i].Id == id)
+                if (Songs[i].Id == id)
                     return i;
             }
             return -1;
@@ -154,9 +146,9 @@ namespace LapisBot_Renewed
         public int GetSongIndexByIdUsingStartsWith(string id)
         {
             var regex = new Regex(@"\d+");
-            for (int i = 0; i < songs.Length; i++)
+            for (int i = 0; i < Songs.Length; i++)
             {
-                if (regex.Matches(id)[0].ToString() == songs[i].Id.ToString())
+                if (regex.Matches(id)[0].ToString() == Songs[i].Id.ToString())
                     return i;
             }
             return -1;
@@ -164,16 +156,16 @@ namespace LapisBot_Renewed
 
         public override Task Unload()
         {
-            foreach (MaiCommand maiCommand in subCommands)
-                maiCommand.Unload();
+            foreach (var subMaiCommand in SubCommands)
+                subMaiCommand.Unload();
             return Task.CompletedTask;
         }
 
         public int GetSongIndexByTitle(string title)
         {
-            for (int i = 0; i < songs.Length; i++)
+            for (int i = 0; i < Songs.Length; i++)
             {
-                if (title.ToLower() == songs[i].Title.ToLower())
+                if (title.ToLower() == Songs[i].Title.ToLower())
                     return i;
             }
             return -1;
@@ -181,25 +173,25 @@ namespace LapisBot_Renewed
 
         public int GetSongIndexByTitleUsingStartsWith(string title)
         {
-            for (int i = 0; i < songs.Length; i++)
+            for (var i = 0; i < Songs.Length; i++)
             {
-                if (title.ToLower().StartsWith(songs[i].Title.ToLower() + " "))
+                if (title.ToLower().StartsWith(Songs[i].Title.ToLower() + " "))
                     return i;
             }
             return -1;
         }
 
-        public MaiCommand maiCommand;
-        public SongDto[] songs;
-        public JObject aliasJObject;
-        public List<List<SongDto>> levels = new List<List<SongDto>>();
-        public Dictionary<string, int> levelDictionary = new Dictionary<string, int>();
-        public List<Alias> songAliases = new List<Alias>();
+        public MaiCommand MaiCommandCommand;
+        public SongDto[] Songs;
+        private JObject _aliasJObject;
+        public List<List<SongDto>> Levels = new List<List<SongDto>>();
+        public Dictionary<string, int> LevelDictionary = new Dictionary<string, int>();
+        public readonly List<Alias> SongAliases = new List<Alias>();
 
         public class Alias
         {
-            public List<string> aliases;
-            public int id;
+            public List<string> Aliases;
+            public int Id;
         }
 
         private async void Reload(object sender, EventArgs e)
@@ -207,31 +199,31 @@ namespace LapisBot_Renewed
             await Start();
         }
 
-        public Task Start()
+        private Task Start()
         {
-            songAliases.Clear();
-            levelDictionary.Clear();
-            subCommands.Clear();
-            levels.Clear();
+            SongAliases.Clear();
+            LevelDictionary.Clear();
+            SubCommands.Clear();
+            Levels.Clear();
 
             try
             {
                 if (OperatingSystem.IsLinux())
-                    aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
                 else if (OperatingSystem.IsMacOS())
-                    aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_76686309.json"));
-                //aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
+                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_76686309.json"));
+                //_aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
             }
             catch
             {
-                aliasJObject = new JObject();
+                _aliasJObject = new JObject();
             }
 
             var aliasObject = new Dictionary<string, string[]>();
 
             try
             {
-                aliasObject = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(aliasJObject.ToString());
+                aliasObject = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(_aliasJObject.ToString());
             }
             catch
             {
@@ -248,66 +240,66 @@ namespace LapisBot_Renewed
                     foreach (string alias in obj.Value)
                         if (!(alias == "\u200e\u200e" || alias == "ㅤ" || alias == String.Empty))
                             aliasesList.Add(alias);
-                    songAliases.Add(new Alias() { aliases = aliasesList, id = id });
+                    SongAliases.Add(new Alias() { Aliases = aliasesList, Id = id });
                 }
                 else
-                    songAliases.Add(new Alias() { aliases = Enumerates.ToList(obj.Value), id = id });
+                    SongAliases.Add(new Alias() { Aliases = Enumerates.ToList(obj.Value), Id = id });
             }
 
-            levelDictionary.Add("1", 0);
-            levelDictionary.Add("2", 1);
-            levelDictionary.Add("3", 2);
-            levelDictionary.Add("4", 3);
-            levelDictionary.Add("5", 4);
-            levelDictionary.Add("6", 5);
-            levelDictionary.Add("6+", 6);
-            levelDictionary.Add("7", 7);
-            levelDictionary.Add("7+", 8);
-            levelDictionary.Add("8", 9);
-            levelDictionary.Add("8+", 10);
-            levelDictionary.Add("9", 11);
-            levelDictionary.Add("9+", 12);
-            levelDictionary.Add("10", 13);
-            levelDictionary.Add("10+", 14);
-            levelDictionary.Add("11", 15);
-            levelDictionary.Add("11+", 16);
-            levelDictionary.Add("12", 17);
-            levelDictionary.Add("12+", 18);
-            levelDictionary.Add("13", 19);
-            levelDictionary.Add("13+", 20);
-            levelDictionary.Add("14", 21);
-            levelDictionary.Add("14+", 22);
-            levelDictionary.Add("15", 23);
+            LevelDictionary.Add("1", 0);
+            LevelDictionary.Add("2", 1);
+            LevelDictionary.Add("3", 2);
+            LevelDictionary.Add("4", 3);
+            LevelDictionary.Add("5", 4);
+            LevelDictionary.Add("6", 5);
+            LevelDictionary.Add("6+", 6);
+            LevelDictionary.Add("7", 7);
+            LevelDictionary.Add("7+", 8);
+            LevelDictionary.Add("8", 9);
+            LevelDictionary.Add("8+", 10);
+            LevelDictionary.Add("9", 11);
+            LevelDictionary.Add("9+", 12);
+            LevelDictionary.Add("10", 13);
+            LevelDictionary.Add("10+", 14);
+            LevelDictionary.Add("11", 15);
+            LevelDictionary.Add("11+", 16);
+            LevelDictionary.Add("12", 17);
+            LevelDictionary.Add("12+", 18);
+            LevelDictionary.Add("13", 19);
+            LevelDictionary.Add("13+", 20);
+            LevelDictionary.Add("14", 21);
+            LevelDictionary.Add("14+", 22);
+            LevelDictionary.Add("15", 23);
             if (OperatingSystem.IsLinux())
-                songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
             else if (OperatingSystem.IsMacOS())
-                songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_23185806.json"), typeof(SongDto[]));
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_23185806.json"), typeof(SongDto[]));
             for (int i = 0; i < 24; i++)
             {
-                levels.Add(new List<SongDto>());
+                Levels.Add(new List<SongDto>());
             }
 
-            foreach (SongDto song in songs)
+            foreach (SongDto song in Songs)
             {
                 foreach (string level in song.Levels)
                 {
                     int j;
-                    levelDictionary.TryGetValue(level, out j);
-                    levels[j].Add(song);
+                    LevelDictionary.TryGetValue(level, out j);
+                    Levels[j].Add(song);
                 }
             }
 
-            subCommands.Add(new RandomCommand() { levelDictionary = this.levelDictionary, levels = this.levels, songs = this.songs, maiCommand = this });
-            subCommands.Add(new InfoCommand() { levelDictionary = this.levelDictionary, levels = this.levels, songs = this.songs, aliasJObject = aliasJObject, maiCommand = this });
-            subCommands.Add(new AliasCommand() { maiCommand = this });
-            subCommands.Add(new BestCommand() { maiCommand = this });
-            subCommands.Add(new PlateCommand());
-            subCommands.Add(new GuessCommand() { levelDictionary = this.levelDictionary, levels = this.levels, songs = this.songs, aliasJObject = aliasJObject, maiCommand = this });
+            SubCommands.Add(new RandomCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, MaiCommandCommand = this });
+            SubCommands.Add(new InfoCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, _aliasJObject = _aliasJObject, MaiCommandCommand = this });
+            SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new PlateCommand());
+            SubCommands.Add(new GuessCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, _aliasJObject = _aliasJObject, MaiCommandCommand = this });
 
-            foreach (MaiCommand maiCommand in subCommands)
+            foreach (var subMaiCommand in SubCommands)
             {
-                maiCommand.Initialize();
-                maiCommand.parentCommand = this;
+                subMaiCommand.Initialize();
+                subMaiCommand.ParentCommand = this;
             }
             Console.WriteLine("MaiCommand Initialized");
             return Task.CompletedTask;
@@ -316,15 +308,15 @@ namespace LapisBot_Renewed
         public override Task Initialize()
         {
             Program.DateChanged += Reload;
-            headCommand = new Regex(@"^mai\s");
-            defaultSettings.SettingsName = "maimai DX 相关";
-            _groupCommandSettings = defaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            HeadCommand = new Regex(@"^mai\s");
+            DefaultSettings.SettingsName = "maimai DX 相关";
+            CurrentGroupCommandSettings = DefaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
                 
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
@@ -333,29 +325,8 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source, bool isSubParse)
+        public override Task SubParse(string command, GroupMessageReceiver source)
         {
-            return Task.CompletedTask;
-        }
-
-        public override Task Parse(string command, GroupMessageReceiver source)
-        {
-            foreach (MaiCommand subCommand in subCommands)
-            {
-                if (subCommand.headCommand != null && subCommand.headCommand.IsMatch(command))
-                {
-                    command = subCommand.headCommand.Replace(command, "");
-                    subCommand.PreParse(command, source);
-                    return Task.CompletedTask;
-                }
-                else if (subCommand.subHeadCommand != null && subCommand.subHeadCommand.IsMatch(command))
-                {
-                    command = subCommand.subHeadCommand.Replace(command, "");
-                    subCommand.PreParse(command, source, true);
-                    return Task.CompletedTask;
-                }
-            }
-            Program.helpCommand.Parse("", source);
             return Task.CompletedTask;
         }
 

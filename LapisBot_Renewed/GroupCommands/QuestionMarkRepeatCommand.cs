@@ -6,7 +6,7 @@ using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions;
 using Mirai.Net.Sessions.Http.Managers;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.GroupCommands
 {
     public class QuestionMarkRepeatCommand : GroupCommand
     {
@@ -16,7 +16,7 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public override Task ParseWithoutPreparse(string command, GroupMessageReceiver source)
+        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
         {
             switch (command)
             {

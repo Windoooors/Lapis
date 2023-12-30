@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using ImageMagick;
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.ImageGenerators
 {
     public class BotSettingsImageGenerator
     {

@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Flurl.Util;
 using System.Linq;
+using LapisBot_Renewed.ImageGenerators;
 
 namespace LapisBot_Renewed
 {
@@ -62,11 +63,11 @@ namespace LapisBot_Renewed
                 botSettingsList.Add(JsonConvert.DeserializeObject<BotSettings>(settingsString));
             }
 
-            _groupCommandSettings = new GroupCommandSettings() { Enabled = true };
-            headCommand = new Regex(@"^settings$");
-            subHeadCommand = new Regex(@"^settings\s");
-            directCommand = new Regex(@"^settings$");
-            subDirectCommand = new Regex(@"^settings\s");
+            CurrentGroupCommandSettings = new GroupCommandSettings() { Enabled = true };
+            HeadCommand = new Regex(@"^settings$");
+            SubHeadCommand = new Regex(@"^settings\s");
+            DirectCommand = new Regex(@"^settings$");
+            SubDirectCommand = new Regex(@"^settings\s");
             return Task.CompletedTask;
         }
 
@@ -104,7 +105,7 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public override Task SettingsParse(string command, GroupMessageReceiver source, bool isSubParse)
+        public override Task SubSettingsParse(string command, GroupMessageReceiver source)
         {
             Program.helpCommand.Parse(command, source);
             return Task.CompletedTask;
@@ -123,7 +124,6 @@ namespace LapisBot_Renewed
                     break;
                 }
             }
-
             if (CurrentBotSettings.GroupId == null)
             {
                 CurrentBotSettings.GroupId = source.GroupId;
@@ -133,7 +133,7 @@ namespace LapisBot_Renewed
             }
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source, bool isSubParse)
+        public override Task SubParse(string command, GroupMessageReceiver source)
         {
             if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator ||
                 source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")

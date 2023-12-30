@@ -7,9 +7,9 @@ namespace LapisBot_Renewed
 {
     public class PrivateCommand
     {
-        public Regex headCommand;
+        public Regex HeadCommand;
 
-        public Regex subHeadCommand;
+        public Regex SubHeadCommand;
 
         public virtual Task Initialize() { return Task.CompletedTask; }
 

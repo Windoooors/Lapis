@@ -2,8 +2,9 @@
 using System.IO;
 using System.Reflection;
 using ImageMagick;
+using LapisBot_Renewed.GroupCommands.MaiCommands;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.ImageGenerators
 {
     public class BestImageGenerator
     {
@@ -16,10 +17,13 @@ namespace LapisBot_Renewed
         {
             MagickImage head;
             if (usingHead)
-                head = new MagickImage(Program.apiOperator.ImageToPng("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640", Environment.CurrentDirectory + "/temp", "head.png"));
+                head = new MagickImage(Program.apiOperator.ImageToPng(
+                    "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640", Environment.CurrentDirectory + "/temp",
+                    "head.png"));
             else
             {
-                head = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/best50_userhead_background.png");
+                head = new MagickImage(Environment.CurrentDirectory +
+                                       @"/resources/best50/best50_userhead_background.png");
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font.otf")
                     .FontPointSize(36)
@@ -27,6 +31,7 @@ namespace LapisBot_Renewed
                     .Text(3, 59, best.Username.Substring(0, 1))
                     .Draw(head);
             }
+
             head.Resize(65, 65);
 
             var image = GenerateBackground(best);
@@ -40,38 +45,41 @@ namespace LapisBot_Renewed
             if (best.Rating <= 999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_regular.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_regular.png");
                 image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
                 new Drawables()
-.Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
-.FontPointSize(36)
-.FillColor(new MagickColor(65535, 65535, 65535, 65535))
-.Text(74, 150, best.Rating.ToString())
-.Draw(image);
+                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .FontPointSize(36)
+                    .FillColor(new MagickColor(65535, 65535, 65535, 65535))
+                    .Text(74, 150, best.Rating.ToString())
+                    .Draw(image);
             }
             else if (best.Rating > 999 && best.Rating <= 1999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_blue.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_blue.png");
                 image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
                 new Drawables()
-.Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
-.FontPointSize(36)
-.FillColor(new MagickColor(0, 15677, 23644))
-.Text(74, 150, best.Rating.ToString())
-.Draw(image);
+                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .FontPointSize(36)
+                    .FillColor(new MagickColor(0, 15677, 23644))
+                    .Text(74, 150, best.Rating.ToString())
+                    .Draw(image);
             }
             else if (best.Rating > 1999 && best.Rating <= 3999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_green.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_green.png");
                 image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
                 new Drawables()
-.Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
-.FontPointSize(36)
-.FillColor(new MagickColor(16128, 24832, 6144))
-.Text(74, 150, best.Rating.ToString())
-.Draw(image);
+                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .FontPointSize(36)
+                    .FillColor(new MagickColor(16128, 24832, 6144))
+                    .Text(74, 150, best.Rating.ToString())
+                    .Draw(image);
             }
             else if (best.Rating > 3999 && best.Rating <= 6999)
             {
@@ -81,13 +89,15 @@ namespace LapisBot_Renewed
                     .FillColor(new MagickColor(23296, 19968, 15872))
                     .Text(74, 150, best.Rating.ToString())
                     .Draw(image);
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_yellow.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_yellow.png");
                 image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
             }
             else if (best.Rating > 6999 && best.Rating <= 9999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_red.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_red.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -99,7 +109,8 @@ namespace LapisBot_Renewed
             else if (best.Rating > 9999 && best.Rating <= 11999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_purple.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_purple.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -111,7 +122,8 @@ namespace LapisBot_Renewed
             else if (best.Rating > 11999 && best.Rating <= 12999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_bronze.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_bronze.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -123,7 +135,8 @@ namespace LapisBot_Renewed
             else if (best.Rating > 12999 && best.Rating <= 13999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_silver.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_silver.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -135,7 +148,8 @@ namespace LapisBot_Renewed
             else if (best.Rating > 13999 && best.Rating <= 14499)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_gold.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_gold.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -147,7 +161,8 @@ namespace LapisBot_Renewed
             else if (best.Rating > 14499 && best.Rating <= 14999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_platinum.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_platinum.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -159,7 +174,8 @@ namespace LapisBot_Renewed
             else if (best.Rating > 14999)
             {
 
-                ratingBackground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_rainbow.png");
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resources/best50/score_background_rainbow.png");
                 image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -168,6 +184,7 @@ namespace LapisBot_Renewed
                     .Text(74, 150, best.Rating.ToString())
                     .Draw(image);
             }
+
             image.Composite(head, 8, 25, CompositeOperator.Atop);
             for (int i = 0; i < best.Charts.SdCharts.Length; i++)
             {
@@ -178,36 +195,43 @@ namespace LapisBot_Renewed
                     y = 299;
                     x = i * 350;
                 }
+
                 if (i > 4 && i < 10)
                 {
                     y = 399;
                     x = (i - 5) * 350;
                 }
+
                 if (i > 9 && i < 15)
                 {
                     y = 499;
                     x = (i - 10) * 350;
                 }
+
                 if (i > 14 && i < 20)
                 {
                     y = 599;
                     x = (i - 15) * 350;
                 }
+
                 if (i > 19 && i < 25)
                 {
                     y = 699;
                     x = (i - 20) * 350;
                 }
+
                 if (i > 24 && i < 30)
                 {
                     y = 799;
                     x = (i - 25) * 350;
                 }
+
                 if (i > 29 && i < 35)
                 {
                     y = 899;
                     x = (i - 30) * 350;
                 }
+
                 image.Composite(GenerateItem(best.Charts.SdCharts[i], i + 1), x, y, CompositeOperator.Atop);
             }
 
@@ -220,16 +244,19 @@ namespace LapisBot_Renewed
                     y = 1061;
                     x = i * 350;
                 }
+
                 if (i > 4 && i < 10)
                 {
                     y = 1161;
                     x = (i - 5) * 350;
                 }
+
                 if (i > 9 && i < 15)
                 {
                     y = 1261;
                     x = (i - 10) * 350;
                 }
+
                 image.Composite(GenerateItem(best.Charts.DxCharts[i], i + 1), x, y, CompositeOperator.Atop);
             }
 
@@ -277,10 +304,14 @@ namespace LapisBot_Renewed
                     fontColor = new MagickColor(34560, 29184, 46848);
                     break;
             }
-            var foreground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/b50_item_foreground_" + difficulty + ".png");
+
+            var foreground = new MagickImage(Environment.CurrentDirectory + @"/resources/best50/b50_item_foreground_" +
+                                             difficulty + ".png");
             MagickImage background;
-            if (System.IO.File.Exists(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString() + ".png"))
-                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString() + ".png");
+            if (System.IO.File.Exists(Environment.CurrentDirectory + @"/resources/covers/" + score.Id.ToString() +
+                                      ".png"))
+                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" +
+                                             score.Id.ToString() + ".png");
             else
                 background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/01000.png");
 
@@ -309,14 +340,15 @@ namespace LapisBot_Renewed
                 .FontPointSize(20)
                 .FillColor(fontColor)
                 .TextAlignment(TextAlignment.Left)
-                .Text(114, 50, Math.Round(score.Achievements, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") + "%")
+                .Text(114, 50,
+                    Math.Round(score.Achievements, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") + "%")
                 .Draw(info);
             new Drawables()
                 .Font(Environment.CurrentDirectory + @"/resources/font-heavy.otf")
                 .FontPointSize(20)
                 .FillColor(fontColor)
                 .TextAlignment(TextAlignment.Left)
-                .Text(114, 70, score.DifficultyFactor.ToString("0.0") + "·" + score.Rating.ToString())
+                .Text(114, 70, score.DifficultyFactor.ToString("0.0") + "·" + score.Rating)
                 .Draw(info);
             new Drawables()
                 .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
@@ -326,27 +358,27 @@ namespace LapisBot_Renewed
                 .Text(114, 88, "#" + rank.ToString() + "·ID " + score.Id.ToString())
                 .Draw(info);
             MagickImage _image = null;
-            if (score.rate == InfoCommand.Rate.SSS)
+            if (score.rate == InfoCommand.Rate.Sss)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/sss.png");
-            else if (score.rate == InfoCommand.Rate.SSSp)
+            else if (score.rate == InfoCommand.Rate.Sssp)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/sss_plus.png");
-            else if (score.rate == InfoCommand.Rate.SS)
+            else if (score.rate == InfoCommand.Rate.Ss)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/ss.png");
-            else if (score.rate == InfoCommand.Rate.SSp)
+            else if (score.rate == InfoCommand.Rate.Ssp)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/ss_plus.png");
             else if (score.rate == InfoCommand.Rate.Sp)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/s_plus.png");
             else if (score.rate == InfoCommand.Rate.S)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/s.png");
-            else if (score.rate == InfoCommand.Rate.AAA)
+            else if (score.rate == InfoCommand.Rate.Aaa)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/aaa.png");
-            else if (score.rate == InfoCommand.Rate.AA)
+            else if (score.rate == InfoCommand.Rate.Aa)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/aa.png");
             else if (score.rate == InfoCommand.Rate.A)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/a.png");
-            else if (score.rate == InfoCommand.Rate.BBB)
+            else if (score.rate == InfoCommand.Rate.Bbb)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/bbb.png");
-            else if (score.rate == InfoCommand.Rate.BB)
+            else if (score.rate == InfoCommand.Rate.Bb)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/bb.png");
             else if (score.rate == InfoCommand.Rate.B)
                 _image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings_hd/b.png");
@@ -357,22 +389,27 @@ namespace LapisBot_Renewed
             if (_image != null)
             {
                 //if (_image.BaseHeight == 44)
-                info.Composite(_image, info.BaseWidth - _image.BaseWidth - 14, 75 - _image.BaseHeight, CompositeOperator.Blend);
+                info.Composite(_image, info.BaseWidth - _image.BaseWidth - 14, 75 - _image.BaseHeight,
+                    CompositeOperator.Blend);
                 //if (_image.BaseHeight == 38)
                 //info.Composite(_image, info.BaseWidth - _image.BaseWidth - 20, 88 - _image.BaseHeight, CompositeOperator.Blend);
             }
-            info.Composite(new MagickImage(Environment.CurrentDirectory + @"/resources/best50/gradient.png"), 0, 0, Channels.Alpha);
+
+            info.Composite(new MagickImage(Environment.CurrentDirectory + @"/resources/best50/gradient.png"), 0, 0,
+                Channels.Alpha);
             image.Composite(info, 0, 0, CompositeOperator.Atop);
 
             return image;
         }
 
-        public static MagickImage GenerateBackground(BestDto best)
+        private static MagickImage GenerateBackground(BestDto best)
         {
             var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 1750, Height = 1440 });
-            var background = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 1750, Height = 1440 });
+            var background =
+                new MagickImage("xc:transparent", new MagickReadSettings() { Width = 1750, Height = 1440 });
             if (best.Charts.SdCharts.Length != 0)
-                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" + best.Charts.SdCharts[0].Id.ToString() + ".png");
+                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" +
+                                             best.Charts.SdCharts[0].Id.ToString() + ".png");
             background.Scale(75, 75);
             background.GaussianBlur(10);
             background.Resize(1750, 1750);

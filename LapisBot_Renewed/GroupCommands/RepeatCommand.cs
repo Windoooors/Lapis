@@ -9,21 +9,21 @@ using Mirai.Net.Data.Messages;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.GroupCommands
 {
     public class RepeatCommand : GroupCommand
     {
         public override Task Initialize()
         {
-            headCommand = new Regex(@"^repeat\s");
-            directCommand = new Regex(@"^repeat\s");
-            defaultSettings.SettingsName = "重复";
-            _groupCommandSettings = defaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            HeadCommand = new Regex(@"^repeat\s");
+            DirectCommand = new Regex(@"^repeat\s");
+            DefaultSettings.SettingsName = "重复";
+            CurrentGroupCommandSettings = DefaultSettings.Clone();
+            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings");
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + _groupCommandSettings.SettingsName + " Settings"))
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
