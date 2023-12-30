@@ -14,6 +14,7 @@ using Mirai.Net.Data.Messages.Concretes;
 using static LapisBot_Renewed.InfoCommand;
 using static LapisBot_Renewed.AliasCommand;
 using System.IO;
+using System.Linq;
 using LapisBot_Renewed.Collections;
 
 namespace LapisBot_Renewed
@@ -215,7 +216,10 @@ namespace LapisBot_Renewed
 
             try
             {
-                aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                if (OperatingSystem.IsLinux())
+                    aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                else if (OperatingSystem.IsMacOS())
+                    aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_76686309.json"));
                 //aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
             }
             catch
@@ -247,7 +251,7 @@ namespace LapisBot_Renewed
                     songAliases.Add(new Alias() { aliases = aliasesList, id = id });
                 }
                 else
-                    songAliases.Add(new Alias() { aliases = obj.Value.ToList(), id = id });
+                    songAliases.Add(new Alias() { aliases = Enumerates.ToList(obj.Value), id = id });
             }
 
             levelDictionary.Add("1", 0);
@@ -274,8 +278,10 @@ namespace LapisBot_Renewed
             levelDictionary.Add("14", 21);
             levelDictionary.Add("14+", 22);
             levelDictionary.Add("15", 23);
-
-            songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
+            if (OperatingSystem.IsLinux())
+                songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
+            else if (OperatingSystem.IsMacOS())
+                songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_23185806.json"), typeof(SongDto[]));
             for (int i = 0; i < 24; i++)
             {
                 levels.Add(new List<SongDto>());

@@ -72,7 +72,7 @@ namespace LapisBot_Renewed
             {
                 var firstParseRegex = new Regex(@"^settings$|^set$");
                 var secondParseRegex = new Regex(@"^settings\s|^set\s");
-                var thirdParseRegex = new Regex(@"^\ssettings$|^\ssset$");
+                var thirdParseRegex = new Regex(@"^\ssettings$|^\sset$");
                 var fourthParseRegex = new Regex(@"^\ssettings\s|^\sset\s");
                 if (enabled)
                 {

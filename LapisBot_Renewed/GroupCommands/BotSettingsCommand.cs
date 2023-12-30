@@ -50,10 +50,14 @@ namespace LapisBot_Renewed
             botDefaultSettings.DisplayNames.Add("HeadlessCommand", "无指令头触发指令");
             botDefaultSettings.DisplayNames.Add("UpdateMessage", "更新提醒");
             botDefaultSettings.DisplayNames.Add("CompressedImage", "图片压缩");
+            //Console.WriteLine(AppContext.BaseDirectory + "settings");
+            
             if (!Directory.Exists(AppContext.BaseDirectory + "settings"))
                 Directory.CreateDirectory(AppContext.BaseDirectory + "settings");
+            
             foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + "settings"))
             {
+                //Console.WriteLine(path);
                 var settingsString = File.ReadAllText(path);
                 botSettingsList.Add(JsonConvert.DeserializeObject<BotSettings>(settingsString));
             }
