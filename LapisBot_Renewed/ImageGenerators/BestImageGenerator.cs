@@ -313,7 +313,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/" +
                                              score.Id.ToString() + ".png");
             else
-                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/01000.png");
+                background = new MagickImage(Environment.CurrentDirectory + @"/resources/covers/1000.png");
 
             background.Scale(100, 100);
             var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 350, Height = 100 });

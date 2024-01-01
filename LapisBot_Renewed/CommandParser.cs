@@ -17,6 +17,7 @@ namespace LapisBot_Renewed
     {
         private readonly Regex _headCommandRegex =
             new Regex(@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
+        private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$");
 
         private List<Thread[]> threads;
 
@@ -51,6 +52,25 @@ namespace LapisBot_Renewed
             }
             //MessageManager.SendFriendMessageAsync(source.FriendId, "_(:_」∠)_\n感谢您对 Lapis 的支持\n在将 Lapis 拉入您的群聊后，您可以在群聊中发送 \"lps help\" 或访问 https://www.setchin.com/lapis.html 以获取帮助 \nLapis 不会占用其他 Bot 的触发指令，请使用 \"lps\" 或 \"l\" 来触发 Lapis");
         }
+        
+        private string GetParsedCommandString(Regex commandRegex, string commandString)
+        {
+            var commandStringWithoutSettingsArguments = _settingsRegex.Replace(commandString, string.Empty);
+            if (commandRegex.IsMatch(commandStringWithoutSettingsArguments) ||
+                !commandRegex.IsMatch(commandString))
+                return commandString.Replace(
+                    commandRegex.Match(commandStringWithoutSettingsArguments).ToString(),
+                    string.Empty);
+            return commandRegex.Replace(commandString, String.Empty);
+        }
+
+        private bool IsMatched(Regex commandRegex, string commandString)
+        {
+            var commandStringWithoutSettingsArguments = _settingsRegex.Replace(commandString, string.Empty);
+            return commandRegex != null &&
+                   (commandRegex.IsMatch(commandStringWithoutSettingsArguments) ||
+                    commandRegex.IsMatch(commandString));
+        }
 
         public void MainParse(GroupMessageReceiver source)
         {
@@ -63,21 +83,22 @@ namespace LapisBot_Renewed
                 var commandString = source.MessageChain.GetPlainMessage();
 
                 RespondWithoutParsingCommand(source, commandString, Program.groupCommands);
-                
+
                 var currentBotSettings = Program.settingsCommand.CurrentBotSettings;
                 if (currentBotSettings.HeadlessCommand)
                     ParseHeadlessly(source, commandString, Program.groupCommands);
 
                 if (!_headCommandRegex.IsMatch(commandString))
                     return;
-                
+
                 commandString = _headCommandRegex.Replace(commandString, string.Empty);
-                
+
                 Parse(source, commandString, Program.groupCommands);
             }
         }
 
-        private async void RespondWithoutParsingCommand(GroupMessageReceiver source, string commandString, List<GroupCommand> commands)
+        private void RespondWithoutParsingCommand(GroupMessageReceiver source, string commandString,
+            List<GroupCommand> commands)
         {
             foreach (GroupCommand command in commands)
             {
@@ -94,9 +115,9 @@ namespace LapisBot_Renewed
         {
             foreach (GroupCommand command in commands)
             {
-                if (command.SubHeadCommand != null && command.SubHeadCommand.IsMatch(commandString))
+                if (IsMatched(command.SubHeadCommand, commandString))
                 {
-                    commandString = command.SubHeadCommand.Replace(commandString, string.Empty);
+                    commandString = GetParsedCommandString(command.SubHeadCommand, commandString);
                     if (command.SubCommands.Count != 0)
                     {
                         Parse(source, commandString, command.SubCommands);
@@ -107,9 +128,9 @@ namespace LapisBot_Renewed
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
                 }
-                else if (command.HeadCommand != null && command.HeadCommand.IsMatch(commandString))
+                else if (IsMatched(command.HeadCommand, commandString))
                 {
-                    commandString = command.HeadCommand.Replace(commandString, string.Empty);
+                    commandString = GetParsedCommandString(command.HeadCommand, commandString);
                     if (command.SubCommands.Count != 0)
                     {
                         Parse(source, commandString, command.SubCommands);
@@ -119,6 +140,20 @@ namespace LapisBot_Renewed
                         return;
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
                     taskParse.Start();
+                }
+                else if (command.HeadCommand == null)
+                {
+                    if (command.SubCommands.Count != 0)
+                    {
+                        Parse(source, commandString, command.SubCommands);
+                    }
+                }
+                else if (command.SubHeadCommand == null)
+                {
+                    if (command.SubCommands.Count != 0)
+                    {
+                        Parse(source, commandString, command.SubCommands);
+                    }
                 }
             }
         }
@@ -133,17 +168,18 @@ namespace LapisBot_Renewed
                     ParseHeadlessly(source, commandString, command.SubCommands);
                 }
 
-                if (command.SubDirectCommand != null && command.SubDirectCommand.IsMatch(commandString))
+                if (IsMatched(command.SubDirectCommand, commandString))
                 {
-                    commandString = command.SubDirectCommand.Replace(commandString, string.Empty);
+                    commandString = GetParsedCommandString(command.SubDirectCommand, commandString);
+                    
                     if (await SettingsParse(source, commandString, command))
                         return;
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
                 }
-                else if (command.DirectCommand != null && command.DirectCommand.IsMatch(commandString))
+                else if (IsMatched(command.DirectCommand, commandString))
                 {
-                    commandString = command.DirectCommand.Replace(commandString, string.Empty);
+                    commandString = GetParsedCommandString(command.DirectCommand, commandString);
                     if (await SettingsParse(source, commandString, command))
                         return;
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
@@ -155,8 +191,8 @@ namespace LapisBot_Renewed
         private async Task<Boolean> SettingsParse(GroupMessageReceiver source, string commandString,
             GroupCommand command)
         {
-            var showSettingsRegex = new Regex(@"^settings$");
-            var settingsRegex = new Regex(@"^settings\s[0-9]\s(true|false)$");
+            var showSettingsRegex = new Regex(@"^settings$|^\ssettings$");
+            var settingsRegex = new Regex(@"^settings\s[0-9]\s(true|false)$|^\ssettings\s[0-9]\s(true|false)$");
             if (showSettingsRegex.IsMatch(commandString))
             {
                 var taskParse = new Task(() => command.SettingsParse(commandString, source));

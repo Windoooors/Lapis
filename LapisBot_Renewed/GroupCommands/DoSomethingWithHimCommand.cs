@@ -15,8 +15,6 @@ namespace LapisBot_Renewed.GroupCommands
         {
             Groups.Clear();
             SubCommands.Clear();
-            HeadCommand = new Regex("");
-            DefaultSettings.SettingsName = "";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (System.IO.File.Exists(Environment.CurrentDirectory + "/groups.json"))
                 Groups = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(System.IO.File.ReadAllText(Environment.CurrentDirectory + "/groups.json"));

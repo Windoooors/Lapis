@@ -36,5 +36,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 该功能开发中") });
             return Task.CompletedTask;
         }
+
+        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        {
+            
+            return Task.CompletedTask;
+        }
     }
 }

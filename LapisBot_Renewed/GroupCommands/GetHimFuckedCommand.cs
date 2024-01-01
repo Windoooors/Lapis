@@ -142,6 +142,11 @@ namespace LapisBot_Renewed.GroupCommands
             Process(command, source, true);
             return Task.CompletedTask;
         }
+
+        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
 
