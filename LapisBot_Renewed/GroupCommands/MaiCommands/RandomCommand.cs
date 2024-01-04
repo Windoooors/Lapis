@@ -90,7 +90,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 {
                     var voice = new VoiceMessage
                     {
-                        Path = SongToVoiceConverter.Convert(songs[j].Id)
+                        Path = AudioToVoiceConverter.ConvertSong(songs[j].Id)
                     };
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                 }

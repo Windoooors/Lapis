@@ -317,7 +317,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         {
                             var voice = new VoiceMessage
                             {
-                                Path = SongToVoiceConverter.Convert(aliases[0].Id)
+                                Path = AudioToVoiceConverter.ConvertSong(aliases[0].Id)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                         }
@@ -393,7 +393,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                 {
                                     var voice = new VoiceMessage
                                     {
-                                        Path = SongToVoiceConverter.Convert(Songs[index].Id)
+                                        Path = AudioToVoiceConverter.ConvertSong(Songs[index].Id)
                                     };
                                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                                 }
@@ -442,7 +442,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var voice = new VoiceMessage
                                 {
-                                    Path = SongToVoiceConverter.Convert(Songs[index].Id)
+                                    Path = AudioToVoiceConverter.ConvertSong(Songs[index].Id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                             }
@@ -489,7 +489,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         {
                             var voice = new VoiceMessage
                             {
-                                Path = SongToVoiceConverter.Convert(aliases[0].Id)
+                                Path = AudioToVoiceConverter.ConvertSong(aliases[0].Id)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                         }
@@ -569,7 +569,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var voice = new VoiceMessage
                                 {
-                                    Path = SongToVoiceConverter.Convert(id)
+                                    Path = AudioToVoiceConverter.ConvertSong(id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                             }
@@ -610,7 +610,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var _voice = new VoiceMessage
                                 {
-                                    Path = SongToVoiceConverter.Convert(Songs[index].Id)
+                                    Path = AudioToVoiceConverter.ConvertSong(Songs[index].Id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
                             }

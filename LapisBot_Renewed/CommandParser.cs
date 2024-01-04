@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -156,6 +157,8 @@ namespace LapisBot_Renewed
                     if (command.SubCommands.Count != 0)
                     {
                         parsed = Parse(source, commandString, command.SubCommands);
+                        if (parsed)
+                            return true;
                     }
                 }
                 else if (command.SubHeadCommand == null)
@@ -163,6 +166,8 @@ namespace LapisBot_Renewed
                     if (command.SubCommands.Count != 0)
                     {
                         parsed = Parse(source, commandString, command.SubCommands);
+                        if (parsed)
+                            return true;
                     }
                 }
             }

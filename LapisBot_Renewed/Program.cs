@@ -67,8 +67,9 @@ namespace LapisBot_Renewed
             groupCommands.Add(_botSettingsCommand);
             groupCommands.Add(new StickerCommand());
             groupCommands.Add(new AboutCommand());
-            groupCommands.Add(new MaiCommand());
+            groupCommands.Add(new BangCommand());
             groupCommands.Add(new DoSomethingWithHimCommand());
+            groupCommands.Add(new MaiCommand());
 
             helpCommand = _helpCommand;
             settingsCommand = _botSettingsCommand;
