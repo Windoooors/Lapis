@@ -62,7 +62,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             int i;
             if (!LevelDictionary.ContainsKey(command))
-                MessageManager.SendGroupMessageAsync(source.GroupId, "你随牛魔酬宾");
+                MessageManager.SendGroupMessageAsync(source.GroupId, "不支持的等级名称");
             else
             {
                 LevelDictionary.TryGetValue(command, out i);

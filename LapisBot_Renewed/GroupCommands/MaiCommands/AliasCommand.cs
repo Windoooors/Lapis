@@ -18,13 +18,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
     {
         public InfoCommand FindInfoCommand()
         {
-            MaiCommand maiCommand;
+            MaiCommand MaiCommandCommand;
             foreach (GroupCommand command in Program.groupCommands)
             {
                 if (command is MaiCommand)
                 {
-                    maiCommand = (MaiCommand)command;
-                    foreach (MaiCommand _command in maiCommand.SubCommands)
+                    MaiCommandCommand = (MaiCommand)command;
+                    foreach (MaiCommand _command in MaiCommandCommand.SubCommands)
                     {
                         if (_command is InfoCommand)
                         {
@@ -36,7 +36,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return null;
         }
 
-        public MaiCommand maiCommand;
+        //public MaiCommand MaiCommandCommand;
 
         public override Task Unload()
         {
@@ -47,7 +47,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         public override Task Initialize()
         {
-            //SubCommands.Add(new AddAliasCommand() { maiCommand = maiCommand });
+            //SubCommands.Add(new AddAliasCommand() { MaiCommandCommand = MaiCommandCommand });
             foreach (AliasCommand aliasCommand in SubCommands)
                 aliasCommand.Initialize();
             HeadCommand = new Regex(@"^alias\s");
@@ -72,7 +72,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             var result = string.Empty;
             if (alias.Aliases.Count != 0)
             {
-                result = "歌曲 " + maiCommand.Songs[maiCommand.GetSongIndexById(alias.Id)].Title + " [" + maiCommand.Songs[maiCommand.GetSongIndexById(alias.Id)].Type.ToString() + "]" + " 有如下别称：\n";
+                result = "歌曲 " + MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(alias.Id)].Title + " [" + MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(alias.Id)].Type.ToString() + "]" + " 有如下别称：\n";
                 List<string> aliasList = new List<string>();
                 for (int i = 0; i < alias.Aliases.Count; i++)
                 {
@@ -88,7 +88,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
             else
             {
-                result = "歌曲 " + maiCommand.Songs[maiCommand.GetSongIndexById(alias.Id)].Title + " [" + maiCommand.Songs[maiCommand.GetSongIndexById(alias.Id)].Type.ToString() + "]" + " 没有别称";
+                result = "歌曲 " + MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(alias.Id)].Title + " [" + MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(alias.Id)].Type.ToString() + "]" + " 没有别称";
             }
             return result;
         }
@@ -106,14 +106,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     return Task.CompletedTask;
                 }
             }
-            var Aliases = maiCommand.GetAliasByAliasString(command);
+            var Aliases = MaiCommandCommand.GetAliasByAliasString(command);
             if (Aliases.Length != 0)
             {
                 if (Aliases.Length == 1)
                 {
-                    for (int i = 0; i < maiCommand.Songs.Length; i++)
+                    for (int i = 0; i < MaiCommandCommand.Songs.Length; i++)
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(maiCommand.GetAliasById(Aliases[0].Id))) });
+                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(Aliases[0].Id))) });
                         break;
                     }
                 }
@@ -125,21 +125,21 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     {
                         if (idsList.Contains(Aliases[i].Id))
                             continue;
-                        int _index = maiCommand.GetSongIndexById(Aliases[i].Id);
-                        ids += "ID " + Aliases[i].Id + " - " + maiCommand.Songs[_index].Title + " [" + maiCommand.Songs[_index].Type + "]";
+                        int _index = MaiCommandCommand.GetSongIndexById(Aliases[i].Id);
+                        ids += "ID " + Aliases[i].Id + " - " + MaiCommandCommand.Songs[_index].Title + " [" + MaiCommandCommand.Songs[_index].Type + "]";
                         idsList.Add(Aliases[i].Id);
                         if (i != Aliases.Length - 1)
                             ids += "\n";
                     }
                     if (idsList.Count == 1)
                     {
-                        Parse("ID " + idsList[0] + command.Replace(maiCommand.GetAliasStringUsingStartsWith(command), string.Empty), source);
+                        Parse("ID " + idsList[0] + command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command), string.Empty), source);
                         return Task.CompletedTask;
                     }
-                    int index = maiCommand.GetSongIndexById(idsList[0]);
+                    int index = MaiCommandCommand.GetSongIndexById(idsList[0]);
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
                         new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " + maiCommand.Songs[index].Title + " [" + maiCommand.Songs[index].Type + "] 的相关信息")});
+                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" + MaiCommandCommand.Songs[index].Type + "] 的相关信息")});
                 }
             }
             else
@@ -151,9 +151,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     try
                     {
                         var id = idHeadRegex.Replace(command, string.Empty).ToInt32();
-                        int index = maiCommand.GetSongIndexById(id);
+                        int index = MaiCommandCommand.GetSongIndexById(id);
                         if (index != -1)
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(maiCommand.GetAliasById(id))) });
+                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(id))) });
                         else
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
                                 new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲") });
@@ -167,10 +167,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 }
                 else
                 {
-                    int index = maiCommand.GetSongIndexByTitle(command);
+                    int index = MaiCommandCommand.GetSongIndexByTitle(command);
                     if (index != -1)
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(maiCommand.GetAliasById(maiCommand.Songs[index].Id))) });
+                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(MaiCommandCommand.Songs[index].Id))) });
                     }
                     else
                         MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
