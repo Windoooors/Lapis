@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using LapisBot_Renewed.Collections;
 using LapisBot_Renewed.ImageGenerators;
 using Manganese.Text;
 using Mirai.Net.Data.Messages;
@@ -38,7 +39,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
     
     public class GuessCommand : MaiCommand
     {
-        private Dictionary<string, int> _guessingGroupsMap = new Dictionary<string, int>();
+        private Dictionary<string, (int, DateTime)> _guessingGroupsMap = new Dictionary<string, (int, DateTime)>();
 
         public override Task Initialize()
         {
@@ -60,8 +61,28 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
+            
+            Program.TimeChanged += TimeChanged;
 
             return Task.CompletedTask;
+        }
+
+        private void TimeChanged(object obj, EventArgs e)
+        {
+            if (_guessingGroupsMap.Count == 0)
+                return;
+            for (int i = 0; i < _guessingGroupsMap.Count; i++)
+            {
+                //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
+                if (_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks <= DateTime.Now.Ticks)
+                {
+                    var keyIdDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
+                    var groupId = _guessingGroupsMap.Keys.ToArray()[i];
+                    var taskAnnounce = new Task(() =>
+                        AnnounceAnswer(keyIdDateTimePair, groupId));
+                    taskAnnounce.Start();
+                }
+            }
         }
 
         public override Task Parse(string command, GroupMessageReceiver source)
@@ -77,10 +98,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var random = new Random();
                 SongDto[] songs = Levels[difficulty].ToArray();
                 var songIndex = random.Next(0, songs.Length - 1);
-                _guessingGroupsMap.Add(source.GroupId, songs[songIndex].Id);
+                _guessingGroupsMap.Add(source.GroupId,
+                    (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 MessageManager.SendGroupMessageAsync(source.GroupId,
                     new MessageChain()
-                        { new AtMessage(source.Sender.Id), new PlainMessage(" 试试看吧！") });
+                        { new AtMessage(source.Sender.Id), new PlainMessage(" 试试看吧！Lapis Bot 将在 30s 后公布答案") });
 
                 var voice = new VoiceMessage
                 {
@@ -100,10 +122,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 var random = new Random();
                 var songIndex = random.Next(0, Songs.Length);
-                _guessingGroupsMap.Add(source.GroupId, MaiCommandCommand.Songs[songIndex].Id);
+                _guessingGroupsMap.Add(source.GroupId,
+                    (MaiCommandCommand.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 MessageManager.SendGroupMessageAsync(source.GroupId,
                     new MessageChain()
-                        { new AtMessage(source.Sender.Id), new PlainMessage(" 试试看吧！") });
+                        { new AtMessage(source.Sender.Id), new PlainMessage(" 试试看吧！Lapis Bot 将在 30s 后公布答案") });
                 
                 var voice = new VoiceMessage
                 {
@@ -117,20 +140,19 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        private Task AnnounceAnswer(GroupMessageReceiver source)
+        private Task AnnounceAnswer((int, DateTime) keyIdDateTimePair, string groupId)
         {
-            if (!_guessingGroupsMap.ContainsKey(source.GroupId))
-                return Task.CompletedTask;
             
-            var keyId = -1;
-            _guessingGroupsMap.TryGetValue(source.GroupId, out keyId);
+            //var keyIdDateTimePair = (-1, DateTime.MinValue);
 
-            Program.settingsCommand.GetSettings(source);
+            Program.settingsCommand.GetSettings(groupId);
+            
+            _guessingGroupsMap.Remove(groupId);
 
-            var image = InfoImageGenerator.Generate(GetSongIndexById(keyId), MaiCommandCommand.Songs,
-                "猜歌谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
+            var image = InfoImageGenerator.Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
+                "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
-            MessageManager.SendGroupMessageAsync(source.GroupId,
+            MessageManager.SendGroupMessageAsync(groupId,
                 new MessageChain()
                 {
                     new PlainMessage("游戏结束啦！ 答案是："),
@@ -139,11 +161,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             var voice = new VoiceMessage
             {
-                Path = AudioToVoiceConverter.ConvertSong(keyId)
+                Path = AudioToVoiceConverter.ConvertSong(keyIdDateTimePair.Item1)
             };
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-            
-            _guessingGroupsMap.Remove(source.GroupId);
+            MessageManager.SendGroupMessageAsync(groupId, new MessageChain() { voice });
 
             return Task.CompletedTask;
         }
@@ -163,13 +183,15 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     return Task.CompletedTask;
                 }
 
-                var keyId = -1;
-                _guessingGroupsMap.TryGetValue(source.GroupId, out keyId);
+                var keyIdDateTimePair = (-1, DateTime.MinValue);
+                _guessingGroupsMap.TryGetValue(source.GroupId, out keyIdDateTimePair);
 
                 Program.settingsCommand.GetSettings(source);
+                
+                _guessingGroupsMap.Remove(source.GroupId);
 
-                var image = InfoImageGenerator.Generate(GetSongIndexById(keyId), MaiCommandCommand.Songs,
-                    "猜歌谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                var image = InfoImageGenerator.Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
+                    "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
                 MessageManager.SendGroupMessageAsync(source.GroupId,
                     new MessageChain()
@@ -181,11 +203,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 var voice = new VoiceMessage
                 {
-                    Path = AudioToVoiceConverter.ConvertSong(keyId)
+                    Path = AudioToVoiceConverter.ConvertSong(keyIdDateTimePair.Item1)
                 };
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-
-                _guessingGroupsMap.Remove(source.GroupId);
+                
                 return Task.CompletedTask;
             }
 
@@ -212,9 +233,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public Task Reply(GroupMessageReceiver source, int id)
         {
             Program.settingsCommand.GetSettings(source);
+            
+            _guessingGroupsMap.Remove(source.GroupId);
 
             var image = InfoImageGenerator.Generate(GetSongIndexById(id), MaiCommandCommand.Songs,
-                "猜歌谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
                             
             MessageManager.SendGroupMessageAsync(source.GroupId,
                 new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Bingo! 答案是："), new ImageMessage { Base64 = image} });
@@ -236,17 +259,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             if (_guessingGroupsMap.ContainsKey(source.GroupId))
             {
-                var keyId = -1;
-                _guessingGroupsMap.TryGetValue(source.GroupId, out keyId);
+                var keyIdDateTimePair = (-1, DateTime.MinValue);
+                _guessingGroupsMap.TryGetValue(source.GroupId, out keyIdDateTimePair);
                 var aliases = MaiCommandCommand.GetAliasByAliasString(command);
                 foreach (Alias alias in aliases)
                 {
                     aliasPassed = true;
-                    if (alias.Id == keyId)
+                    if (alias.Id == keyIdDateTimePair.Item1)
                     {
-                        var task = new Task(() => Reply(source, keyId));
+                        var task = new Task(() => Reply(source, keyIdDateTimePair.Item1));
                         task.Start();
-                        _guessingGroupsMap.Remove(source.GroupId);
                         
                         return Task.CompletedTask;
                     }
@@ -255,11 +277,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var songIndex = MaiCommandCommand.GetSongIndexByTitle(command);
                 if (songIndex != -1)
                     namePassed = true;
-                if (songIndex != -1 && MaiCommandCommand.Songs[songIndex].Id == keyId)
+                if (songIndex != -1 && MaiCommandCommand.Songs[songIndex].Id == keyIdDateTimePair.Item1)
                 {
-                    var task = new Task(() => Reply(source, keyId));
+                    var task = new Task(() => Reply(source, keyIdDateTimePair.Item1));
                     task.Start();
-                    _guessingGroupsMap.Remove(source.GroupId);
 
                     return Task.CompletedTask;
                 }
@@ -271,11 +292,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     idPassed = true;
                     var id = idHeadRegex.Replace(command, string.Empty).ToInt32();
                     int index = MaiCommandCommand.GetSongIndexById(id);
-                    if (index != -1 &&Songs[index].Id == keyId)
+                    if (index != -1 &&Songs[index].Id == keyIdDateTimePair.Item1)
                     {
-                        var task = new Task(() => Reply(source, keyId));
+                        var task = new Task(() => Reply(source, keyIdDateTimePair.Item1));
                         task.Start();
-                        _guessingGroupsMap.Remove(source.GroupId);
                         
                         return Task.CompletedTask;
                     }

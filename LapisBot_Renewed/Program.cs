@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions;
@@ -37,6 +38,8 @@ namespace LapisBot_Renewed
         };
 
         public static event EventHandler DateChanged;
+
+        public static event EventHandler TimeChanged;
 
         public static async Task Main()
         {
@@ -113,12 +116,15 @@ namespace LapisBot_Renewed
             while (true)
             {
                 Thread.Sleep(1000);
+                //if (TimeChanged != null)
+                    TimeChanged(new Object(), new EventArgs());
                 //Console.WriteLine(DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second);
                 if (lastDateTime.Date != DateTime.Now.Date)
                 {
                     lastDateTime = DateTime.Now;
                     SaveDate();
-                    DateChanged(new Object(), new EventArgs());
+                    if (DateChanged != null)
+                        DateChanged(new Object(), new EventArgs());
                 }
             }
         }
