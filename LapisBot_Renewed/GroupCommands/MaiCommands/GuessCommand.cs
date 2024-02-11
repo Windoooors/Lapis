@@ -37,24 +37,45 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         }
     }
     
+    public class GuessSettings : GroupCommand.GroupCommandSettings
+    {
+        public bool SongPreview { get; set; }
+
+        public GuessSettings Clone(GuessSettings guessSettings)
+        {
+            return JsonConvert.DeserializeObject<GuessSettings>(JsonConvert.SerializeObject(guessSettings));
+        }
+    }
+    
     public class GuessCommand : MaiCommand
     {
         private Dictionary<string, (int, DateTime)> _guessingGroupsMap = new Dictionary<string, (int, DateTime)>();
 
+        public override Task GetDefaultSettings()
+        {
+            CurrentGroupCommandSettings = ((GuessSettings)DefaultSettings).Clone((GuessSettings)DefaultSettings);
+            return Task.CompletedTask;
+        }
+        
         public override Task Initialize()
         {
             HeadCommand = new Regex(@"^guess$");
             SubHeadCommand = new Regex(@"^guess ");
             DirectCommand = new Regex(@"^guess$");
             SubDirectCommand  = new Regex(@"^guess ");
-            DefaultSettings.SettingsName = "猜歌";
+            DefaultSettings = new GuessSettings
+            {
+                Enabled = true,
+                SongPreview = true,
+                DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" }, { "SongPreview", "歌曲试听" } },
+                SettingsName = "猜歌"
+            };
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
                                           " Settings");
             }
-
             foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
                                                        CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
@@ -74,14 +95,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             for (int i = 0; i < _guessingGroupsMap.Count; i++)
             {
                 //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
-                if (_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks <= DateTime.Now.Ticks)
-                {
-                    var keyIdDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
-                    var groupId = _guessingGroupsMap.Keys.ToArray()[i];
-                    var taskAnnounce = new Task(() =>
-                        AnnounceAnswer(keyIdDateTimePair, groupId));
-                    taskAnnounce.Start();
-                }
+                if (!(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks <= DateTime.Now.Ticks))
+                    return;
+                var keyIdDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
+                var groupId = _guessingGroupsMap.Keys.ToArray()[i];
+                var taskAnnounce = new Task(() =>
+                    AnnounceAnswer(keyIdDateTimePair, groupId));
+                taskAnnounce.Start();
             }
         }
 
@@ -159,6 +179,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     new ImageMessage { Base64 = image }
                 });
 
+            if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
+                return Task.CompletedTask;
             var voice = new VoiceMessage
             {
                 Path = AudioToVoiceConverter.ConvertSong(keyIdDateTimePair.Item1)
@@ -201,6 +223,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         new ImageMessage { Base64 = image }
                     });
 
+                if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
+                    return Task.CompletedTask;
                 var voice = new VoiceMessage
                 {
                     Path = AudioToVoiceConverter.ConvertSong(keyIdDateTimePair.Item1)
@@ -242,6 +266,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             MessageManager.SendGroupMessageAsync(source.GroupId,
                 new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Bingo! 答案是："), new ImageMessage { Base64 = image} });
                         
+            if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
+                return Task.CompletedTask;
+            
             var voice = new VoiceMessage
             {
                 Path = AudioToVoiceConverter.ConvertSong(id)

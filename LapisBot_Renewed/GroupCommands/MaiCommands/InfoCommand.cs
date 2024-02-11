@@ -51,7 +51,6 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-
             }
 
             foreach (var path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
