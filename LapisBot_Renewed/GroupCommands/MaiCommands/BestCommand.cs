@@ -42,6 +42,75 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     new { username = command, b50 = true });
                 //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
                 BestDto best = JsonConvert.DeserializeObject<BestDto>(content);
+                                foreach (BestDto.ScoreDto score in best.Charts.SdCharts)
+                {
+                    var achievement = score.Achievements;
+                    if (achievement >= 100.5)
+                        score.rate = InfoCommand.Rate.Sssp;
+                    else if (100.5 > achievement && achievement >= 100)
+                        score.rate = InfoCommand.Rate.Sss;
+                    else if (100 > achievement && achievement >= 99.5)
+                        score.rate = InfoCommand.Rate.Ssp;
+                    else if (99.5 > achievement && achievement >= 99)
+                        score.rate = InfoCommand.Rate.Ss;
+                    else if (99 > achievement && achievement >= 98)
+                        score.rate = InfoCommand.Rate.Sp;
+                    else if (98 > achievement && achievement >= 97)
+                        score.rate = InfoCommand.Rate.S;
+                    else if (97 > achievement && achievement >= 94)
+                        score.rate = InfoCommand.Rate.Aaa;
+                    else if (94 > achievement && achievement >= 90)
+                        score.rate = InfoCommand.Rate.Aa;
+                    else if (90 > achievement && achievement >= 80)
+                        score.rate = InfoCommand.Rate.A;
+                    else if (80 > achievement && achievement >= 75)
+                        score.rate = InfoCommand.Rate.Bbb;
+                    else if (75 > achievement && achievement >= 70)
+                        score.rate = InfoCommand.Rate.Bb;
+                    else if (70 > achievement && achievement >= 60)
+                        score.rate = InfoCommand.Rate.B;
+                    else if (60 > achievement && achievement >= 50)
+                        score.rate = InfoCommand.Rate.C;
+                    else if (50 > achievement)
+                        score.rate = InfoCommand.Rate.D;
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexByTitle(score.Title)]
+                        .Charts[score.LevelIndex].MaxDxScore;
+                }
+                foreach (BestDto.ScoreDto score in best.Charts.DxCharts)
+                {
+                    var achievement = score.Achievements;
+                    if (achievement >= 100.5)
+                        score.rate = InfoCommand.Rate.Sssp;
+                    else if (100.5 > achievement && achievement >= 100)
+                        score.rate = InfoCommand.Rate.Sss;
+                    else if (100 > achievement && achievement >= 99.5)
+                        score.rate = InfoCommand.Rate.Ssp;
+                    else if (99.5 > achievement && achievement >= 99)
+                        score.rate = InfoCommand.Rate.Ss;
+                    else if (99 > achievement && achievement >= 98)
+                        score.rate = InfoCommand.Rate.Sp;
+                    else if (98 > achievement && achievement >= 97)
+                        score.rate = InfoCommand.Rate.S;
+                    else if (97 > achievement && achievement >= 94)
+                        score.rate = InfoCommand.Rate.Aaa;
+                    else if (94 > achievement && achievement >= 90)
+                        score.rate = InfoCommand.Rate.Aa;
+                    else if (90 > achievement && achievement >= 80)
+                        score.rate = InfoCommand.Rate.A;
+                    else if (80 > achievement && achievement >= 75)
+                        score.rate = InfoCommand.Rate.Bbb;
+                    else if (75 > achievement && achievement >= 70)
+                        score.rate = InfoCommand.Rate.Bb;
+                    else if (70 > achievement && achievement >= 60)
+                        score.rate = InfoCommand.Rate.B;
+                    else if (60 > achievement && achievement >= 50)
+                        score.rate = InfoCommand.Rate.C;
+                    else if (50 > achievement)
+                        score.rate = InfoCommand.Rate.D;
+                    var index = MaiCommandCommand.GetSongIndexByTitle(score.Title);
+                    score.MaxDxScore = MaiCommandCommand.Songs[index]
+                        .Charts[score.LevelIndex].MaxDxScore;
+                }
                 Program.settingsCommand.GetSettings(source);
                 var image = BestImageGenerator.Generate(best, source.Sender.Id, false,
                     Program.settingsCommand.CurrentBotSettings.CompressedImage);
@@ -102,6 +171,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexByTitle(score.Title)]
+                        .Charts[score.LevelIndex].MaxDxScore;
                 }
                 foreach (BestDto.ScoreDto score in best.Charts.DxCharts)
                 {
@@ -134,6 +205,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexByTitle(score.Title)]
+                        .Charts[score.LevelIndex].MaxDxScore;
                 }
                 
                 Program.settingsCommand.GetSettings(source);
@@ -203,6 +276,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             [JsonProperty("level_index")]
             public int LevelIndex;
+            
+            [JsonProperty("dxScore")]
+            public int DxScore;
+
+            public int MaxDxScore;
 
             public InfoCommand.Rate rate;
         }

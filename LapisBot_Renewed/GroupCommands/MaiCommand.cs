@@ -15,40 +15,34 @@ namespace LapisBot_Renewed.GroupCommands
 
     public class SongDto
     {
-        [JsonProperty("id")]
-        public int Id;
+        [JsonProperty("id")] public int Id;
 
-        [JsonProperty("title")]
-        public string Title;
+        [JsonProperty("title")] public string Title;
 
-        [JsonProperty("type")]
-        public string Type;
+        [JsonProperty("type")] public string Type;
 
-        [JsonProperty("level")]
-        public string[] Levels;
+        [JsonProperty("level")] public string[] Levels;
 
-        [JsonProperty("ds")]
-        public float[] Ratings;
+        [JsonProperty("ds")] public float[] Ratings;
 
-        [JsonProperty("charts")]
-        public ChartDto[] Charts;
+        [JsonProperty("charts")] public ChartDto[] Charts;
 
-        [JsonProperty("basic_info")]
-        public BasicInfoDto BasicInfo;
+        [JsonProperty("basic_info")] public BasicInfoDto BasicInfo;
 
         public class ChartDto
         {
-            [JsonProperty("charter")]
-            public string Charter;
+            [JsonProperty("charter")] public string Charter;
+
+            [JsonProperty("notes")] public int[] Notes;
+            
+            public int MaxDxScore;
         }
 
         public class BasicInfoDto
         {
-            [JsonProperty("artist")]
-            public string Artist;
+            [JsonProperty("artist")] public string Artist;
 
-            [JsonProperty("from")]
-            public string Version;
+            [JsonProperty("from")] public string Version;
         }
     }
 
@@ -273,7 +267,7 @@ namespace LapisBot_Renewed.GroupCommands
             if (OperatingSystem.IsLinux())
                 Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
             else if (OperatingSystem.IsMacOS())
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_23185806.json"), typeof(SongDto[]));
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_80421402.json"), typeof(SongDto[]));
             for (int i = 0; i < 24; i++)
             {
                 Levels.Add(new List<SongDto>());
@@ -281,6 +275,13 @@ namespace LapisBot_Renewed.GroupCommands
 
             foreach (SongDto song in Songs)
             {
+                foreach (SongDto.ChartDto chart in song.Charts)
+                {
+                    foreach (int notes in chart.Notes)
+                    {
+                        chart.MaxDxScore += notes * 3;
+                    }
+                }
                 foreach (string level in song.Levels)
                 {
                     int j;
