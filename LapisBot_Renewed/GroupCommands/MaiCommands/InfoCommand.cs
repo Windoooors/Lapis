@@ -81,20 +81,6 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             Sssp
         }
 
-        public enum FCState
-        {
-            None,
-            Fc,
-            Fcp
-        }
-
-        public enum FSState
-        {
-            None,
-            FS,
-            FSd
-        }
-
         public class GetScoreDto
         {
             public class Level
@@ -102,8 +88,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 public Rate Rate;
                 public double Achievement;
                 public int LevelIndex;
-                public FCState Fc;
-                public FSState Fs;
+                public string Fc;
+                public string Fs;
             }
 
             public Level[] Levels;
@@ -152,16 +138,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             rate = Rate.C;
                         else if (50 > achievement)
                             rate = Rate.D;
-
-                        var fc = new FCState();
-                        var fs = new FSState();
-
-                        if (score.Fc == "fc")
-                            fc = FCState.Fc;
-                        else if (score.Fc == "fcp")
-                            fc = FCState.Fcp;
-                        else if (score.Fc == "")
-                            fc = FCState.None;
+                        
                         /*
                         if (score.Fsd == "fs")
                             fs = FSState.FS;
@@ -172,8 +149,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         */
                         levelList.Add(new Level()
                         {
-                            Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex, Fc = fc,
-                            Fs = fs
+                            Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex, Fc = score.Fc,
+                            Fs = score.Fs
                         });
 
                     }
@@ -233,27 +210,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             else if (50 > achievement)
                                 rate = Rate.D;
 
-                            var fc = new FCState();
-                            var fs = new FSState();
-
-                            if (score.Fc == "fc")
-                                fc = FCState.Fc;
-                            else if (score.Fc == "fcp")
-                                fc = FCState.Fcp;
-                            else if (score.Fc == "")
-                                fc = FCState.None;
-                            /*
-                            if (score.Fsd == "fs")
-                                fs = FSState.FS;
-                            else if (score.Fsd == "fsd")
-                                fs = FSState.FSd;
-                            else if (score.Fsd == "")
-                                fs = FSState.None;
-                            */
                             levelList.Add(new Level()
                             {
-                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex, Fc = fc,
-                                Fs = fs
+                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex, Fc = score.Fc,
+                                Fs = score.Fs
                             });
 
                         }
@@ -278,7 +238,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                     [JsonProperty("fc")] public string Fc;
 
-                    [JsonProperty("fsd")] public string Fsd;
+                    [JsonProperty("fs")] public string Fs;
 
                     [JsonProperty("Id")] public int Id;
 

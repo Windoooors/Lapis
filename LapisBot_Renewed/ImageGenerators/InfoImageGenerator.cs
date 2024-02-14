@@ -92,18 +92,24 @@ namespace LapisBot_Renewed.ImageGenerators
                             y = 548;
                             break;
                     }
+
                     var x = 0;
                     new Drawables()
                         .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
                         .FontPointSize(24)
                         .FillColor(new MagickColor(65535, 65535, 65535))
-                        .Text(0, y + 92, Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") + "% ")
+                        .Text(0, y + 92,
+                            Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") +
+                            "% ")
                         .Draw(difficultyLayerImage);
-                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 6)
+                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length ==
+                        6)
                         x = 100;
-                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 5)
+                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length ==
+                        5)
                         x = 87;
-                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length == 4)
+                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length ==
+                        4)
                         x = 74;
 
                     if (level.Rate == InfoCommand.Rate.Sss)
@@ -141,6 +147,29 @@ namespace LapisBot_Renewed.ImageGenerators
                         if (image.BaseHeight == 19 || image.BaseHeight == 20 || image.BaseHeight == 18)
                             difficultyLayerImage.Composite(image, x, y + 73, CompositeOperator.Blend);
                     }
+
+                    var fcIndicatorText = string.Empty;
+                    var fsIndicatorText = string.Empty;
+
+                    if (level.Fc.Length > 2)
+                        fcIndicatorText = level.Fc.Substring(0, level.Fc.Length - 1).ToUpper() + "+";
+                    else
+                        fcIndicatorText = level.Fc.ToUpper();
+                    if (level.Fs.Length > 2)
+                        fsIndicatorText = level.Fs.Replace("p", "+").ToUpper();
+                    else
+                        fsIndicatorText = level.Fs.ToUpper();
+
+                    var indicatorText = fcIndicatorText + " " + fsIndicatorText;
+                    if (indicatorText.Length != 0)
+                        indicatorText.TrimEnd();
+
+                    new Drawables()
+                        .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                        .FontPointSize(18)
+                        .FillColor(new MagickColor(65535, 65535, 65535, 32768))
+                        .Text(2, y + 67, indicatorText)
+                        .Draw(difficultyLayerImage);
                 }
             }
             if (songs[index].Ratings.Length == 5)

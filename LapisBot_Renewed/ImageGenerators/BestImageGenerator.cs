@@ -283,6 +283,18 @@ namespace LapisBot_Renewed.ImageGenerators
         {
             var difficulty = string.Empty;
             var fontColor = new MagickColor();
+            
+            var fcIndicatorText = string.Empty;
+            var fsIndicatorText = string.Empty;
+
+            if (score.Fc.Length > 2)
+                fcIndicatorText = score.Fc.Substring(0, score.Fc.Length - 1).ToUpper() + "+";
+            else
+                fcIndicatorText = score.Fc.ToUpper();
+            if (score.Fs.Length > 2)
+                fsIndicatorText = score.Fs.Replace("p", "+").ToUpper();
+            else
+                fsIndicatorText = score.Fs.ToUpper();
 
             switch (score.LevelIndex)
             {
@@ -461,7 +473,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 _rateBackgroundImage =
                     new MagickImage(Environment.CurrentDirectory + @"/resources/best50/item_rate_background_a.png");
             }
-
+            
             var stars = 0;
             var starRate = (float)score.DxScore / score.MaxDxScore * 100;
             if (starRate <= 100 && starRate >= 97)
@@ -485,17 +497,27 @@ namespace LapisBot_Renewed.ImageGenerators
                 var width = _rateBackgroundImage.BaseWidth;
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font-heavy.otf")
-                    .FontPointSize(13)
+                    .FontPointSize(12)
                     .FillColor(new MagickColor(0,0,0,13660))
                     .TextAlignment(TextAlignment.Right)
-                    .Text(width - 10, 24, "DX 分数")
+                    .Text(width - 10, 23, "DX 分数")
                     .Draw(_rateBackgroundImage);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resources/font.otf")
-                    .FontPointSize(18.7)
+                    .FontPointSize(12)
                     .FillColor(new MagickColor(0,0,0,39321))
                     .TextAlignment(TextAlignment.Right)
-                    .Text(width - 10, 44, score.DxScore.ToString())
+                    .Text(width - 10, 36, score.DxScore+ "/" + score.MaxDxScore)
+                    .Draw(_rateBackgroundImage);
+                var indicatorText = fcIndicatorText + " " + fsIndicatorText;
+                if (indicatorText.Length != 0)
+                    indicatorText.TrimEnd();
+                new Drawables()
+                    .Font(Environment.CurrentDirectory + @"/resources/font-heavy.otf")
+                    .FontPointSize(10)
+                    .FillColor(new MagickColor(0,0,0,39321))
+                    .TextAlignment(TextAlignment.Right)
+                    .Text(width - 9, 58, indicatorText)
                     .Draw(_rateBackgroundImage);
                 _image.Scale(new Percentage(80));
                 _rateShadowImage.Scale(new Percentage(80));
@@ -507,8 +529,8 @@ namespace LapisBot_Renewed.ImageGenerators
                 {
                     _rateBackgroundImage.Composite(
                         new MagickImage(Environment.CurrentDirectory + @"/resources/best50/star.png"),
-                        _rateBackgroundImage.BaseWidth - (int)(i * 13.69f) - 24,
-                        46,
+                        _rateBackgroundImage.BaseWidth - (int)(i * 11f) - 20,
+                        37,
                         CompositeOperator.Atop);
                 }
 

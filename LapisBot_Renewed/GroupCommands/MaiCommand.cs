@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using Manganese.Text;
 using LapisBot_Renewed.GroupCommands.MaiCommands;

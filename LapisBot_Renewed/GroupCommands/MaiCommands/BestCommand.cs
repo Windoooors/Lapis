@@ -73,7 +73,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexByTitle(score.Title)]
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(score.Id)]
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
                 foreach (BestDto.ScoreDto score in best.Charts.DxCharts)
@@ -107,8 +107,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
-                    var index = MaiCommandCommand.GetSongIndexByTitle(score.Title);
-                    score.MaxDxScore = MaiCommandCommand.Songs[index]
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(score.Id)]
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
                 Program.settingsCommand.GetSettings(source);
@@ -171,7 +170,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexByTitle(score.Title)]
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(score.Id)]
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
                 foreach (BestDto.ScoreDto score in best.Charts.DxCharts)
@@ -205,7 +204,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexByTitle(score.Title)]
+                    score.MaxDxScore = MaiCommandCommand.Songs[MaiCommandCommand.GetSongIndexById(score.Id)]
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
                 
@@ -265,8 +264,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             [JsonProperty("title")]
             public string Title;
 
-            [JsonProperty("fsd")]
-            public string Fsd;
+            [JsonProperty("fs")]
+            public string Fs;
 
             [JsonProperty("song_id")]
             public int Id;
