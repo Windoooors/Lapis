@@ -43,7 +43,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             DefaultSettings = new InfoSettings
             {
                 Enabled = true,
-                SongPreview = true,
+                SongPreview = false,
                 DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" }, { "SongPreview", "歌曲试听" } },
                 SettingsName = "歌曲信息"
             };
@@ -266,7 +266,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         Program.settingsCommand.GetSettings(source);
                         var image = new ImageMessage
                         {
-                            Base64 = InfoImageGenerator.Generate(i, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                            Base64 = new InfoImageGenerator().Generate(i, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                 Program.settingsCommand.CurrentBotSettings.CompressedImage)
                         };
                         MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -276,7 +276,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         {
                             var voice = new VoiceMessage
                             {
-                                Path = AudioToVoiceConverter.ConvertSong(aliases[0].Id)
+                                Path = new AudioToVoiceConverter().ConvertSong(aliases[0].Id)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                         }
@@ -342,7 +342,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                 Program.settingsCommand.GetSettings(source);
                                 var image = new ImageMessage
                                 {
-                                    Base64 = InfoImageGenerator.Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                    Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                         Program.settingsCommand.CurrentBotSettings.CompressedImage)
                                 };
 
@@ -352,7 +352,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                 {
                                     var voice = new VoiceMessage
                                     {
-                                        Path = AudioToVoiceConverter.ConvertSong(Songs[index].Id)
+                                        Path = new AudioToVoiceConverter().ConvertSong(Songs[index].Id)
                                     };
                                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                                 }
@@ -391,7 +391,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             Program.settingsCommand.GetSettings(source);
                             var image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                     Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -401,7 +401,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var voice = new VoiceMessage
                                 {
-                                    Path = AudioToVoiceConverter.ConvertSong(Songs[index].Id)
+                                    Path = new AudioToVoiceConverter().ConvertSong(Songs[index].Id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                             }
@@ -438,7 +438,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         Program.settingsCommand.GetSettings(source);
                         var image = new ImageMessage
                         {
-                            Base64 = InfoImageGenerator.Generate(i, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                            Base64 = new InfoImageGenerator().Generate(i, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                 Program.settingsCommand.CurrentBotSettings.CompressedImage)
                         };
                         MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -448,7 +448,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         {
                             var voice = new VoiceMessage
                             {
-                                Path = AudioToVoiceConverter.ConvertSong(aliases[0].Id)
+                                Path = new AudioToVoiceConverter().ConvertSong(aliases[0].Id)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                         }
@@ -517,7 +517,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             Program.settingsCommand.GetSettings(source);
                             var image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                     Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
 
@@ -528,7 +528,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var voice = new VoiceMessage
                                 {
-                                    Path = AudioToVoiceConverter.ConvertSong(id)
+                                    Path = new AudioToVoiceConverter().ConvertSong(id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                             }
@@ -559,7 +559,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             Program.settingsCommand.GetSettings(source);
                             var _image = new ImageMessage
                             {
-                                Base64 = InfoImageGenerator.Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                     Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -569,7 +569,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var _voice = new VoiceMessage
                                 {
-                                    Path = AudioToVoiceConverter.ConvertSong(Songs[index].Id)
+                                    Path = new AudioToVoiceConverter().ConvertSong(Songs[index].Id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
                             }

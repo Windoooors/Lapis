@@ -40,7 +40,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             DefaultSettings = new RandomSettings
             {
                 Enabled = true,
-                SongPreview = true,
+                SongPreview = false,
                 DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" }, { "SongPreview", "歌曲试听" } },
                 SettingsName = "随机歌曲"
             };
@@ -82,7 +82,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.settingsCommand.GetSettings(source);
                 var image = new ImageMessage
                 {
-                    Base64 = InfoImageGenerator.Generate(j, songs, "随机歌曲", null, Program.settingsCommand.CurrentBotSettings.CompressedImage)
+                    Base64 = new InfoImageGenerator().Generate(j, songs, "随机歌曲", null, Program.settingsCommand.CurrentBotSettings.CompressedImage)
                 };
 
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), image });
@@ -90,7 +90,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 {
                     var voice = new VoiceMessage
                     {
-                        Path = AudioToVoiceConverter.ConvertSong(songs[j].Id)
+                        Path = new AudioToVoiceConverter().ConvertSong(songs[j].Id)
                     };
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                 }

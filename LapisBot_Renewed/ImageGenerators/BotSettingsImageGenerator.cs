@@ -8,7 +8,7 @@ namespace LapisBot_Renewed.ImageGenerators
 {
     public class BotSettingsImageGenerator
     {
-        public static string Generate(BotSettingsCommand.Settings settings, bool isCompressed)
+        public string Generate(BotSettingsCommand.Settings settings, bool isCompressed)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resources/settings/background.png");
 

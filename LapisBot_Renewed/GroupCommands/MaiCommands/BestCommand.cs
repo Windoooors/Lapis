@@ -111,7 +111,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
                 Program.settingsCommand.GetSettings(source);
-                var image = BestImageGenerator.Generate(best, source.Sender.Id, false,
+                var image = new BestImageGenerator().Generate(best, source.Sender.Id, false,
                     Program.settingsCommand.CurrentBotSettings.CompressedImage);
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 var imageMessage = new ImageMessage
@@ -210,7 +210,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 
                 Program.settingsCommand.GetSettings(source);
                 
-                var image = BestImageGenerator.Generate(best, source.Sender.Id, true, Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                var image = new BestImageGenerator().Generate(best, source.Sender.Id, true, Program.settingsCommand.CurrentBotSettings.CompressedImage);
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 var imageMessage = new ImageMessage
                 {

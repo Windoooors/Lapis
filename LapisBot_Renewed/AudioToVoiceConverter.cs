@@ -8,12 +8,12 @@ namespace LapisBot_Renewed
 {
 	public class AudioToVoiceConverter
 	{
-		public static string ConvertAudio(string path)
+		public string ConvertAudio(string path)
 		{
 			return ConvertCore(path);
 		}
 		
-		public static string ConvertSong(int id)
+		public string ConvertSong(int id)
 		{
 			var outputPath = AppContext.BaseDirectory + "temp/" + id + ".silk";
 			if (!File.Exists(outputPath))

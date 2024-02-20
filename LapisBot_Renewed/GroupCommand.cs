@@ -240,7 +240,7 @@ namespace LapisBot_Renewed
                     JsonConvert.SerializeObject(CurrentGroupCommandSettings));
             }
             Program.settingsCommand.GetSettings(source);
-            var image = BotSettingsImageGenerator.Generate(CurrentGroupCommandSettings,
+            var image = new BotSettingsImageGenerator().Generate(CurrentGroupCommandSettings,
                 Program.settingsCommand.CurrentBotSettings.CompressedImage);
             MessageManager.SendGroupMessageAsync(source.GroupId,
                 new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } });

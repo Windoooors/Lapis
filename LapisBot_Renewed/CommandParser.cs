@@ -152,16 +152,7 @@ namespace LapisBot_Renewed
                         return false;
                     return true;
                 }
-                if (command.HeadCommand == null)
-                {
-                    if (command.SubCommands.Count != 0)
-                    {
-                        parsed = Parse(source, commandString, command.SubCommands);
-                        if (parsed)
-                            return true;
-                    }
-                }
-                else if (command.SubHeadCommand == null)
+                if (command.SubHeadCommand == null && command.HeadCommand == null)
                 {
                     if (command.SubCommands.Count != 0)
                     {

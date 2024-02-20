@@ -32,7 +32,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             var audioCount = Directory.GetFiles(AppContext.BaseDirectory + "temp/" + id).Length;
             var audioIndex = new Random().Next(3, audioCount - 4);
 
-            return AudioToVoiceConverter.ConvertAudio(AppContext.BaseDirectory + "temp/" + id + "/" +
+            return new AudioToVoiceConverter().ConvertAudio(AppContext.BaseDirectory + "temp/" + id + "/" +
                                                audioIndex.ToString("00000") + ".mp3");
         }
     }
@@ -66,7 +66,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             DefaultSettings = new GuessSettings
             {
                 Enabled = true,
-                SongPreview = true,
+                SongPreview = false,
                 DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" }, { "SongPreview", "歌曲试听" } },
                 SettingsName = "猜歌"
             };
@@ -169,7 +169,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             
             _guessingGroupsMap.Remove(groupId);
 
-            var image = InfoImageGenerator.Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
+            var image = new InfoImageGenerator().Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
                 "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
             MessageManager.SendGroupMessageAsync(groupId,
@@ -183,7 +183,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 return Task.CompletedTask;
             var voice = new VoiceMessage
             {
-                Path = AudioToVoiceConverter.ConvertSong(keyIdDateTimePair.Item1)
+                Path = new AudioToVoiceConverter().ConvertSong(keyIdDateTimePair.Item1)
             };
             MessageManager.SendGroupMessageAsync(groupId, new MessageChain() { voice });
 
@@ -212,7 +212,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 
                 _guessingGroupsMap.Remove(source.GroupId);
 
-                var image = InfoImageGenerator.Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
+                var image = new InfoImageGenerator().Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
                     "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
                 MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -227,7 +227,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     return Task.CompletedTask;
                 var voice = new VoiceMessage
                 {
-                    Path = AudioToVoiceConverter.ConvertSong(keyIdDateTimePair.Item1)
+                    Path = new AudioToVoiceConverter().ConvertSong(keyIdDateTimePair.Item1)
                 };
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                 
@@ -260,7 +260,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             
             _guessingGroupsMap.Remove(source.GroupId);
 
-            var image = InfoImageGenerator.Generate(GetSongIndexById(id), MaiCommandCommand.Songs,
+            var image = new InfoImageGenerator().Generate(GetSongIndexById(id), MaiCommandCommand.Songs,
                 "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
                             
             MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -271,7 +271,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             
             var voice = new VoiceMessage
             {
-                Path = AudioToVoiceConverter.ConvertSong(id)
+                Path = new AudioToVoiceConverter().ConvertSong(id)
             };
             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
 

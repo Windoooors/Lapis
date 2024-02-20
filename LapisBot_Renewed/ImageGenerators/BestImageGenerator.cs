@@ -13,7 +13,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
         }
 
-        public static string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
+        public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
         {
             MagickImage head;
             if (usingHead)

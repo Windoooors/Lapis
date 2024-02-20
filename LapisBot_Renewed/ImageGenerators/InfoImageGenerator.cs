@@ -220,7 +220,7 @@ namespace LapisBot_Renewed.ImageGenerators
             return difficultyLayerImage;
         }
 
-        public static string Generate(int index, SongDto[] songs, string title, InfoCommand.GetScoreDto.Level[] levels, bool isCompressed)
+        public string Generate(int index, SongDto[] songs, string title, InfoCommand.GetScoreDto.Level[] levels, bool isCompressed)
         {
             var image = GenerateBackground(index, songs, title, Program.apiOperator);
 
