@@ -15,8 +15,8 @@ namespace LapisBot_Renewed.GroupCommands
     {
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^骂我$");
-            DirectCommand = new Regex(@"^骂我$");
+            HeadCommand = new Regex(@"^骂我$|^夸我$");
+            DirectCommand = new Regex(@"^骂我$|^夸我$");
             DefaultSettings.SettingsName = "骂";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))

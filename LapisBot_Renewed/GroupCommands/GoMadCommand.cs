@@ -1,19 +1,23 @@
-﻿using System.Text.RegularExpressions;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
-using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Mirai.Net.Data.Messages.Receivers;
+using Mirai.Net.Data.Messages;
+using Mirai.Net.Data.Messages.Concretes;
+using Mirai.Net.Sessions.Http.Managers;
 using System.IO;
-using System;
+using Newtonsoft.Json;
 
-namespace LapisBot_Renewed.GroupCommands.MaiCommands
+namespace LapisBot_Renewed.GroupCommands
 {
-    public class PlateCommand : MaiCommand
+    public class GoMadCommand : GroupCommand
     {
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"是什么将");
-            DefaultSettings.SettingsName = "牌子查询";
+            HeadCommand = new Regex(@"^色色\s");
+            DirectCommand = new Regex(@"^色色\s");
+            DefaultSettings.SettingsName = "色色";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
@@ -31,11 +35,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             return Task.CompletedTask;
         }
-
+        
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId, "你是我的欧尼将🥺");
-            return Task.CompletedTask;
+            var text = command.Replace("！", "\u2661").Replace("!", "\u2661").Replace("，", "……")
+                .Replace(",", "……").Replace("；", "……").Replace(";", "……");
+                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new PlainMessage(text) });
+          return Task.CompletedTask;
         }
     }
 }

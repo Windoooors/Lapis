@@ -65,6 +65,8 @@ namespace LapisBot_Renewed
 
             groupCommands.Add(new RepeatCommand());
             groupCommands.Add(new AbuseCommand());
+            groupCommands.Add(new GuessWordsCommand());
+            groupCommands.Add(new GoMadCommand());
             groupCommands.Add(new McPingCommand());
             groupCommands.Add(_helpCommand);
             groupCommands.Add(_botSettingsCommand);
@@ -80,12 +82,12 @@ namespace LapisBot_Renewed
             privateCommands.Add(new GetGroupsCommand());
             privateCommands.Add(new UpdateMessageCommand());
 
-            foreach (GroupCommand _command in groupCommands)
-                await _command.Initialize();
+            foreach (GroupCommand command in groupCommands)
+                new Task(() => command.Initialize()).Start();
 
 
-            foreach (PrivateCommand _command in privateCommands)
-                await _command.Initialize();
+            foreach (PrivateCommand command in privateCommands)
+                new Task(() => command.Initialize()).Start();
 
             var commandParser = new CommandParser();
 
@@ -116,7 +118,7 @@ namespace LapisBot_Renewed
             while (true)
             {
                 Thread.Sleep(1000);
-                //if (TimeChanged != null)
+                if (TimeChanged != null)
                     TimeChanged(new Object(), new EventArgs());
                 //Console.WriteLine(DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second);
                 if (lastDateTime.Date != DateTime.Now.Date)

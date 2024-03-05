@@ -48,7 +48,7 @@ namespace LapisBot_Renewed
 
         public override Task Initialize()
         {
-            botDefaultSettings.DisplayNames.Add("HeadlessCommand", "无指令头触发指令");
+            botDefaultSettings.DisplayNames.Add("HeadlessCommand", "简洁指令");
             botDefaultSettings.DisplayNames.Add("UpdateMessage", "更新提醒");
             botDefaultSettings.DisplayNames.Add("CompressedImage", "图片压缩");
             //Console.WriteLine(AppContext.BaseDirectory + "settings");

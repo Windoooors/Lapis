@@ -139,7 +139,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     int index = MaiCommandCommand.GetSongIndexById(idsList[0]);
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain(){
                         new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" + MaiCommandCommand.Songs[index].Type + "] 的别称")});
+                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" + MaiCommandCommand.Songs[index].Type + "] 的别称")});
                 }
             }
             else

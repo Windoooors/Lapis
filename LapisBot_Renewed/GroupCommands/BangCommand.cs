@@ -37,9 +37,9 @@ namespace LapisBot_Renewed.GroupCommands
 
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            //var path = AudioToVoiceConverter.ConvertAudio(AppContext.BaseDirectory + "resources/bang.mp3");
+            //var path = AudioToVoiceConverter.ConvertAudio(AppContext.BaseDirectory + "resource/bang.mp3");
             
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new VoiceMessage(){ Path = AppContext.BaseDirectory + "resources/bang.silk" } });
+            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new VoiceMessage(){ Path = AppContext.BaseDirectory + "resource/bang.silk" } });
             return Task.CompletedTask;
         }
     }

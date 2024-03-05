@@ -162,7 +162,7 @@ namespace LapisBot_Renewed
                     }
                 }
             }
-            return parsed;
+            return false;
         }
 
         private void ParseHeadlessly(GroupMessageReceiver source, string commandString,

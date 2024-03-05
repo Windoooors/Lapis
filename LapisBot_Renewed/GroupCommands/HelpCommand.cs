@@ -16,6 +16,7 @@ namespace LapisBot_Renewed.GroupCommands
         {
             HeadCommand = new Regex(@"^help$");
             DirectCommand = new Regex(@"^help$");
+            SubDirectCommand = new Regex("^guess");
             DefaultSettings.SettingsName = "帮助";
                         CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
@@ -34,6 +35,12 @@ namespace LapisBot_Renewed.GroupCommands
         public override Task Parse(string command, GroupMessageReceiver source)
         {
             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 请访问链接以查询 Lapis 的使用方法：https://www.setchin.com/lapis_docs.html") });
+            return Task.CompletedTask;
+        }
+
+        public override Task SubParse(string command, GroupMessageReceiver source)
+        {
+            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" guess 简洁指令已过时，访问 https://www.setchin.com/lapis_docs.html 以查看详情") });
             return Task.CompletedTask;
         }
     }

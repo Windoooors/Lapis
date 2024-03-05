@@ -24,16 +24,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (!Directory.Exists(AppContext.BaseDirectory + "temp/" + id))
             {
                 Directory.CreateDirectory(AppContext.BaseDirectory + "temp/" + id);
-                var command = "ffmpeg -i " + AppContext.BaseDirectory + "resources/tracks/" + id + ".mp3" + " -f segment -segment_time 3 -c copy " + AppContext.BaseDirectory +
+                var command = "ffmpeg -i " + AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3" + " -f segment -segment_time 3 -c copy " + AppContext.BaseDirectory +
                               "temp/" + id + "/%5d.mp3";
                 ApiOperator.Bash(command);
             }
 
             var audioCount = Directory.GetFiles(AppContext.BaseDirectory + "temp/" + id).Length;
-            var audioIndex = new Random().Next(3, audioCount - 4);
+            var audioIndex = new Random().Next(3, audioCount - 3);
 
             return new AudioToVoiceConverter().ConvertAudio(AppContext.BaseDirectory + "temp/" + id + "/" +
-                                               audioIndex.ToString("00000") + ".mp3");
+                                               audioIndex.ToString("00000") + ".mp3", AppContext.BaseDirectory + "temp/" + id + "_" + audioIndex.ToString("00000") + ".silk");
         }
     }
     
@@ -61,8 +61,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             HeadCommand = new Regex(@"^guess$");
             SubHeadCommand = new Regex(@"^guess ");
-            DirectCommand = new Regex(@"^guess$");
-            SubDirectCommand  = new Regex(@"^guess ");
+            DirectCommand = new Regex(@"^guess songs$|^猜歌$|^guess song$");
+            SubDirectCommand  = new Regex(@"^guess songs |^猜歌 |^guess song ");
             DefaultSettings = new GuessSettings
             {
                 Enabled = true,
@@ -80,7 +80,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                                        CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
+                settingsList.Add(JsonConvert.DeserializeObject<GuessSettings>(settingsString));
             }
             
             Program.TimeChanged += TimeChanged;
@@ -117,7 +117,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 var random = new Random();
                 SongDto[] songs = Levels[difficulty].ToArray();
-                var songIndex = random.Next(0, songs.Length - 1);
+                var songIndex = random.Next(0, songs.Length);
                 _guessingGroupsMap.Add(source.GroupId,
                     (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -132,7 +132,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
             else
                 MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请使用指令 \"lps mai guess answer\"") });
+                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"") });
             return Task.CompletedTask;
         }
 
@@ -156,7 +156,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
             else
                 MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请使用指令 \"lps mai guess answer\"") });
+                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"") });
             return Task.CompletedTask;
         }
 
@@ -200,7 +200,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         new MessageChain
                         {
                             new AtMessage(source.Sender.Id),
-                            new PlainMessage(" 没有游戏正在进行喔！使用指令 \"l mai guess\" 即可开启新一轮的游戏")
+                            new PlainMessage(" 没有游戏正在进行喔！发送指令 \"l mai guess\" 即可开启新一轮的游戏")
                         });
                     return Task.CompletedTask;
                 }

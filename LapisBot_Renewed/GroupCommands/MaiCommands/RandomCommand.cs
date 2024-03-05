@@ -70,10 +70,6 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 {
                     MessageManager.SendGroupMessageAsync(source.GroupId, "潘你妈");
                 }
-                if (i == 6)
-                {
-                    return Task.CompletedTask;
-                }
                 SongDto[] songs = Levels[i].ToArray();
 
                 Random random = new Random();

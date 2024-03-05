@@ -315,7 +315,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
                     {
                         new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai info ID " + idsList[0] + " " +
+                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + " " +
                                          command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command) + " ",
                                              string.Empty) + "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" +
                                          MaiCommandCommand.Songs[index].Type + "] 的相关信息")
@@ -492,7 +492,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
                     {
                         new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*使用 \"lps mai info ID " + idsList[0] +
+                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] +
                                          "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" +
                                          MaiCommandCommand.Songs[index].Type + "] 的相关信息")
                     });

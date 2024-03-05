@@ -13,12 +13,17 @@ namespace LapisBot_Renewed
 			return ConvertCore(path);
 		}
 		
+		public string ConvertAudio(string path, string outputPath)
+		{
+			return ConvertCore(path, outputPath);
+		}
+		
 		public string ConvertSong(int id)
 		{
 			var outputPath = AppContext.BaseDirectory + "temp/" + id + ".silk";
 			if (!File.Exists(outputPath))
 			{
-				return ConvertCore(AppContext.BaseDirectory + "resources/tracks/" + id + ".mp3", outputPath);
+				return ConvertCore(AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3", outputPath);
 			}
 			return outputPath;
         }
@@ -29,12 +34,12 @@ namespace LapisBot_Renewed
 			var outputPath = regex.Replace(path, ".silk");
 			if (OperatingSystem.IsMacOS())
 			{
-				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resources/silk_codec-macos " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
+				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resource/silk_codec-macos " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
 				ApiOperator.Bash(command);
 			}
 			if (OperatingSystem.IsLinux())
 			{
-				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resources/silk_codec-linux-x64 " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
+				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resource/silk_codec-linux-x64 " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
 				ApiOperator.Bash(command);
 			}
 
@@ -45,12 +50,12 @@ namespace LapisBot_Renewed
 		{
 			if (OperatingSystem.IsMacOS())
 			{
-				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resources/silk_codec-macos " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
+				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resource/silk_codec-macos " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
 				ApiOperator.Bash(command);
 			}
 			if (OperatingSystem.IsLinux())
 			{
-				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resources/silk_codec-linux-x64 " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
+				var command = "ffmpeg -y -i " + path + " -acodec pcm_s16le -f s16le -ac 1 " + AppContext.BaseDirectory + "temp/tmp.pcm \n" + AppContext.BaseDirectory + "resource/silk_codec-linux-x64 " + "pts -i " + AppContext.BaseDirectory + "temp/tmp.pcm" + " -s 44100 -o " + outputPath;
 				ApiOperator.Bash(command);
 			}
 

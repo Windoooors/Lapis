@@ -19,17 +19,17 @@ namespace LapisBot_Renewed.ImageGenerators
 
         private static MagickImage GenerateBackground(int index, SongDto[] songs, string title, ApiOperator apiOperator)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resources/random/background.png");
+            var image = new MagickImage(Environment.CurrentDirectory + @"/resource/random/background.png");
             try
             {
-                if (File.Exists(Environment.CurrentDirectory + @"/resources/covers_hd/" + songs[index].Id + ".png"))
-                    _coverImagePath = Environment.CurrentDirectory + @"/resources/covers_hd/" + songs[index].Id + ".png";
+                if (File.Exists(Environment.CurrentDirectory + @"/resource/covers_hd/" + songs[index].Id + ".png"))
+                    _coverImagePath = Environment.CurrentDirectory + @"/resource/covers_hd/" + songs[index].Id + ".png";
                 else
                     _coverImagePath = apiOperator.ImageToPng("https://www.diving-fish.com/covers/" + GetPictureId(songs[index].Id) + ".png", Environment.CurrentDirectory + @"/temp", "cover_temp.png");
             }
             catch
             {
-                _coverImagePath = Environment.CurrentDirectory + @"/resources/covers/01000.png";
+                _coverImagePath = Environment.CurrentDirectory + @"/resource/covers/01000.png";
             }
             var backgroundCoverImage = new MagickImage(_coverImagePath);
             backgroundCoverImage.Resize(64, 64);
@@ -49,7 +49,7 @@ namespace LapisBot_Renewed.ImageGenerators
             };
             var backgroundLayer = new MagickImage("xc:transparent", backgroundLayerSettings);
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font-heavy.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
                 .FontPointSize(400)
                 .FillColor(new MagickColor(65535, 65535, 65535, 5300))
                 .Text(0, 310, songs[index].Title)
@@ -57,7 +57,7 @@ namespace LapisBot_Renewed.ImageGenerators
             backgroundLayer.Rotate(-90);
             image.Composite(backgroundLayer, 0, -150, CompositeOperator.Atop);
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(48)
                 .FillColor(new MagickColor(65535, 65535, 65535, 5300))
                 .Text(13, 1200, title)
@@ -95,7 +95,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
                     var x = 0;
                     new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                        .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                         .FontPointSize(24)
                         .FillColor(new MagickColor(65535, 65535, 65535))
                         .Text(0, y + 92,
@@ -113,33 +113,33 @@ namespace LapisBot_Renewed.ImageGenerators
                         x = 74;
 
                     if (level.Rate == InfoCommand.Rate.Sss)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/sss.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/sss.png");
                     else if (level.Rate == InfoCommand.Rate.Sssp)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/sss_plus.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/sss_plus.png");
                     else if (level.Rate == InfoCommand.Rate.Ss)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/ss.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/ss.png");
                     else if (level.Rate == InfoCommand.Rate.Ssp)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/ss_plus.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/ss_plus.png");
                     else if (level.Rate == InfoCommand.Rate.Sp)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/s_plus.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/s_plus.png");
                     else if (level.Rate == InfoCommand.Rate.S)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/s.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/s.png");
                     else if (level.Rate == InfoCommand.Rate.Aaa)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/aaa.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/aaa.png");
                     else if (level.Rate == InfoCommand.Rate.Aa)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/aa.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/aa.png");
                     else if (level.Rate == InfoCommand.Rate.A)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/a.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/a.png");
                     else if (level.Rate == InfoCommand.Rate.Bbb)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/bbb.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/bbb.png");
                     else if (level.Rate == InfoCommand.Rate.Bb)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/bb.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/bb.png");
                     else if (level.Rate == InfoCommand.Rate.B)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/b.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/b.png");
                     else if (level.Rate == InfoCommand.Rate.C)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/c.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/c.png");
                     else if (level.Rate == InfoCommand.Rate.D)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resources/ratings/d.png");
+                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/d.png");
                     if (image != null)
                     {
                         if (image.BaseHeight == 22 || image.BaseHeight == 23)
@@ -165,7 +165,7 @@ namespace LapisBot_Renewed.ImageGenerators
                         indicatorText.TrimEnd();
 
                     new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                        .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                         .FontPointSize(18)
                         .FillColor(new MagickColor(65535, 65535, 65535, 32768))
                         .Text(2, y + 67, indicatorText)
@@ -175,7 +175,7 @@ namespace LapisBot_Renewed.ImageGenerators
             if (songs[index].Ratings.Length == 5)
             {
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(40)
                     .FillColor(new MagickColor(65535, 65535, 65535))
                     .Text(0, 170, songs[index].Ratings[0].ToString("0.0"))
@@ -185,7 +185,7 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Text(0, 718, songs[index].Ratings[4].ToString("0.0"))
                     .Draw(difficultyLayerImage);
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
                     .Text(0, 124, songs[index].Charts[0].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[0].Charter)
@@ -198,7 +198,7 @@ namespace LapisBot_Renewed.ImageGenerators
             else
             {
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(40)
                     .FillColor(new MagickColor(65535, 65535, 65535))
                     .Text(0, 170, songs[index].Ratings[0].ToString("0.0"))
@@ -208,7 +208,7 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Text(0, 718, "NaN")
                     .Draw(difficultyLayerImage);
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
                     .Text(0, 124, songs[index].Charts[0].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[0].Charter)
@@ -226,32 +226,32 @@ namespace LapisBot_Renewed.ImageGenerators
 
             image.Composite(GenerateDifficultyLayer(index, songs, levels), 90, 305, CompositeOperator.Atop);
 
-            var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resources/random/coverimage.png");
+            var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resource/random/coverimage.png");
             image.Composite(coverImageShadow, 0, 0, CompositeOperator.Atop);
 
             var coverImage = new MagickImage(_coverImagePath);
             coverImage.Resize(1077, 1077);
             image.Composite(coverImage, 324, 207, CompositeOperator.Atop);
 
-            var foreImage = new MagickImage(Environment.CurrentDirectory + @"/resources/random/foreground.png");
+            var foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground.png");
             image.Composite(foreImage, 0, 0, CompositeOperator.Atop);
 
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(55)
                 .FillColor(new MagickColor(65535, 65535, 65535))
                 .Text(10, 190, songs[index].Title)
                 .Draw(image);
 
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(42)
                 .FillColor(new MagickColor(65535, 65535, 65535, 32768))
                 .Text(10, 127, songs[index].BasicInfo.Artist)
                 .Draw(image);
 
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font-heavy.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
                 .FontPointSize(90)
                 .FillColor(new MagickColor(65535, 65535, 65535, 5300))
                 .TextAlignment(TextAlignment.Right)
@@ -261,7 +261,7 @@ namespace LapisBot_Renewed.ImageGenerators
             var songTypeLayer = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 128, Height = 128 });
 
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(36)
                 .FillColor(new MagickColor(65535, 65535, 65535, 22768))
                 .Text(0, 40, songs[index].Type)

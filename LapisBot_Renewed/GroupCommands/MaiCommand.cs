@@ -14,6 +14,25 @@ using LapisBot_Renewed.Collections;
 namespace LapisBot_Renewed.GroupCommands
 {
 
+    public class ExtraSongDto
+    {
+        [JsonProperty("Id")] public int Id;
+
+        [JsonProperty("Title")] public string Title;
+
+        [JsonProperty("Cabinet")] public string Type;
+
+        [JsonProperty("Artist")] public string Artist;
+
+        [JsonProperty("MapInformations")] public MapInfomationDto[] Charts;
+
+        public class MapInfomationDto
+        {
+            [JsonProperty("Level")] public string Level;
+            [JsonProperty("Author")] public string Author;
+        }
+    }
+
     public class SongDto
     {
         [JsonProperty("id")] public int Id;
@@ -178,8 +197,10 @@ namespace LapisBot_Renewed.GroupCommands
 
         public MaiCommand MaiCommandCommand;
         public SongDto[] Songs;
+        public ExtraSongDto[] ExtraSongs;
         private JObject _aliasJObject;
         public List<List<SongDto>> Levels = new List<List<SongDto>>();
+        public List<List<ExtraSongDto>> ExtraLevels = new List<List<ExtraSongDto>>();
         public Dictionary<string, int> LevelDictionary = new Dictionary<string, int>();
         public readonly List<Alias> SongAliases = new List<Alias>();
 
@@ -200,14 +221,15 @@ namespace LapisBot_Renewed.GroupCommands
             LevelDictionary.Clear();
             SubCommands.Clear();
             Levels.Clear();
+            ExtraLevels.Clear();
 
             try
             {
                 if (OperatingSystem.IsLinux())
                     _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
                 else if (OperatingSystem.IsMacOS())
-                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_76686309.json"));
-                //_aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
+                    //_aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_76686309.json"));
+                _aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
             }
             catch
             {
@@ -265,14 +287,38 @@ namespace LapisBot_Renewed.GroupCommands
             LevelDictionary.Add("14", 21);
             LevelDictionary.Add("14+", 22);
             LevelDictionary.Add("15", 23);
+            LevelDictionary.Add("1?", 24);
+            LevelDictionary.Add("2?", 25);
+            LevelDictionary.Add("3?", 26);
+            LevelDictionary.Add("4?", 27);
+            LevelDictionary.Add("5?", 28);
+            LevelDictionary.Add("6?", 29);
+            LevelDictionary.Add("6+?", 30);
+            LevelDictionary.Add("7?", 31);
+            LevelDictionary.Add("7+?", 32);
+            LevelDictionary.Add("8?", 33);
+            LevelDictionary.Add("8+?", 34);
+            LevelDictionary.Add("9?", 35);
+            LevelDictionary.Add("9+?", 36);
+            LevelDictionary.Add("10?", 37);
+            LevelDictionary.Add("10+?", 38);
+            LevelDictionary.Add("11?", 39);
+            LevelDictionary.Add("11+?", 40);
+            LevelDictionary.Add("12?", 41);
+            LevelDictionary.Add("12+?", 42);
+            LevelDictionary.Add("13?", 43);
+            LevelDictionary.Add("13+?", 44);
+            LevelDictionary.Add("14?", 45);
+            LevelDictionary.Add("14+?", 46);
+            LevelDictionary.Add("15?", 47);
             if (OperatingSystem.IsLinux())
                 Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
             else if (OperatingSystem.IsMacOS())
                 Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_80421402.json"), typeof(SongDto[]));
             for (int i = 0; i < 24; i++)
-            {
                 Levels.Add(new List<SongDto>());
-            }
+            for (int i = 0; i < 48; i++)
+                ExtraLevels.Add(new List<ExtraSongDto>());
 
             foreach (SongDto song in Songs)
             {
@@ -288,6 +334,20 @@ namespace LapisBot_Renewed.GroupCommands
                     int j;
                     LevelDictionary.TryGetValue(level, out j);
                     Levels[j].Add(song);
+                }
+            }
+
+            ExtraSongs = (ExtraSongDto[])JsonConvert.DeserializeObject(
+                File.ReadAllText(AppContext.BaseDirectory + "/resource/extra_music_data.json"),
+                typeof(ExtraSongDto[]));
+
+            foreach (ExtraSongDto song in ExtraSongs)
+            {
+                foreach (ExtraSongDto.MapInfomationDto mapInfomationDto in song.Charts)
+                {
+                    int j;
+                    LevelDictionary.TryGetValue(mapInfomationDto.Level, out j);
+                    ExtraLevels[j].Add(song);
                 }
             }
 

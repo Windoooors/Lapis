@@ -10,10 +10,10 @@ namespace LapisBot_Renewed.ImageGenerators
     {
         public string Generate(BotSettingsCommand.Settings settings, bool isCompressed)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resources/settings/background.png");
+            var image = new MagickImage(Environment.CurrentDirectory + @"/resource/settings/background.png");
 
             new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                 .FontPointSize(56.26f)
                 .FillColor(new MagickColor(65535, 65535, 65535, 65535))
                 .Text(21.4, 111.69, settings.SettingsName)
@@ -27,17 +27,17 @@ namespace LapisBot_Renewed.ImageGenerators
                 var _top = top + i * 69;
                 MagickImage itemImage;
                 if (itemValue)
-                    itemImage = new MagickImage(Environment.CurrentDirectory + @"/resources/settings/item_enabled.png");
+                    itemImage = new MagickImage(Environment.CurrentDirectory + @"/resource/settings/item_enabled.png");
                 else
-                    itemImage = new MagickImage(Environment.CurrentDirectory + @"/resources/settings/item_disabled.png");
+                    itemImage = new MagickImage(Environment.CurrentDirectory + @"/resource/settings/item_disabled.png");
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font-light.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(34f)
                     .FillColor(new MagickColor(65535, 65535, 65535, 65535))
                     .Text(23, 48, (i + 1).ToString())
                     .Draw(itemImage);
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                     .FontPointSize(28f)
                     .FillColor(new MagickColor(65535, 65535, 65535, 65535))
                     .Text(80, 46, valuePair.Value)

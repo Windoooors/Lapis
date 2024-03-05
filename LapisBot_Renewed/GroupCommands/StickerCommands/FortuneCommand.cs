@@ -23,7 +23,6 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-                
             }
             foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
@@ -40,7 +39,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
         {
             if (command != string.Empty)
             {
-                var image = new MagickImage(Environment.CurrentDirectory + @"/resources/stickers/xibao.png");
+                var image = new MagickImage(Environment.CurrentDirectory + @"/resource/stickers/xibao.png");
                 var fontSize = 72;
                 var top = 200;
 
@@ -81,7 +80,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
                     }
                 }
                 new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+                    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                     //.Font(Environment.CurrentDirectory + @"/resources/emoji.ttc")
                     .TextAlignment(TextAlignment.Center)
                     .FontPointSize(fontSize)

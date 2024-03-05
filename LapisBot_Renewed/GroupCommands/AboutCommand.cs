@@ -35,27 +35,27 @@ namespace LapisBot_Renewed.GroupCommands
 
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resources/about.png");
+            var image = new MagickImage(Environment.CurrentDirectory + @"/resource/about.png");
             new Drawables()
-    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
     .FontPointSize(22f)
     .FillColor(new MagickColor(65535, 65535, 65535, 65535))
     .Text(128.56, 202.23, RuntimeInformation.OSDescription)
     .Draw(image);
                 new Drawables()
-    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
     .FontPointSize(22f)
     .FillColor(new MagickColor(65535, 65535, 65535, 65535))
     .Text(128.56, 231.67, RuntimeInformation.FrameworkDescription)
     .Draw(image);
                     new Drawables()
-    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
     .FontPointSize(22f)
     .FillColor(new MagickColor(65535, 65535, 65535, 65535))
     .Text(128.56, 262.48, RuntimeInformation.OSArchitecture.ToString())
     .Draw(image);
                         new Drawables()
-    .Font(Environment.CurrentDirectory + @"/resources/font.otf")
+    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
     .FontPointSize(18f)
     .FillColor(new MagickColor(65535, 65535, 65535, 65535))
     .Text(20.49, 325, "Version " + Assembly.GetAssembly(GetType()).GetName().Version.ToString())
