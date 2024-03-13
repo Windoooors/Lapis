@@ -356,7 +356,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 .FillColor(fontColor)
                 .TextAlignment(TextAlignment.Left)
                 .Text(114, 48,
-                    Math.Round(score.Achievements, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") + "%")
+                    score.Achievements.ToString("0.0000") + "%")
                 .Draw(info);
             new Drawables()
                 .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")

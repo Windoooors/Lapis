@@ -99,18 +99,18 @@ namespace LapisBot_Renewed.ImageGenerators
                         .FontPointSize(24)
                         .FillColor(new MagickColor(65535, 65535, 65535))
                         .Text(0, y + 92,
-                            Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00") +
+                            level.Achievement.ToString("0.0000") +
                             "% ")
                         .Draw(difficultyLayerImage);
-                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length ==
+                    if (level.Achievement.ToString("0.0000").Length ==
+                        8)
+                        x = 130;
+                    if (level.Achievement.ToString("0.0000").Length ==
+                        7)
+                        x = 117;
+                    if (level.Achievement.ToString("0.0000").Length ==
                         6)
-                        x = 100;
-                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length ==
-                        5)
-                        x = 87;
-                    if (Math.Round(level.Achievement, 2, MidpointRounding.ToNegativeInfinity).ToString("0.00").Length ==
-                        4)
-                        x = 74;
+                        x = 104;
 
                     if (level.Rate == InfoCommand.Rate.Sss)
                         image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/sss.png");
