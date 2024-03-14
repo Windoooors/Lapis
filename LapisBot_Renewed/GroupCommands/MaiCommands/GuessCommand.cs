@@ -63,6 +63,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             SubHeadCommand = new Regex(@"^guess ");
             DirectCommand = new Regex(@"^guess songs$|^猜歌$|^guess song$");
             SubDirectCommand  = new Regex(@"^guess songs |^猜歌 |^guess song ");
+            CdTime = 25;
             DefaultSettings = new GuessSettings
             {
                 Enabled = true,

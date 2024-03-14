@@ -36,6 +36,7 @@ namespace LapisBot_Renewed.GroupCommands
             HeadCommand = new Regex(@"^娶群友$|^娶$|^嫁$");
             DirectCommand = new Regex(@"^娶群友$|^娶$|^嫁$");
             DefaultSettings.SettingsName = "娶群友";
+            CdTime = 10;
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {

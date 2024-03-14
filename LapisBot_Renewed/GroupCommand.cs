@@ -30,7 +30,11 @@ namespace LapisBot_Renewed
         public GroupCommandSettings CurrentGroupCommandSettings;
 
         public readonly List<GroupCommand> SubCommands = new List<GroupCommand>();
+        
+        private Dictionary<string, DateTime> _groupsMap = new Dictionary<string, DateTime>();
 
+        public int CdTime = 5;
+        
         public virtual Task Initialize()
         {
             return Task.CompletedTask;
@@ -44,6 +48,24 @@ namespace LapisBot_Renewed
                 if (groupCommandSettings.GroupId == source.GroupId)
                     CurrentGroupCommandSettings = groupCommandSettings;
             }
+        }
+        
+        private void TimeChanged(object obj, EventArgs e)
+        {
+            if (_groupsMap.Count == 0)
+                return;
+            var groupIds = new List<string>();
+            for (int i = 0; i < _groupsMap.Count; i++)
+            {
+                //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
+                if (!(_groupsMap.Values.ToArray()[i].Ticks <= DateTime.Now.Ticks))
+                    return;
+                var groupId = _groupsMap.Keys.ToArray()[i];
+                groupIds.Add(groupId);
+            }
+
+            foreach (string groupId in groupIds)
+                _groupsMap.Remove(groupId);
         }
 
         public virtual Task Parse(string command, GroupMessageReceiver source)
@@ -76,8 +98,14 @@ namespace LapisBot_Renewed
 
                 if (CurrentGroupCommandSettings != null)
                 {
-                    if (CurrentGroupCommandSettings.Enabled)
+                    if (CurrentGroupCommandSettings.Enabled && !_groupsMap.ContainsKey(source.GroupId))
+                    {
                         Parse(command, source);
+                        Program.TimeChanged += TimeChanged;
+                        _groupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CdTime)));
+                    }
+                    else if (CurrentGroupCommandSettings.Enabled && _groupsMap.ContainsKey(source.GroupId))
+                        Program.helpCommand.CdParse(command, source);
                 }
                 else
                     Program.helpCommand.Parse(command, source);
@@ -101,8 +129,14 @@ namespace LapisBot_Renewed
 
                 if (CurrentGroupCommandSettings != null)
                 {
-                    if (CurrentGroupCommandSettings.Enabled)
+                    if (CurrentGroupCommandSettings.Enabled && !_groupsMap.ContainsKey(source.GroupId))
+                    {
                         SubParse(command, source);
+                        Program.TimeChanged += TimeChanged;
+                        _groupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CdTime)));
+                    }
+                    else if (CurrentGroupCommandSettings.Enabled && _groupsMap.ContainsKey(source.GroupId))
+                        Program.helpCommand.CdParse(command, source);
                 }
                 else
                     Program.helpCommand.Parse(command, source);

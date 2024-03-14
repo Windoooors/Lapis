@@ -43,5 +43,11 @@ namespace LapisBot_Renewed.GroupCommands
             MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" guess 简洁指令已过时，访问 https://www.setchin.com/lapis_docs.html 以查看详情") });
             return Task.CompletedTask;
         }
+        
+        public Task CdParse(string command, GroupMessageReceiver source)
+        {
+            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 使用太频繁啦！请稍后再试") });
+            return Task.CompletedTask;
+        }
     }
 }
