@@ -63,7 +63,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             SubHeadCommand = new Regex(@"^guess ");
             DirectCommand = new Regex(@"^guess songs$|^猜歌$|^guess song$");
             SubDirectCommand  = new Regex(@"^guess songs |^猜歌 |^guess song ");
-            CdTime = 25;
+            CoolDownTime = 20;
             DefaultSettings = new GuessSettings
             {
                 Enabled = true,
@@ -101,7 +101,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var keyIdDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
                 var groupId = _guessingGroupsMap.Keys.ToArray()[i];
                 var taskAnnounce = new Task(() =>
-                    AnnounceAnswer(keyIdDateTimePair, groupId));
+                    AnnounceAnswer(keyIdDateTimePair, groupId, false, null));
                 taskAnnounce.Start();
             }
         }
@@ -109,6 +109,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public override Task Parse(string command, GroupMessageReceiver source)
         {
             StartGuessing(source);
+            CancelCoolDownTimer(source.GroupId);
             return Task.CompletedTask;
         }
         
@@ -161,7 +162,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        private Task AnnounceAnswer((int, DateTime) keyIdDateTimePair, string groupId)
+        private Task AnnounceAnswer((int, DateTime) keyIdDateTimePair, string groupId, bool won, string senderId)
         {
             
             //var keyIdDateTimePair = (-1, DateTime.MinValue);
@@ -169,16 +170,33 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             Program.settingsCommand.GetSettings(groupId);
             
             _guessingGroupsMap.Remove(groupId);
+            
+            var text = String.Empty;
+            if (won)
+                text = "Bingo! 答案是：";
+            else
+                text = "游戏结束啦！ 答案是：";
 
             var image = new InfoImageGenerator().Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
                 "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
-            MessageManager.SendGroupMessageAsync(groupId,
-                new MessageChain()
-                {
-                    new PlainMessage("游戏结束啦！ 答案是："),
-                    new ImageMessage { Base64 = image }
-                });
+            if (senderId == null)
+                MessageManager.SendGroupMessageAsync(groupId,
+                    new MessageChain()
+                    {
+                        new PlainMessage(text),
+                        new ImageMessage { Base64 = image }
+                    });
+            else
+                MessageManager.SendGroupMessageAsync(groupId,
+                    new MessageChain()
+                    {
+                        new AtMessage(senderId),
+                        new PlainMessage(" " + text),
+                        new ImageMessage { Base64 = image }
+                    });
+            
+            GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
 
             if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
                 return Task.CompletedTask;
@@ -203,40 +221,26 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             new AtMessage(source.Sender.Id),
                             new PlainMessage(" 没有游戏正在进行喔！发送指令 \"l mai guess\" 即可开启新一轮的游戏")
                         });
+                    CancelCoolDownTimer(source.GroupId);
                     return Task.CompletedTask;
                 }
 
-                var keyIdDateTimePair = (-1, DateTime.MinValue);
-                _guessingGroupsMap.TryGetValue(source.GroupId, out keyIdDateTimePair);
-
-                Program.settingsCommand.GetSettings(source);
-                
-                _guessingGroupsMap.Remove(source.GroupId);
-
-                var image = new InfoImageGenerator().Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
-                    "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
-
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain()
-                    {
-                        new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 游戏结束啦！ 答案是："),
-                        new ImageMessage { Base64 = image }
-                    });
-
-                if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
-                    return Task.CompletedTask;
-                var voice = new VoiceMessage
+                for (int i = 0; i < _guessingGroupsMap.Count; i++)
                 {
-                    Path = new AudioToVoiceConverter().ConvertSong(keyIdDateTimePair.Item1)
-                };
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
+                    if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId)
+                    {
+                        CancelCoolDownTimer(source.GroupId);
+                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i], source.GroupId, false,
+                            source.Sender.Id);
+                    }
+                }
                 
                 return Task.CompletedTask;
             }
 
             if (!LevelDictionary.ContainsKey(command))
             {
+                CancelCoolDownTimer(source.GroupId);
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain
                 {
                     new AtMessage(source.Sender.Id), new PlainMessage(" 不支持的等级名称")
@@ -250,35 +254,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (i == 6)
                     return Task.CompletedTask;
                 StartGuessing(source, i);
+                CancelCoolDownTimer(source.GroupId);
                 
                 return Task.CompletedTask;
             }
         }
-
-        public Task Reply(GroupMessageReceiver source, int id)
-        {
-            Program.settingsCommand.GetSettings(source);
-            
-            _guessingGroupsMap.Remove(source.GroupId);
-
-            var image = new InfoImageGenerator().Generate(GetSongIndexById(id), MaiCommandCommand.Songs,
-                "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
-                            
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Bingo! 答案是："), new ImageMessage { Base64 = image} });
-                        
-            if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
-                return Task.CompletedTask;
-            
-            var voice = new VoiceMessage
-            {
-                Path = new AudioToVoiceConverter().ConvertSong(id)
-            };
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-
-            return Task.CompletedTask;
-        }
-
         public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
         {
             var idPassed = false;
@@ -295,7 +275,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     aliasPassed = true;
                     if (alias.Id == keyIdDateTimePair.Item1)
                     {
-                        var task = new Task(() => Reply(source, keyIdDateTimePair.Item1));
+                        var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
                         task.Start();
                         
                         return Task.CompletedTask;
@@ -307,7 +287,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     namePassed = true;
                 if (songIndex != -1 && MaiCommandCommand.Songs[songIndex].Id == keyIdDateTimePair.Item1)
                 {
-                    var task = new Task(() => Reply(source, keyIdDateTimePair.Item1));
+                    var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
                     task.Start();
 
                     return Task.CompletedTask;
@@ -322,7 +302,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     int index = MaiCommandCommand.GetSongIndexById(id);
                     if (index != -1 &&Songs[index].Id == keyIdDateTimePair.Item1)
                     {
-                        var task = new Task(() => Reply(source, keyIdDateTimePair.Item1));
+                        var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
                         task.Start();
                         
                         return Task.CompletedTask;

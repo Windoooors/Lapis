@@ -65,7 +65,7 @@ namespace LapisBot_Renewed
 
             groupCommands.Add(new RepeatCommand());
             groupCommands.Add(new AbuseCommand());
-            groupCommands.Add(new GuessWordsCommand());
+            groupCommands.Add(new VocabularyCommand());
             groupCommands.Add(new GoMadCommand());
             groupCommands.Add(new McPingCommand());
             groupCommands.Add(_helpCommand);

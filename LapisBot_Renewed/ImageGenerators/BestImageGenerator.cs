@@ -8,10 +8,6 @@ namespace LapisBot_Renewed.ImageGenerators
 {
     public class BestImageGenerator
     {
-        public BestImageGenerator()
-        {
-
-        }
 
         public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
         {
@@ -279,7 +275,7 @@ namespace LapisBot_Renewed.ImageGenerators
             return image.ToBase64();
         }
 
-        public static MagickImage GenerateItem(BestDto.ScoreDto score, int rank)
+        private MagickImage GenerateItem(BestDto.ScoreDto score, int rank)
         {
             var difficulty = string.Empty;
             var fontColor = new MagickColor();
@@ -542,7 +538,7 @@ namespace LapisBot_Renewed.ImageGenerators
             return image;
         }
 
-        private static MagickImage GenerateBackground(BestDto best)
+        private MagickImage GenerateBackground(BestDto best)
         {
             var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 1750, Height = 1440 });
             var background =

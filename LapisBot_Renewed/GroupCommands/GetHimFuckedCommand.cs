@@ -21,7 +21,7 @@ namespace LapisBot_Renewed.GroupCommands
             DirectCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
             SubDirectCommand = new Regex(@"^日蛇精$");
             DefaultSettings.SettingsName = "透群友";
-            CdTime = 10;
+            CoolDownTime = 10;
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {

@@ -12,23 +12,9 @@ using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
 {
-    public class WordDto
-    {
-        [JsonProperty("word")] public string Word;
-        [JsonProperty("translations")] public TranslationDto[] Translations;
-        public class TranslationDto
-        {
-            [JsonProperty("translation")] public string Translation;
-            [JsonProperty("type")] public string Type;
-        }
-    }
 
-    public class Vocabulary
-    {
-        public WordDto[] Words;
-    }
     
-    public class GuessWordsCommand : GroupCommand
+    public class GuessWordsCommand : VocabularyCommand
     {
         private Dictionary<string, (WordDto, DateTime)> _guessingGroupsMap = new Dictionary<string, (WordDto, DateTime)>();
         
@@ -53,23 +39,11 @@ namespace LapisBot_Renewed.GroupCommands
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
-
-            int i = 0;
-
-            foreach (string file in Directory.GetFiles(AppContext.BaseDirectory + "resource/vocabulary/"))
-            {
-                if (Path.GetFileName(file) == ".DS_Store")
-                    continue;
-                var jsonString = File.ReadAllText(file);
-                _vocabularies.Add(new Vocabulary() { Words = JsonConvert.DeserializeObject<WordDto[]>(jsonString)});
-            }
             
             Program.TimeChanged += TimeChanged;
 
             return Task.CompletedTask;
         }
-
-        private List<Vocabulary> _vocabularies = new List<Vocabulary>();
         
         private void TimeChanged(object obj, EventArgs e)
         {
@@ -101,21 +75,21 @@ namespace LapisBot_Renewed.GroupCommands
                 return Task.CompletedTask;
             }
 
-            var cretified = false;
+            var certified = false;
             
-            foreach (Vocabulary vocabulary in _vocabularies)
+            foreach (Vocabulary vocabulary in Vocabularies)
             {
                 foreach (WordDto wordItem in vocabulary.Words)
                 {
                     if (wordItem.Word == command)
                     {
-                        cretified = true;
+                        certified = true;
                         break;
                     }
                 }
             }
             
-            if (!cretified)
+            if (!certified)
                 return Task.CompletedTask;
             
             var text = string.Empty;
@@ -166,6 +140,8 @@ namespace LapisBot_Renewed.GroupCommands
             else
                 MessageManager.SendGroupMessageAsync(groupId,
                     new MessageChain() { new PlainMessage(text) });
+            
+            GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
 
             return Task.CompletedTask;
         }
@@ -191,6 +167,7 @@ namespace LapisBot_Renewed.GroupCommands
             text.TrimEnd();
             MessageManager.SendGroupMessageAsync(source.GroupId,
                 new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + text) });
+            CancelCoolDownTimer(source.GroupId);
             return Task.CompletedTask;
         }
 
@@ -206,15 +183,20 @@ namespace LapisBot_Renewed.GroupCommands
                             new AtMessage(source.Sender.Id),
                             new PlainMessage(" 没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
                         });
+                    CancelCoolDownTimer(source.GroupId);
                     return Task.CompletedTask;
                 }
 
                 for (int i = 0; i < _guessingGroupsMap.Count; i++)
                 {
                     if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId)
-                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i].Item1, source.GroupId, false, source.Sender.Id);
+                    {
+                        CancelCoolDownTimer(source.GroupId);
+                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i].Item1, source.GroupId, false,
+                            source.Sender.Id);
+                    }
                 }
-                
+
                 return Task.CompletedTask;
             }
 
@@ -223,10 +205,12 @@ namespace LapisBot_Renewed.GroupCommands
             if (indexRegex.IsMatch(command))
             {
                 StartGuessing(int.Parse(command) - 1, source);
+                CancelCoolDownTimer(source.GroupId);
                 return Task.CompletedTask;
             }
 
             Program.helpCommand.Parse(command, source);
+            CancelCoolDownTimer(source.GroupId);
             return Task.CompletedTask;
         }
 
@@ -243,8 +227,8 @@ namespace LapisBot_Renewed.GroupCommands
                 return Task.CompletedTask;
             }
 
-            var i = new Random().Next(0, _vocabularies[vocabularyIndex].Words.Length);
-            var word = _vocabularies[vocabularyIndex].Words[i];
+            var i = new Random().Next(0, Vocabularies[vocabularyIndex].Words.Length);
+            var word = Vocabularies[vocabularyIndex].Words[i];
             var text = "试试看吧！\n";
             foreach (WordDto.TranslationDto translation in word.Translations)
                 text += translation.Type + "." + translation.Translation + "; \n";

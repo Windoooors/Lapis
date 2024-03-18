@@ -10,14 +10,14 @@ namespace LapisBot_Renewed.ImageGenerators
     {
         //public static System.Drawing.Text.PrivateFontCollection PrivateFonts;
 
-        private static string GetPictureId(int id)
+        private string GetPictureId(int id)
         {
             return id.ToString("00000");
         }
 
-        private static string _coverImagePath;
+        private string _coverImagePath;
 
-        private static MagickImage GenerateBackground(int index, SongDto[] songs, string title, ApiOperator apiOperator)
+        private MagickImage GenerateBackground(int index, SongDto[] songs, string title, ApiOperator apiOperator)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resource/random/background.png");
             try
@@ -65,7 +65,7 @@ namespace LapisBot_Renewed.ImageGenerators
             return image;
         }
 
-        public static MagickImage GenerateDifficultyLayer(int index, SongDto[] songs, InfoCommand.GetScoreDto.Level[] levels)
+        private MagickImage GenerateDifficultyLayer(int index, SongDto[] songs, InfoCommand.GetScoreDto.Level[] levels)
         {
             var difficultyLayerImage = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 6600, Height = 1080 });
             if (levels != null)

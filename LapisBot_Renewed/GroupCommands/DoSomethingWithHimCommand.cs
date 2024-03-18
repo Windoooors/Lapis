@@ -17,16 +17,15 @@ namespace LapisBot_Renewed.GroupCommands
             SubCommands.Clear();
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (System.IO.File.Exists(Environment.CurrentDirectory + "/groups.json"))
-                Groups = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(System.IO.File.ReadAllText(Environment.CurrentDirectory + "/groups.json"));
+                Groups = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(
+                    System.IO.File.ReadAllText(Environment.CurrentDirectory + "/groups.json"));
 
-            SubCommands.Add(new GetHimFuckedCommand() { Groups = Groups });
-            SubCommands.Add(new MarryHimCommand() { Groups = Groups });
+            SubCommands.Add(new GetHimFuckedCommand() { Groups = Groups, ParentCommand = this });
+            SubCommands.Add(new MarryHimCommand() { Groups = Groups, ParentCommand = this });
 
             foreach (DoSomethingWithHimCommand doSomethingWithHimCommand in SubCommands)
-            {
                 doSomethingWithHimCommand.Initialize();
-                doSomethingWithHimCommand.ParentCommand = this;
-            }
+
             return Task.CompletedTask;
         }
 

@@ -16,7 +16,6 @@ namespace LapisBot_Renewed.GroupCommands
         {
             HeadCommand = new Regex(@"^help$");
             DirectCommand = new Regex(@"^help$");
-            SubDirectCommand = new Regex("^guess");
             DefaultSettings.SettingsName = "帮助";
                         CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
@@ -38,15 +37,14 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public Task CoolDownParse(string command, GroupMessageReceiver source, DateTime dateTime)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" guess 简洁指令已过时，访问 https://www.setchin.com/lapis_docs.html 以查看详情") });
-            return Task.CompletedTask;
-        }
-        
-        public Task CdParse(string command, GroupMessageReceiver source)
-        {
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 使用太频繁啦！请稍后再试") });
+            MessageManager.SendGroupMessageAsync(source.GroupId,
+                new MessageChain()
+                {
+                    new AtMessage(source.Sender.Id),
+                    new PlainMessage(" 使用太频繁啦！请等待 " + (dateTime - DateTime.Now).Seconds + " 秒后再试")
+                });
             return Task.CompletedTask;
         }
     }

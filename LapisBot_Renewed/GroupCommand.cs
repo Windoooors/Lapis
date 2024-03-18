@@ -31,9 +31,9 @@ namespace LapisBot_Renewed
 
         public readonly List<GroupCommand> SubCommands = new List<GroupCommand>();
         
-        private Dictionary<string, DateTime> _groupsMap = new Dictionary<string, DateTime>();
+        public Dictionary<string, DateTime> GroupsMap = new Dictionary<string, DateTime>();
 
-        public int CdTime = 5;
+        public int CoolDownTime = 5;
         
         public virtual Task Initialize()
         {
@@ -52,20 +52,20 @@ namespace LapisBot_Renewed
         
         private void TimeChanged(object obj, EventArgs e)
         {
-            if (_groupsMap.Count == 0)
+            if (GroupsMap.Count == 0)
                 return;
             var groupIds = new List<string>();
-            for (int i = 0; i < _groupsMap.Count; i++)
+            for (int i = 0; i < GroupsMap.Count; i++)
             {
                 //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
-                if (!(_groupsMap.Values.ToArray()[i].Ticks <= DateTime.Now.Ticks))
+                if (!(GroupsMap.Values.ToArray()[i].Ticks <= DateTime.Now.Ticks))
                     return;
-                var groupId = _groupsMap.Keys.ToArray()[i];
+                var groupId = GroupsMap.Keys.ToArray()[i];
                 groupIds.Add(groupId);
             }
 
             foreach (string groupId in groupIds)
-                _groupsMap.Remove(groupId);
+                GroupsMap.Remove(groupId);
         }
 
         public virtual Task Parse(string command, GroupMessageReceiver source)
@@ -75,6 +75,12 @@ namespace LapisBot_Renewed
 
         public virtual Task SubParse(string command, GroupMessageReceiver source)
         {
+            return Task.CompletedTask;
+        }
+
+        public Task CancelCoolDownTimer(string groupId)
+        {
+            GroupsMap.Remove(groupId);
             return Task.CompletedTask;
         }
 
@@ -98,14 +104,18 @@ namespace LapisBot_Renewed
 
                 if (CurrentGroupCommandSettings != null)
                 {
-                    if (CurrentGroupCommandSettings.Enabled && !_groupsMap.ContainsKey(source.GroupId))
+                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId))
                     {
-                        Parse(command, source);
                         Program.TimeChanged += TimeChanged;
-                        _groupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CdTime)));
+                        GroupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
+                        Parse(command, source);
                     }
-                    else if (CurrentGroupCommandSettings.Enabled && _groupsMap.ContainsKey(source.GroupId))
-                        Program.helpCommand.CdParse(command, source);
+                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId))
+                    {
+                        var dateTime = new DateTime();
+                        GroupsMap.TryGetValue(source.GroupId, out dateTime);
+                        Program.helpCommand.CoolDownParse(command, source, dateTime);
+                    }
                 }
                 else
                     Program.helpCommand.Parse(command, source);
@@ -129,14 +139,18 @@ namespace LapisBot_Renewed
 
                 if (CurrentGroupCommandSettings != null)
                 {
-                    if (CurrentGroupCommandSettings.Enabled && !_groupsMap.ContainsKey(source.GroupId))
+                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId))
                     {
-                        SubParse(command, source);
                         Program.TimeChanged += TimeChanged;
-                        _groupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CdTime)));
+                        GroupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
+                        SubParse(command, source);
                     }
-                    else if (CurrentGroupCommandSettings.Enabled && _groupsMap.ContainsKey(source.GroupId))
-                        Program.helpCommand.CdParse(command, source);
+                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId))
+                    {
+                        var dateTime = new DateTime();
+                        GroupsMap.TryGetValue(source.GroupId, out dateTime);
+                        Program.helpCommand.CoolDownParse(command, source, dateTime);
+                    }
                 }
                 else
                     Program.helpCommand.Parse(command, source);
