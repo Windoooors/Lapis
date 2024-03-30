@@ -228,7 +228,7 @@ namespace LapisBot_Renewed.GroupCommands
                 if (OperatingSystem.IsLinux())
                     _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
                 else if (OperatingSystem.IsMacOS())
-                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_76686309.json"));
+                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_94470325.json"));
                 /*_aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
             */            
             }
@@ -358,7 +358,8 @@ namespace LapisBot_Renewed.GroupCommands
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand());
             SubCommands.Add(new GuessCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, _aliasJObject = _aliasJObject, MaiCommandCommand = this });
-
+            SubCommands.Add(new QueueQueryCommand());
+            
             foreach (var subMaiCommand in SubCommands)
             {
                 subMaiCommand.Initialize();

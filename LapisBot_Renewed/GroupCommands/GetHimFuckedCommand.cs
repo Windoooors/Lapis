@@ -17,11 +17,11 @@ namespace LapisBot_Renewed.GroupCommands
         public override Task Initialize()
         {
             HeadCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
-            SubHeadCommand = new Regex(@"^日蛇精$");
+            SubHeadCommand = new Regex(@"^日\s");
             DirectCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
-            SubDirectCommand = new Regex(@"^日蛇精$");
+            SubDirectCommand = new Regex(@"^日\s");
             DefaultSettings.SettingsName = "透群友";
-            CoolDownTime = 10;
+            CoolDownTime = 15;
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
@@ -44,7 +44,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        private Task Process(string command, GroupMessageReceiver source, bool isSubParse)
+        private Task Process(string command, GroupMessageReceiver source, string targetId)
         {
             if (Groups.Count != 0)
             {
@@ -59,22 +59,22 @@ namespace LapisBot_Renewed.GroupCommands
                         i = random.Next(0, memberList.Count);
                     }
 
-                    if (isSubParse)
+                    if (targetId != null)
                     {
-                        if (memberList.Contains("2794813909"))
+                        if (memberList.Contains(targetId))
                         {
-                            if (source.Sender.Id != "2794813909")
-                                i = memberList.IndexOf("2794813909");
+                            if (source.Sender.Id != targetId)
+                                i = memberList.IndexOf(targetId);
                             else
                             {
-                                var message = new MessageChain() { new PlainMessage("得了吧") };
+                                var message = new MessageChain() { new PlainMessage("吓人") };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, message);
                                 return Task.CompletedTask;
                             }
                         }
                         else
                         {
-                            var message = new MessageChain() { new PlainMessage("这货没在这群发过言") };
+                            var message = new MessageChain() { new PlainMessage("该群友未在群聊中发过言！") };
                             MessageManager.SendGroupMessageAsync(source.GroupId, message);
                             return Task.CompletedTask;
                         }
@@ -134,13 +134,13 @@ namespace LapisBot_Renewed.GroupCommands
 
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            Process(command, source, false);
+            Process(command, source, null);
             return Task.CompletedTask;
         }
 
         public override Task SubParse(string command, GroupMessageReceiver source)
         {
-            Process(command, source, true);
+            Process(command, source, command);
             return Task.CompletedTask;
         }
 
