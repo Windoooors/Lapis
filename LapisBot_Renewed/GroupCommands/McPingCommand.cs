@@ -109,7 +109,7 @@ namespace LapisBot_Renewed.GroupCommands
                 ms.Close();
                 return Convert.ToBase64String(arr);
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }

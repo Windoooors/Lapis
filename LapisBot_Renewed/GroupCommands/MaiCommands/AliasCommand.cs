@@ -51,19 +51,24 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             foreach (AliasCommand aliasCommand in SubCommands)
                 aliasCommand.Initialize();
             HeadCommand = new Regex(@"^alias\s");
-            DirectCommand = new Regex(@"^alias\s|^别名\s");
+            DirectCommand = new Regex(@"^alias\s|^别名\s|有什么别名$|\s有什么别名$");
             DefaultSettings.SettingsName = "别名";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-
             }
             foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
+
+            SubCommands.Add(new AliasAddCommand() { MaiCommandCommand = MaiCommandCommand, ParentCommand = this });
+            
+            foreach (var subCommand in SubCommands)
+                subCommand.Initialize();
+            
             return Task.CompletedTask;
         }
 
@@ -97,25 +102,17 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            foreach (MaiCommand subCommand in SubCommands)
-            {
-                if (subCommand.HeadCommand.IsMatch(command) && subCommand.HeadCommand.Replace(command, "") != string.Empty)
-                {
-                    command = subCommand.HeadCommand.Replace(command, "");
-                    subCommand.Parse(command, source);
-                    return Task.CompletedTask;
-                }
-            }
             var Aliases = MaiCommandCommand.GetAliasByAliasString(command);
             if (Aliases.Length != 0)
             {
                 if (Aliases.Length == 1)
                 {
-                    for (int i = 0; i < MaiCommandCommand.Songs.Length; i++)
-                    {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(Aliases[0].Id))) });
-                        break;
-                    }
+                    MessageManager.SendGroupMessageAsync(source.GroupId,
+                        new MessageChain()
+                        {
+                            new AtMessage(source.Sender.Id),
+                            new PlainMessage(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(Aliases[0].Id)))
+                        });
                 }
                 else
                 {

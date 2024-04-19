@@ -28,8 +28,6 @@ namespace LapisBot_Renewed.GroupCommands
         
         public override Task Initialize()
         {
-            int i = 0;
-
             foreach (string file in Directory.GetFiles(AppContext.BaseDirectory + "resource/vocabulary/"))
             {
                 if (Path.GetFileName(file) == ".DS_Store")

@@ -9,6 +9,7 @@ using System.DrawingCore;
 using System.Xml.Linq;
 using Flurl;
 using System.Diagnostics;
+using System.Net.Http;
 
 namespace LapisBot_Renewed
 {
@@ -116,86 +117,55 @@ namespace LapisBot_Renewed
             return Convert.ToBase64String(bytes);
         }
 
-        public static string StreamToBase64(MemoryStream stream)
-        {
-            byte[] bytes = new byte[stream.Length]; stream.Position = 0;
-            stream.Read(bytes, 0, (int)stream.Length); stream.Close();
-            return Convert.ToBase64String(bytes);
-        }
-
         public string ImageToPng(string fileFullName, string fatherPath, string name)
         {
             File.Delete(fatherPath + @"/" + name);
-            Image image = UrlToImage(fileFullName);
-            Bitmap bitmap = new Bitmap(image);
+            var image = UrlToImage(fileFullName);
+            var bitmap = new Bitmap(image);
             bitmap.Save(fatherPath + @"/" + name, System.DrawingCore.Imaging.ImageFormat.Png);
             return fatherPath + @"/" + name;
         }
 
         public string BytesToPng(string fatherPath, string name, byte[] bytes)
         {
-            WebClient client = new WebClient();
-            using (MemoryStream stream = new MemoryStream(bytes))
-            {
-                Image outputImg = Image.FromStream(stream);
-                File.Delete(fatherPath + @"/" + name);
-                Bitmap bitmap = new Bitmap(outputImg);
-                bitmap.Save(fatherPath + @"/" + name, System.DrawingCore.Imaging.ImageFormat.Png);
-                return fatherPath + @"/" + name;
-            }
+            var client = new HttpClient();
+            var stream = new MemoryStream(bytes);
+            var outputImg = Image.FromStream(stream);
+            File.Delete(fatherPath + @"/" + name);
+            var bitmap = new Bitmap(outputImg);
+            bitmap.Save(fatherPath + @"/" + name, System.DrawingCore.Imaging.ImageFormat.Png);
+            return fatherPath + @"/" + name;
         }
 
         private Image UrlToImage(string url)
         {
-            WebClient client = new WebClient();
-            byte[] bytes = client.DownloadData(url);
-            using (MemoryStream stream = new MemoryStream(bytes))
-            {
-                Image outputImg = Image.FromStream(stream);
-                return outputImg;
-            }
+            var client = new HttpClient();
+            var bytes = client.GetByteArrayAsync(url).Result;
+            var stream = new MemoryStream(bytes);
+            var outputImg = Image.FromStream(stream);
+            return outputImg;
         }
 
         private string PostCore(string url, string content)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            request.UserAgent = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0;)";
-
-            byte[] data = Encoding.UTF8.GetBytes(content);
-            request.ContentLength = data.Length;
-
-            using (var reqStream = request.GetRequestStream())
-            {
-                reqStream.Write(data, 0, data.Length);
-            }
-
-            var response = (HttpWebResponse)request.GetResponse();
-
-            string result;
-            using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
-            {
-                result = reader.ReadToEnd();
-            }
-
+            var httpClient = new HttpClient();
+            var stringContent = new StringContent(content);
+            stringContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            var httpResponseMessage = httpClient.PostAsync(new Uri(url), stringContent).Result;
+            
+            var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
+            var result = reader.ReadToEnd();
+            
             return result;
         }
 
         private string GetCore(string url)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "GET";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.UserAgent = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0;)";
+            var httpClient = new HttpClient();
+            var httpResponseMessage = httpClient.GetAsync(new Uri(url)).Result;
 
-            var response = (HttpWebResponse)request.GetResponse();
-
-            string result;
-            using (var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
-            {
-                result = reader.ReadToEnd();
-            }
+            var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
+            var result = reader.ReadToEnd();
 
             return result;
         }

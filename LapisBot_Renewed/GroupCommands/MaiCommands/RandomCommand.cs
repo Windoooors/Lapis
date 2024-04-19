@@ -61,16 +61,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public override Task Parse(string command, GroupMessageReceiver source)
         {
             int i;
-            if (!LevelDictionary.ContainsKey(command))
+            if (!MaiCommandCommand.LevelDictionary.ContainsKey(command))
                 MessageManager.SendGroupMessageAsync(source.GroupId, "不支持的等级名称");
             else
             {
-                LevelDictionary.TryGetValue(command, out i);
-                if (i == LevelDictionary.Count - 1)
+                MaiCommandCommand.LevelDictionary.TryGetValue(command, out i);
+                if (i == MaiCommandCommand.LevelDictionary.Count - 1)
                 {
                     MessageManager.SendGroupMessageAsync(source.GroupId, "潘你妈");
                 }
-                SongDto[] songs = Levels[i].ToArray();
+                SongDto[] songs = MaiCommandCommand.Levels[i].ToArray();
 
                 Random random = new Random();
                 int j = random.Next(0, songs.Length);

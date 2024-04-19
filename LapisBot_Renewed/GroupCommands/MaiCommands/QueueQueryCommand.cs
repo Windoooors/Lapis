@@ -86,13 +86,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        private class QueueDto
+        public class QueueDto
         {
             [JsonProperty("statusCode")] public int StatusCode;
             [JsonProperty("data")] public DataItemDto[] DataItems;
         }
 
-        private class DataItemDto
+        public class DataItemDto
         {
             [JsonProperty("createdAt")] public DateTime CreatingTime;
             [JsonProperty("updatedAt")] public DateTime UpdatingTime;

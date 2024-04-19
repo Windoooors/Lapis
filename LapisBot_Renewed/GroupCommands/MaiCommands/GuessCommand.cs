@@ -118,7 +118,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (!_guessingGroupsMap.ContainsKey(source.GroupId))
             {
                 var random = new Random();
-                SongDto[] songs = Levels[difficulty].ToArray();
+                SongDto[] songs = MaiCommandCommand.Levels[difficulty].ToArray();
                 var songIndex = random.Next(0, songs.Length);
                 _guessingGroupsMap.Add(source.GroupId,
                     (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
@@ -143,7 +143,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (!_guessingGroupsMap.ContainsKey(source.GroupId))
             {
                 var random = new Random();
-                var songIndex = random.Next(0, Songs.Length);
+                var songIndex = random.Next(0, MaiCommandCommand.Songs.Length);
                 _guessingGroupsMap.Add(source.GroupId,
                     (MaiCommandCommand.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -152,7 +152,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 
                 var voice = new VoiceMessage
                 {
-                    Path = AudioEditor.Convert(Songs[songIndex].Id)
+                    Path = AudioEditor.Convert(MaiCommandCommand.Songs[songIndex].Id)
                 };
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain { voice });
             }
@@ -238,7 +238,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 return Task.CompletedTask;
             }
 
-            if (!LevelDictionary.ContainsKey(command))
+            if (!MaiCommandCommand.LevelDictionary.ContainsKey(command))
             {
                 CancelCoolDownTimer(source.GroupId);
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain
@@ -250,7 +250,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             else
             {
                 int i = -1;
-                LevelDictionary.TryGetValue(command, out i);
+                MaiCommandCommand.LevelDictionary.TryGetValue(command, out i);
                 if (i == 6)
                     return Task.CompletedTask;
                 StartGuessing(source, i);
@@ -300,7 +300,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     idPassed = true;
                     var id = idHeadRegex.Replace(command, string.Empty).ToInt32();
                     int index = MaiCommandCommand.GetSongIndexById(id);
-                    if (index != -1 &&Songs[index].Id == keyIdDateTimePair.Item1)
+                    if (index != -1 && MaiCommandCommand.Songs[index].Id == keyIdDateTimePair.Item1)
                     {
                         var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
                         task.Start();

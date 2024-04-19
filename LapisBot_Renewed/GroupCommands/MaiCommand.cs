@@ -208,6 +208,7 @@ namespace LapisBot_Renewed.GroupCommands
         {
             public List<string> Aliases;
             public int Id;
+            public bool IsAliasFromLapis;
         }
 
         private async void Reload(object sender, EventArgs e)
@@ -258,10 +259,10 @@ namespace LapisBot_Renewed.GroupCommands
                     foreach (string alias in obj.Value)
                         if (!(alias == "\u200e\u200e" || alias == "ㅤ" || alias == String.Empty))
                             aliasesList.Add(alias);
-                    SongAliases.Add(new Alias() { Aliases = aliasesList, Id = id });
+                    SongAliases.Add(new Alias() { Aliases = aliasesList, Id = id, IsAliasFromLapis = false});
                 }
                 else
-                    SongAliases.Add(new Alias() { Aliases = Enumerates.ToList(obj.Value), Id = id });
+                    SongAliases.Add(new Alias() { Aliases = Enumerates.ToList(obj.Value), Id = id, IsAliasFromLapis = false });
             }
 
             LevelDictionary.Add("1", 0);
@@ -352,13 +353,13 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
 
-            SubCommands.Add(new RandomCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, MaiCommandCommand = this });
-            SubCommands.Add(new InfoCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, _aliasJObject = _aliasJObject, MaiCommandCommand = this });
+            SubCommands.Add(new RandomCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new InfoCommand() { MaiCommandCommand = this });
             SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new PlateCommand());
-            SubCommands.Add(new GuessCommand() { LevelDictionary = this.LevelDictionary, Levels = this.Levels, Songs = this.Songs, _aliasJObject = _aliasJObject, MaiCommandCommand = this });
-            SubCommands.Add(new QueueQueryCommand());
+            SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new GuessCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new QueueQueryCommand() { MaiCommandCommand = this });
             
             foreach (var subMaiCommand in SubCommands)
             {

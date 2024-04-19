@@ -20,8 +20,6 @@ namespace LapisBot_Renewed
             new Regex(@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
         private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$");
 
-        private List<Thread[]> threads;
-
         public async void Parse(FriendMessageReceiver source)
         {
             var command = source.MessageChain.GetPlainMessage();

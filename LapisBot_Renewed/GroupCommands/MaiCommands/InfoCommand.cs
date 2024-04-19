@@ -39,7 +39,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public override Task Initialize()
         {
             HeadCommand = new Regex(@"^info\s");
-            DirectCommand = new Regex(@"^info\s");
+            DirectCommand = new Regex(@"^info\s|是什么歌$|\s是什么歌$");
             DefaultSettings = new InfoSettings
             {
                 Enabled = true,
@@ -262,11 +262,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         //var name = command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty);
                         GetScoreDto.GetScore.Get(
                             command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty),
-                            Songs[i].BasicInfo.Version, Songs[i].Id);
+                            MaiCommandCommand.Songs[i].BasicInfo.Version, MaiCommandCommand.Songs[i].Id);
                         Program.settingsCommand.GetSettings(source);
                         var image = new ImageMessage
                         {
-                            Base64 = new InfoImageGenerator().Generate(i, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                            Base64 = new InfoImageGenerator().Generate(i, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                 Program.settingsCommand.CurrentBotSettings.CompressedImage)
                         };
                         MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -338,11 +338,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             try
                             {
                                 GetScoreDto.GetScore.Get(idRegex.Replace(command, "").TrimStart(),
-                                    Songs[index].BasicInfo.Version, Songs[index].Id);
+                                    MaiCommandCommand.Songs[index].BasicInfo.Version, MaiCommandCommand.Songs[index].Id);
                                 Program.settingsCommand.GetSettings(source);
                                 var image = new ImageMessage
                                 {
-                                    Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                    Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                         Program.settingsCommand.CurrentBotSettings.CompressedImage)
                                 };
 
@@ -352,7 +352,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                 {
                                     var voice = new VoiceMessage
                                     {
-                                        Path = new AudioToVoiceConverter().ConvertSong(Songs[index].Id)
+                                        Path = new AudioToVoiceConverter().ConvertSong(MaiCommandCommand.Songs[index].Id)
                                     };
                                     MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                                 }
@@ -386,12 +386,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     {
                         try
                         {
-                            GetScoreDto.GetScore.Get(command.Replace(Songs[index].Title + " ", string.Empty),
-                                Songs[index].BasicInfo.Version, Songs[index].Id);
+                            GetScoreDto.GetScore.Get(command.Replace(MaiCommandCommand.Songs[index].Title + " ", string.Empty),
+                                MaiCommandCommand.Songs[index].BasicInfo.Version, MaiCommandCommand.Songs[index].Id);
                             Program.settingsCommand.GetSettings(source);
                             var image = new ImageMessage
                             {
-                                Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                     Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -401,7 +401,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var voice = new VoiceMessage
                                 {
-                                    Path = new AudioToVoiceConverter().ConvertSong(Songs[index].Id)
+                                    Path = new AudioToVoiceConverter().ConvertSong(MaiCommandCommand.Songs[index].Id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
                             }
@@ -434,11 +434,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     try
                     {
                         var i = MaiCommandCommand.GetSongIndexById(aliases[0].Id);
-                        GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), Songs[i].BasicInfo.Version, Songs[i].Id);
+                        GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), MaiCommandCommand.Songs[i].BasicInfo.Version, MaiCommandCommand.Songs[i].Id);
                         Program.settingsCommand.GetSettings(source);
                         var image = new ImageMessage
                         {
-                            Base64 = new InfoImageGenerator().Generate(i, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                            Base64 = new InfoImageGenerator().Generate(i, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                 Program.settingsCommand.CurrentBotSettings.CompressedImage)
                         };
                         MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -512,12 +512,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         {
                             //try
                             //{
-                            GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), Songs[index].BasicInfo.Version,
-                                Songs[index].Id);
+                            GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), MaiCommandCommand.Songs[index].BasicInfo.Version,
+                                MaiCommandCommand.Songs[index].Id);
                             Program.settingsCommand.GetSettings(source);
                             var image = new ImageMessage
                             {
-                                Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                     Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
 
@@ -554,12 +554,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     {
                         try
                         {
-                            GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), Songs[index].BasicInfo.Version,
-                                Songs[index].Id);
+                            GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), MaiCommandCommand.Songs[index].BasicInfo.Version,
+                                MaiCommandCommand.Songs[index].Id);
                             Program.settingsCommand.GetSettings(source);
                             var _image = new ImageMessage
                             {
-                                Base64 = new InfoImageGenerator().Generate(index, Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
+                                Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
                                     Program.settingsCommand.CurrentBotSettings.CompressedImage)
                             };
                             MessageManager.SendGroupMessageAsync(source.GroupId,
@@ -569,7 +569,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             {
                                 var _voice = new VoiceMessage
                                 {
-                                    Path = new AudioToVoiceConverter().ConvertSong(Songs[index].Id)
+                                    Path = new AudioToVoiceConverter().ConvertSong(MaiCommandCommand.Songs[index].Id)
                                 };
                                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
                             }

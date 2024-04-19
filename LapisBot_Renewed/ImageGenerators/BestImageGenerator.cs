@@ -8,7 +8,6 @@ namespace LapisBot_Renewed.ImageGenerators
 {
     public class BestImageGenerator
     {
-
         public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
         {
             MagickImage head;
