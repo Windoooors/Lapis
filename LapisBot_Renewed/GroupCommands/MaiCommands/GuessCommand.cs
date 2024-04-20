@@ -177,7 +177,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             else
                 text = "游戏结束啦！ 答案是：";
 
-            var image = new InfoImageGenerator().Generate(GetSongIndexById(keyIdDateTimePair.Item1), MaiCommandCommand.Songs,
+            var image = new InfoImageGenerator().Generate(MaiCommandCommand.GetSong((keyIdDateTimePair.Item1)),
                 "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
             if (senderId == null)
@@ -259,58 +259,30 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 return Task.CompletedTask;
             }
         }
+
         public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
         {
-            var idPassed = false;
-            var namePassed = false;
-            var aliasPassed = false;
+            var passed = false;
 
             if (_guessingGroupsMap.ContainsKey(source.GroupId))
             {
                 var keyIdDateTimePair = (-1, DateTime.MinValue);
                 _guessingGroupsMap.TryGetValue(source.GroupId, out keyIdDateTimePair);
-                var aliases = MaiCommandCommand.GetAliasByAliasString(command);
-                foreach (Alias alias in aliases)
-                {
-                    aliasPassed = true;
-                    if (alias.Id == keyIdDateTimePair.Item1)
-                    {
-                        var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
-                        task.Start();
-                        
-                        return Task.CompletedTask;
-                    }
-                }
 
-                var songIndex = MaiCommandCommand.GetSongIndexByTitle(command);
-                if (songIndex != -1)
-                    namePassed = true;
-                if (songIndex != -1 && MaiCommandCommand.Songs[songIndex].Id == keyIdDateTimePair.Item1)
+                var songs = MaiCommandCommand.GetSongs(command);
+                if (songs.Length != 0)
+                    passed = true;
+                if (passed && songs[0].Id == keyIdDateTimePair.Item1)
                 {
-                    var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
+                    var task = new Task(() =>
+                        AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
                     task.Start();
 
                     return Task.CompletedTask;
                 }
-
-                var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
-                var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
-                if (idRegex.IsMatch(command))
-                {
-                    idPassed = true;
-                    var id = idHeadRegex.Replace(command, string.Empty).ToInt32();
-                    int index = MaiCommandCommand.GetSongIndexById(id);
-                    if (index != -1 && MaiCommandCommand.Songs[index].Id == keyIdDateTimePair.Item1)
-                    {
-                        var task = new Task(() => AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
-                        task.Start();
-                        
-                        return Task.CompletedTask;
-                    }
-                }
             }
 
-            if (idPassed || namePassed || aliasPassed)
+            if (passed)
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
                 {
                     new AtMessage(source.Sender.Id), new PlainMessage(" 不对喔")

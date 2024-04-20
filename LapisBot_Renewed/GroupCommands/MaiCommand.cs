@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using Manganese.Text;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using System.IO;
+using System.Linq;
 using LapisBot_Renewed.Collections;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -68,106 +69,6 @@ namespace LapisBot_Renewed.GroupCommands
 
     public class MaiCommand : GroupCommand
     {
-        public Alias[] GetAliasByAliasString(string alias)
-        {
-            var aliases = new List<Alias>();
-            foreach (var valueAlias in SongAliases)
-            {
-                foreach (var valueAliasString in valueAlias.Aliases)
-                {
-                    if (valueAliasString.Equals(alias))
-                        aliases.Add(valueAlias);
-                }
-            }
-            return aliases.ToArray();
-        }
-
-        public Alias[] GetAliasByAliasStringUsingStartsWith(string alias)
-        {
-            var aliases = new List<Alias>();
-            foreach (Alias valueAlias in SongAliases)
-            {
-                foreach (var valueAliasString in valueAlias.Aliases)
-                {
-                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
-                        aliases.Add(valueAlias);
-                }
-            }
-            return aliases.ToArray();
-        }
-
-        public string GetAliasStringUsingStartsWith(string alias)
-        {
-            foreach (Alias valueAlias in SongAliases)
-            {
-                foreach (string valueAliasString in valueAlias.Aliases)
-                {
-                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
-                        return valueAliasString;
-                }
-            }
-            return null;
-        }
-
-        public Alias GetAliasById(int id)
-        {
-            foreach (Alias alias in SongAliases)
-            {
-                if (alias.Id == id)
-                {
-                    return alias;
-                }
-            }
-            return new Alias() { Id = id, Aliases = new List<string>() };
-        }
-
-        public Alias GetAliasByIdWithDifferentAliases(int id, List<Alias> SongAliases)
-        {
-            foreach (Alias alias in SongAliases)
-            {
-                if (alias.Id == id)
-                {
-                    return alias;
-                }
-            }
-            return new Alias() { Id = id, Aliases = new List<string>() };
-        }
-
-        public int GetAliasIndexById(int id)
-        {
-            int i = 0;
-            foreach (Alias alias in SongAliases)
-            {
-                if (alias.Id == id)
-                {
-                    return i;
-                }
-                i += 1;
-            }
-            return -1;
-        }
-
-        public int GetSongIndexById(int id)
-        {
-            for (int i = 0; i < Songs.Length; i++)
-            {
-                if (Songs[i].Id == id)
-                    return i;
-            }
-            return -1;
-        }
-
-        public int GetSongIndexByIdUsingStartsWith(string id)
-        {
-            var regex = new Regex(@"\d+");
-            for (int i = 0; i < Songs.Length; i++)
-            {
-                if (regex.Matches(id)[0].ToString() == Songs[i].Id.ToString())
-                    return i;
-            }
-            return -1;
-        }
-
         public override Task Unload()
         {
             foreach (var subMaiCommand in SubCommands)
@@ -175,40 +76,301 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public int GetSongIndexByTitle(string title)
+        private Alias[] GetAliasByAliasString(string alias)
+        {
+            var aliases = new List<Alias>();
+            foreach (var valueAlias in _songAliases)
+            {
+                foreach (var valueAliasString in valueAlias.Aliases)
+                {
+                    if (valueAliasString.Equals(alias))
+                        aliases.Add(valueAlias);
+                }
+            }
+
+            return aliases.ToArray();
+        }
+
+        private Alias[] GetAliasByAliasStringUsingStartsWith(string alias)
+        {
+            var aliases = new List<Alias>();
+            foreach (Alias valueAlias in _songAliases)
+            {
+                foreach (var valueAliasString in valueAlias.Aliases)
+                {
+                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
+                        aliases.Add(valueAlias);
+                }
+            }
+
+            return aliases.ToArray();
+        }
+
+        private string GetAliasStringUsingStartsWith(string alias)
+        {
+            foreach (Alias valueAlias in _songAliases)
+            {
+                foreach (string valueAliasString in valueAlias.Aliases)
+                {
+                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
+                        return valueAliasString;
+                }
+            }
+
+            return null;
+        }
+
+        public Alias GetAliasById(int id)
+        {
+            foreach (Alias alias in _songAliases)
+            {
+                if (alias.Id == id)
+                {
+                    return alias;
+                }
+            }
+
+            return new Alias() { Id = id, Aliases = new List<string>() };
+        }
+
+        private Alias GetAliasByIdWithDifferentAliases(int id, List<Alias> SongAliases)
+        {
+            foreach (Alias alias in SongAliases)
+            {
+                if (alias.Id == id)
+                {
+                    return alias;
+                }
+            }
+
+            return new Alias() { Id = id, Aliases = new List<string>() };
+        }
+
+        private int GetAliasIndexById(int id)
+        {
+            int i = 0;
+            foreach (Alias alias in _songAliases)
+            {
+                if (alias.Id == id)
+                {
+                    return i;
+                }
+
+                i += 1;
+            }
+
+            return -1;
+        }
+
+        private int GetSongIndexById(int id)
+        {
+            for (int i = 0; i < Songs.Length; i++)
+            {
+                if (Songs[i].Id == id)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private int GetSongIndexByIdUsingStartsWith(int id)
+        {
+            var regex = new Regex(@"\d+");
+            for (int i = 0; i < Songs.Length; i++)
+            {
+                if (regex.Matches(id.ToString())[0].ToString() == Songs[i].Id.ToString())
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private int GetSongIndexByTitle(string title)
         {
             for (int i = 0; i < Songs.Length; i++)
             {
                 if (title.ToLower() == Songs[i].Title.ToLower())
                     return i;
             }
+
             return -1;
         }
 
-        public int GetSongIndexByTitleUsingStartsWith(string title)
+        private int GetSongIndexByTitleUsingStartsWith(string title)
         {
             for (var i = 0; i < Songs.Length; i++)
             {
                 if (title.ToLower().StartsWith(Songs[i].Title.ToLower() + " "))
                     return i;
             }
+
             return -1;
+        }
+
+        public SongDto GetSong(int id)
+        {
+            return Songs[GetSongIndexById(id)];
+        }
+
+        public SongDto[] GetSongs(string inputString)
+        {
+            var aliases = GetAliasByAliasString(inputString);
+            
+            if (aliases.Length != 0)
+            {
+                var songsList = new List<SongDto>();
+                foreach (var alias in aliases)
+                {
+                    songsList.Add(Songs[GetSongIndexById(alias.Id)]);
+                }
+
+                return songsList.ToArray();
+            }
+
+            var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
+            var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
+            if (idRegex.IsMatch(inputString))
+            {
+                try
+                {
+                    var id = idHeadRegex.Replace(inputString, string.Empty).ToInt32();
+                    int index = GetSongIndexById(id);
+                    if (index != -1)
+                        return [Songs[index]];
+                    else
+                        return null;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            var songIndex = GetSongIndexByTitle(inputString);
+            if (songIndex != -1)
+            {
+                return [Songs[songIndex]];
+            }
+
+            return null;
+        }
+
+        public string GetSongIndicatorString(string inputString)
+        {
+            var tempAlias = new List<string>();
+            var tempIds = new List<string>();
+            var tempTitles = new List<string>();
+            
+            foreach (var alias in _songAliases)
+            {
+                foreach (var aliasString in alias.Aliases)
+                {
+                    if (inputString.StartsWith(aliasString + " "))
+                        tempAlias.Add(aliasString);
+                }
+            }
+
+            foreach (var song in Songs)
+            {
+                if (inputString.StartsWith(song.Title + " "))
+                    tempTitles.Add(song.Title);
+
+                if (inputString.StartsWith("id" + song.Id + " "))
+                    tempIds.Add("id" + song.Id);
+
+                if (inputString.StartsWith("ID" + song.Id + " "))
+                    tempIds.Add("ID" + song.Id);
+
+                if (inputString.StartsWith("id " + song.Id + " "))
+                    tempIds.Add("id " + song.Id);
+
+                if (inputString.StartsWith("ID " + song.Id + " "))
+                    tempIds.Add("ID " + song.Id);
+            }
+
+            var sortedTempAlias = tempAlias.OrderByDescending(t => t.Length);
+            var sortedTempIds = tempIds.OrderByDescending(t => t.Length);
+            var sortedTempTitles = tempTitles.OrderByDescending(t => t.Length);
+            
+            foreach (string alias in sortedTempAlias)
+                if (inputString.StartsWith(alias))
+                    return alias;
+            foreach (string id in sortedTempIds)
+                if (inputString.StartsWith(id))
+                    return id;
+            foreach (string title in sortedTempTitles)
+                if (inputString.StartsWith(title))
+                    return title;
+
+            return null;
+        }
+
+        public SongDto[] GetSongsUsingStartsWith(string inputString)
+        {
+            var songIndicator = GetSongIndicatorString(inputString);
+
+            if (songIndicator == null)
+                return null;
+            
+            var aliases = GetAliasByAliasString(songIndicator);
+            
+            if (aliases.Length != 0)
+            {
+                var songsList = new List<SongDto>();
+                foreach (var alias in aliases)
+                {
+                    songsList.Add(Songs[GetSongIndexById(alias.Id)]);
+                }
+
+                return songsList.ToArray();
+            }
+
+            var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
+            var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
+            if (idRegex.IsMatch(songIndicator))
+            {
+                try
+                {
+                    var id = idHeadRegex.Replace(songIndicator, string.Empty).ToInt32();
+                    int index = GetSongIndexById(id);
+                    if (index != -1)
+                        return [Songs[index]];
+                    return null;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            var songIndex = GetSongIndexByTitle(songIndicator);
+            if (songIndex != -1)
+            {
+                return [Songs[songIndex]];
+            }
+
+            return null;
         }
 
         public MaiCommand MaiCommandCommand;
         public SongDto[] Songs;
         public ExtraSongDto[] ExtraSongs;
         private JObject _aliasJObject;
-        public List<List<SongDto>> Levels = new List<List<SongDto>>();
-        public List<List<ExtraSongDto>> ExtraLevels = new List<List<ExtraSongDto>>();
-        public Dictionary<string, int> LevelDictionary = new Dictionary<string, int>();
-        public readonly List<Alias> SongAliases = new List<Alias>();
+        public readonly List<List<SongDto>> Levels = [];
+        public readonly List<List<ExtraSongDto>> ExtraLevels = [];
+        public readonly Dictionary<string, int> LevelDictionary = [];
+        private readonly List<Alias> _songAliases = [];
 
         public class Alias
         {
             public List<string> Aliases;
             public int Id;
-            public bool IsAliasFromLapis;
+
+            public class AliasStringItem
+            {
+                public string AliasString;
+                public bool IsAliasFromLapis;
+            }
         }
 
         private async void Reload(object sender, EventArgs e)
@@ -218,7 +380,7 @@ namespace LapisBot_Renewed.GroupCommands
 
         private Task Start()
         {
-            SongAliases.Clear();
+            _songAliases.Clear();
             LevelDictionary.Clear();
             SubCommands.Clear();
             Levels.Clear();
@@ -259,10 +421,10 @@ namespace LapisBot_Renewed.GroupCommands
                     foreach (string alias in obj.Value)
                         if (!(alias == "\u200e\u200e" || alias == "ㅤ" || alias == String.Empty))
                             aliasesList.Add(alias);
-                    SongAliases.Add(new Alias() { Aliases = aliasesList, Id = id, IsAliasFromLapis = false});
+                    _songAliases.Add(new Alias() { Aliases = aliasesList, Id = id });
                 }
                 else
-                    SongAliases.Add(new Alias() { Aliases = Enumerates.ToList(obj.Value), Id = id, IsAliasFromLapis = false });
+                    _songAliases.Add(new Alias() { Aliases = Enumerates.ToList(obj.Value), Id = id });
             }
 
             LevelDictionary.Add("1", 0);
@@ -316,7 +478,7 @@ namespace LapisBot_Renewed.GroupCommands
             if (OperatingSystem.IsLinux())
                 Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
             else if (OperatingSystem.IsMacOS())
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_80421402.json"), typeof(SongDto[]));
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_70738752.json"), typeof(SongDto[]));
             for (int i = 0; i < 24; i++)
                 Levels.Add(new List<SongDto>());
             for (int i = 0; i < 48; i++)
@@ -355,6 +517,7 @@ namespace LapisBot_Renewed.GroupCommands
 
             SubCommands.Add(new RandomCommand() { MaiCommandCommand = this });
             SubCommands.Add(new InfoCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new AliasAddCommand() { MaiCommandCommand = this });
             SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });

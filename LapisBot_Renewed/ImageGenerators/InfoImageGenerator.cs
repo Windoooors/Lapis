@@ -17,15 +17,15 @@ namespace LapisBot_Renewed.ImageGenerators
 
         private string _coverImagePath;
 
-        private MagickImage GenerateBackground(int index, SongDto[] songs, string title, ApiOperator apiOperator)
+        private MagickImage GenerateBackground(SongDto song, string title, ApiOperator apiOperator)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resource/random/background.png");
             try
             {
-                if (File.Exists(Environment.CurrentDirectory + @"/resource/covers_hd/" + songs[index].Id + ".png"))
-                    _coverImagePath = Environment.CurrentDirectory + @"/resource/covers_hd/" + songs[index].Id + ".png";
+                if (File.Exists(Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png"))
+                    _coverImagePath = Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png";
                 else
-                    _coverImagePath = apiOperator.ImageToPng("https://www.diving-fish.com/covers/" + GetPictureId(songs[index].Id) + ".png", Environment.CurrentDirectory + @"/temp", "cover_temp.png");
+                    _coverImagePath = apiOperator.ImageToPng("https://www.diving-fish.com/covers/" + GetPictureId(song.Id) + ".png", Environment.CurrentDirectory + @"/temp", "cover_temp.png");
             }
             catch
             {
@@ -52,7 +52,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
                 .FontPointSize(400)
                 .FillColor(new MagickColor(65535, 65535, 65535, 5300))
-                .Text(0, 310, songs[index].Title)
+                .Text(0, 310, song.Title)
                 .Draw(backgroundLayer);
             backgroundLayer.Rotate(-90);
             image.Composite(backgroundLayer, 0, -150, CompositeOperator.Atop);
@@ -65,7 +65,7 @@ namespace LapisBot_Renewed.ImageGenerators
             return image;
         }
 
-        private MagickImage GenerateDifficultyLayer(int index, SongDto[] songs, InfoCommand.GetScoreDto.Level[] levels)
+        private MagickImage GenerateDifficultyLayer(SongDto song, InfoCommand.GetScoreDto.Level[] levels)
         {
             var difficultyLayerImage = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 6600, Height = 1080 });
             if (levels != null)
@@ -172,27 +172,27 @@ namespace LapisBot_Renewed.ImageGenerators
                         .Draw(difficultyLayerImage);
                 }
             }
-            if (songs[index].Ratings.Length == 5)
+            if (song.Ratings.Length == 5)
             {
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(40)
                     .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, 170, songs[index].Ratings[0].ToString("0.0"))
-                    .Text(0, 307, songs[index].Ratings[1].ToString("0.0"))
-                    .Text(0, 444, songs[index].Ratings[2].ToString("0.0"))
-                    .Text(0, 581, songs[index].Ratings[3].ToString("0.0"))
-                    .Text(0, 718, songs[index].Ratings[4].ToString("0.0"))
+                    .Text(0, 170, song.Ratings[0].ToString("0.0"))
+                    .Text(0, 307, song.Ratings[1].ToString("0.0"))
+                    .Text(0, 444, song.Ratings[2].ToString("0.0"))
+                    .Text(0, 581, song.Ratings[3].ToString("0.0"))
+                    .Text(0, 718, song.Ratings[4].ToString("0.0"))
                     .Draw(difficultyLayerImage);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, 124, songs[index].Charts[0].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[0].Charter)
-                    .Text(0, 262, songs[index].Charts[1].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[1].Charter)
-                    .Text(0, 399, songs[index].Charts[2].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[2].Charter)
-                    .Text(0, 536, songs[index].Charts[3].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[3].Charter)
-                    .Text(0, 673, songs[index].Charts[4].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[4].Charter)
+                    .Text(0, 124, song.Charts[0].Charter == "-" ? "未知作谱者" : "by " + song.Charts[0].Charter)
+                    .Text(0, 262, song.Charts[1].Charter == "-" ? "未知作谱者" : "by " + song.Charts[1].Charter)
+                    .Text(0, 399, song.Charts[2].Charter == "-" ? "未知作谱者" : "by " + song.Charts[2].Charter)
+                    .Text(0, 536, song.Charts[3].Charter == "-" ? "未知作谱者" : "by " + song.Charts[3].Charter)
+                    .Text(0, 673, song.Charts[4].Charter == "-" ? "未知作谱者" : "by " + song.Charts[4].Charter)
                     .Draw(difficultyLayerImage);
             }
             else
@@ -201,30 +201,30 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(40)
                     .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, 170, songs[index].Ratings[0].ToString("0.0"))
-                    .Text(0, 307, songs[index].Ratings[1].ToString("0.0"))
-                    .Text(0, 444, songs[index].Ratings[2].ToString("0.0"))
-                    .Text(0, 581, songs[index].Ratings[3].ToString("0.0"))
+                    .Text(0, 170, song.Ratings[0].ToString("0.0"))
+                    .Text(0, 307, song.Ratings[1].ToString("0.0"))
+                    .Text(0, 444, song.Ratings[2].ToString("0.0"))
+                    .Text(0, 581, song.Ratings[3].ToString("0.0"))
                     .Text(0, 718, "NaN")
                     .Draw(difficultyLayerImage);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, 124, songs[index].Charts[0].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[0].Charter)
-                    .Text(0, 262, songs[index].Charts[1].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[1].Charter)
-                    .Text(0, 399, songs[index].Charts[2].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[2].Charter)
-                    .Text(0, 536, songs[index].Charts[3].Charter == "-" ? "未知作谱者" : "by " + songs[index].Charts[3].Charter)
+                    .Text(0, 124, song.Charts[0].Charter == "-" ? "未知作谱者" : "by " + song.Charts[0].Charter)
+                    .Text(0, 262, song.Charts[1].Charter == "-" ? "未知作谱者" : "by " + song.Charts[1].Charter)
+                    .Text(0, 399, song.Charts[2].Charter == "-" ? "未知作谱者" : "by " + song.Charts[2].Charter)
+                    .Text(0, 536, song.Charts[3].Charter == "-" ? "未知作谱者" : "by " + song.Charts[3].Charter)
                     .Draw(difficultyLayerImage);
             }
             return difficultyLayerImage;
         }
 
-        public string Generate(int index, SongDto[] songs, string title, InfoCommand.GetScoreDto.Level[] levels, bool isCompressed)
+        public string Generate(SongDto song, string title, InfoCommand.GetScoreDto.Level[] levels, bool isCompressed)
         {
-            var image = GenerateBackground(index, songs, title, Program.apiOperator);
+            var image = GenerateBackground(song, title, Program.apiOperator);
 
-            image.Composite(GenerateDifficultyLayer(index, songs, levels), 90, 305, CompositeOperator.Atop);
+            image.Composite(GenerateDifficultyLayer(song, levels), 90, 305, CompositeOperator.Atop);
 
             var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resource/random/coverimage.png");
             image.Composite(coverImageShadow, 0, 0, CompositeOperator.Atop);
@@ -240,14 +240,14 @@ namespace LapisBot_Renewed.ImageGenerators
                 .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(55)
                 .FillColor(new MagickColor(65535, 65535, 65535))
-                .Text(10, 190, songs[index].Title)
+                .Text(10, 190, song.Title)
                 .Draw(image);
 
             new Drawables()
                 .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(42)
                 .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(10, 127, songs[index].BasicInfo.Artist)
+                .Text(10, 127, song.BasicInfo.Artist)
                 .Draw(image);
 
             new Drawables()
@@ -255,7 +255,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 .FontPointSize(90)
                 .FillColor(new MagickColor(65535, 65535, 65535, 5300))
                 .TextAlignment(TextAlignment.Right)
-                .Text(1393, 87, "ID " + songs[index].Id.ToString())
+                .Text(1393, 87, "ID " + song.Id.ToString())
                 .Draw(image);
 
             var songTypeLayer = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 128, Height = 128 });
@@ -264,7 +264,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(36)
                 .FillColor(new MagickColor(65535, 65535, 65535, 22768))
-                .Text(0, 40, songs[index].Type)
+                .Text(0, 40, song.Type)
                 .Draw(songTypeLayer);
 
             songTypeLayer.Rotate(-90);

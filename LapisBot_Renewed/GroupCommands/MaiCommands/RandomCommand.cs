@@ -78,7 +78,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.settingsCommand.GetSettings(source);
                 var image = new ImageMessage
                 {
-                    Base64 = new InfoImageGenerator().Generate(j, songs, "随机歌曲", null, Program.settingsCommand.CurrentBotSettings.CompressedImage)
+                    Base64 = new InfoImageGenerator().Generate(songs[j], "随机歌曲", null, Program.settingsCommand.CurrentBotSettings.CompressedImage)
                 };
 
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), image });

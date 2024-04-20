@@ -50,11 +50,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
+                                          " Settings");
             }
 
-            foreach (var path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                                       " Settings"))
+            foreach (var path in Directory.GetFiles(AppContext.BaseDirectory +
+                                                    CurrentGroupCommandSettings.SettingsName +
+                                                    " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<InfoSettings>(settingsString));
@@ -94,89 +96,95 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             public Level[] Levels;
 
-            public void Get(string name, string version, int id)
-            {
-                //try
-                //{
-                var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
-                    new { username = name, version = new string[] { version } });
-                ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+            public bool userExists;
 
-                List<Level> levelList = new List<Level>();
-                foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
-                {
-                    if (score.Id == id)
-                    {
-                        var rate = new Rate();
-
-                        var achievement = score.Achievements;
-                        if (achievement >= 100.5)
-                            rate = Rate.Sssp;
-                        else if (100.5 > achievement && achievement >= 100)
-                            rate = Rate.Sss;
-                        else if (100 > achievement && achievement >= 99.5)
-                            rate = Rate.Ssp;
-                        else if (99.5 > achievement && achievement >= 99)
-                            rate = Rate.Ss;
-                        else if (99 > achievement && achievement >= 98)
-                            rate = Rate.Sp;
-                        else if (98 > achievement && achievement >= 97)
-                            rate = Rate.S;
-                        else if (97 > achievement && achievement >= 94)
-                            rate = Rate.Aaa;
-                        else if (94 > achievement && achievement >= 90)
-                            rate = Rate.Aa;
-                        else if (90 > achievement && achievement >= 80)
-                            rate = Rate.A;
-                        else if (80 > achievement && achievement >= 75)
-                            rate = Rate.Bbb;
-                        else if (75 > achievement && achievement >= 70)
-                            rate = Rate.Bb;
-                        else if (70 > achievement && achievement >= 60)
-                            rate = Rate.B;
-                        else if (60 > achievement && achievement >= 50)
-                            rate = Rate.C;
-                        else if (50 > achievement)
-                            rate = Rate.D;
-                        
-                        /*
-                        if (score.Fsd == "fs")
-                            fs = FSState.FS;
-                        else if (score.Fsd == "fsd")
-                            fs = FSState.FSd;
-                        else if (score.Fsd == "")
-                            fs = FSState.None;
-                        */
-                        levelList.Add(new Level()
-                        {
-                            Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex, Fc = score.Fc,
-                            Fs = score.Fs
-                        });
-
-                    }
-                }
-
-                Levels = levelList.ToArray();
-                //}
-                /*catch
-                {
-                    List<Level> levelList = new List<Level>();
-                    levels = levelList.ToArray();
-                }*/
-            }
-
-            public void Get(long number, string version, int id)
+            public void Get(string name, SongDto song)
             {
                 try
                 {
                     var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
-                        new { qq = number, version = new string[] { version } });
+                        new { username = name, version = new string[] { song.BasicInfo.Version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
                     List<Level> levelList = new List<Level>();
                     foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
                     {
-                        if (score.Id == id)
+                        if (score.Id == song.Id)
+                        {
+                            var rate = new Rate();
+
+                            var achievement = score.Achievements;
+                            if (achievement >= 100.5)
+                                rate = Rate.Sssp;
+                            else if (100.5 > achievement && achievement >= 100)
+                                rate = Rate.Sss;
+                            else if (100 > achievement && achievement >= 99.5)
+                                rate = Rate.Ssp;
+                            else if (99.5 > achievement && achievement >= 99)
+                                rate = Rate.Ss;
+                            else if (99 > achievement && achievement >= 98)
+                                rate = Rate.Sp;
+                            else if (98 > achievement && achievement >= 97)
+                                rate = Rate.S;
+                            else if (97 > achievement && achievement >= 94)
+                                rate = Rate.Aaa;
+                            else if (94 > achievement && achievement >= 90)
+                                rate = Rate.Aa;
+                            else if (90 > achievement && achievement >= 80)
+                                rate = Rate.A;
+                            else if (80 > achievement && achievement >= 75)
+                                rate = Rate.Bbb;
+                            else if (75 > achievement && achievement >= 70)
+                                rate = Rate.Bb;
+                            else if (70 > achievement && achievement >= 60)
+                                rate = Rate.B;
+                            else if (60 > achievement && achievement >= 50)
+                                rate = Rate.C;
+                            else if (50 > achievement)
+                                rate = Rate.D;
+
+                            /*
+                            if (score.Fsd == "fs")
+                                fs = FSState.FS;
+                            else if (score.Fsd == "fsd")
+                                fs = FSState.FSd;
+                            else if (score.Fsd == "")
+                                fs = FSState.None;
+                            */
+                            levelList.Add(new Level()
+                            {
+                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex,
+                                Fc = score.Fc,
+                                Fs = score.Fs
+                            });
+
+                        }
+                    }
+
+                    Levels = levelList.ToArray();
+                    if (Levels.Length > 0)
+                        userExists = true;
+                    else
+                        userExists = false;
+                }
+                catch
+                {
+                    userExists = false;
+                }
+            }
+
+            public void Get(long number, SongDto song)
+            {
+                try
+                {
+                    var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                        new { qq = number, version = new string[] { song.BasicInfo.Version } });
+                    ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+
+                    List<Level> levelList = new List<Level>();
+                    foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
+                    {
+                        if (score.Id == song.Id)
                         {
                             var rate = new Rate();
 
@@ -212,7 +220,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                             levelList.Add(new Level()
                             {
-                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex, Fc = score.Fc,
+                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex,
+                                Fc = score.Fc,
                                 Fs = score.Fs
                             });
 
@@ -220,11 +229,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     }
 
                     Levels = levelList.ToArray();
+                    if (Levels.Length > 0)
+                        userExists = true;
+                    else
+                        userExists = false;
                 }
                 catch
                 {
-                    List<Level> _levelList = new List<Level>();
-                    Levels = _levelList.ToArray();
+                    userExists = false;
                 }
             }
 
@@ -249,346 +261,92 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             public static GetScoreDto GetScore = new GetScoreDto();
         }
 
-        public Task ParseWithArgument(string command, GroupMessageReceiver source)
-        {
-            var aliases = MaiCommandCommand.GetAliasByAliasStringUsingStartsWith(command);
-            if (aliases.Length != 0)
-            {
-                if (aliases.Length == 1)
-                {
-                    try
-                    {
-                        var i = MaiCommandCommand.GetSongIndexById(aliases[0].Id);
-                        //var name = command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty);
-                        GetScoreDto.GetScore.Get(
-                            command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command) + " ", string.Empty),
-                            MaiCommandCommand.Songs[i].BasicInfo.Version, MaiCommandCommand.Songs[i].Id);
-                        Program.settingsCommand.GetSettings(source);
-                        var image = new ImageMessage
-                        {
-                            Base64 = new InfoImageGenerator().Generate(i, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
-                                Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                        };
-                        MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain() { new AtMessage(source.Sender.Id), image });
-
-                        if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-                        {
-                            var voice = new VoiceMessage
-                            {
-                                Path = new AudioToVoiceConverter().ConvertSong(aliases[0].Id)
-                            };
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-                        }
-                    }
-                    catch
-                    {
-                        MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
-                    }
-                }
-                else
-                {
-                    string ids = string.Empty;
-                    List<int> idsList = new List<int>();
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        if (idsList.Contains(aliases[i].Id))
-                            continue;
-                        int subIndex = MaiCommandCommand.GetSongIndexById(aliases[i].Id);
-                        ids += "ID " + aliases[i].Id + " - " + MaiCommandCommand.Songs[subIndex].Title + " [" +
-                               MaiCommandCommand.Songs[subIndex].Type + "]";
-                        idsList.Add(aliases[i].Id);
-                        if (i != aliases.Length - 1)
-                            ids += "\n";
-                    }
-
-                    if (idsList.Count == 1)
-                    {
-                        Parse(
-                            "ID " + idsList[0] + command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command),
-                                string.Empty), source);
-                        return Task.CompletedTask;
-                    }
-
-                    int index = MaiCommandCommand.GetSongIndexById(idsList[0]);
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                    {
-                        new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + " " +
-                                         command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command) + " ",
-                                             string.Empty) + "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" +
-                                         MaiCommandCommand.Songs[index].Type + "] 的相关信息")
-                    });
-                }
-                //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定") });
-            }
-            else
-            {
-                var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
-                var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
-                if (idRegex.IsMatch(command))
-                {
-                    try
-                    {
-                        var id = idHeadRegex.Replace(command, string.Empty);
-                        int index = MaiCommandCommand.GetSongIndexByIdUsingStartsWith(id);
-                        if (index != -1)
-                        {
-                            try
-                            {
-                                GetScoreDto.GetScore.Get(idRegex.Replace(command, "").TrimStart(),
-                                    MaiCommandCommand.Songs[index].BasicInfo.Version, MaiCommandCommand.Songs[index].Id);
-                                Program.settingsCommand.GetSettings(source);
-                                var image = new ImageMessage
-                                {
-                                    Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
-                                        Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                                };
-
-                                MessageManager.SendGroupMessageAsync(source.GroupId,
-                                    new MessageChain() { new AtMessage(source.Sender.Id), image });
-                                if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-                                {
-                                    var voice = new VoiceMessage
-                                    {
-                                        Path = new AudioToVoiceConverter().ConvertSong(MaiCommandCommand.Songs[index].Id)
-                                    };
-                                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-                                }
-                            }
-                            catch
-                            {
-                                MessageManager.SendGroupMessageAsync(source.GroupId,
-                                    new MessageChain()
-                                        { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
-                            }
-                        }
-                        else
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                            {
-                                new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
-                            });
-                    }
-                    catch
-                    {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                        {
-                            new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
-                        });
-                    }
-
-                }
-                else
-                {
-                    int index = MaiCommandCommand.GetSongIndexByTitleUsingStartsWith(command);
-                    if (index != -1)
-                    {
-                        try
-                        {
-                            GetScoreDto.GetScore.Get(command.Replace(MaiCommandCommand.Songs[index].Title + " ", string.Empty),
-                                MaiCommandCommand.Songs[index].BasicInfo.Version, MaiCommandCommand.Songs[index].Id);
-                            Program.settingsCommand.GetSettings(source);
-                            var image = new ImageMessage
-                            {
-                                Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
-                                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                            };
-                            MessageManager.SendGroupMessageAsync(source.GroupId,
-                                new MessageChain() { new AtMessage(source.Sender.Id), image });
-
-                            if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-                            {
-                                var voice = new VoiceMessage
-                                {
-                                    Path = new AudioToVoiceConverter().ConvertSong(MaiCommandCommand.Songs[index].Id)
-                                };
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-                            }
-                        }
-                        catch
-                        {
-                            MessageManager.SendGroupMessageAsync(source.GroupId,
-                                new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
-                        }
-                    }
-                    else
-                        MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                        {
-                            new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
-                        });
-                }
-                //MessageManager.SendGroupMessageAsync(source.GroupId, " ");
-            }
-
-            return Task.CompletedTask;
-        }
-
         public override Task Parse(string command, GroupMessageReceiver source)
         {
-            var aliases = MaiCommandCommand.GetAliasByAliasString(command);
-            if (aliases.Length != 0)
+            var songs = MaiCommandCommand.GetSongsUsingStartsWith(command);
+
+            if (songs == null)
             {
-                if (aliases.Length == 1)
+                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                {
+                    new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该歌曲")
+                });
+                return Task.CompletedTask;
+            }
+
+            var indicatorString = MaiCommandCommand.GetSongIndicatorString(command);
+
+            if (songs.Length != 1)
+            {
+                string ids = string.Empty;
+                List<int> idsList = new List<int>();
+                for (int i = 0; i < songs.Length; i++)
+                {
+                    ids += "ID " + songs[i].Id + " - " + songs[i].Title + " [" + songs[i].Type + "]";
+                    if (i != songs.Length - 1)
+                        ids += "\n";
+                }
+
+                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                {
+                    new AtMessage(source.Sender.Id),
+                    new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
+                                     songs[0].Title + " [" + songs[0].Type +
+                                     "] 的信息")
+                });
+                
+                return Task.CompletedTask;
+            }
+
+            var indicatorRegex = new Regex(indicatorString);
+            var userName = indicatorRegex.Replace(command, "", 1);
+            if (userName != string.Empty)
+            {
+                GetScoreDto.GetScore.Get(userName.Substring(1, userName.Length - 1), songs[0]);
+                if (!GetScoreDto.GetScore.userExists)
                 {
                     try
                     {
-                        var i = MaiCommandCommand.GetSongIndexById(aliases[0].Id);
-                        GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), MaiCommandCommand.Songs[i].BasicInfo.Version, MaiCommandCommand.Songs[i].Id);
-                        Program.settingsCommand.GetSettings(source);
-                        var image = new ImageMessage
-                        {
-                            Base64 = new InfoImageGenerator().Generate(i, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
-                                Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                        };
-                        MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain() { new AtMessage(source.Sender.Id), image });
-
-                        if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-                        {
-                            var voice = new VoiceMessage
-                            {
-                                Path = new AudioToVoiceConverter().ConvertSong(aliases[0].Id)
-                            };
-                            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-                        }
+                        GetScoreDto.GetScore.Get(Int64.Parse(userName.Substring(1, userName.Length - 1)), songs[0]);
                     }
                     catch
                     {
                         MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain()
-                            {
-                                new AtMessage(source.Sender.Id),
-                                new PlainMessage(
-                                    " 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
-                            });
-                    }
-                }
-                else
-                {
-                    string ids = string.Empty;
-                    List<int> idsList = new List<int>();
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        if (idsList.Contains(aliases[i].Id))
-                            continue;
-                        int subIndex = MaiCommandCommand.GetSongIndexById(aliases[i].Id);
-                        ids += "ID " + aliases[i].Id + " - " + MaiCommandCommand.Songs[subIndex].Title + " [" +
-                               MaiCommandCommand.Songs[subIndex].Type + "]";
-                        idsList.Add(aliases[i].Id);
-                        if (i != aliases.Length - 1)
-                            ids += "\n";
-                    }
-
-                    if (idsList.Count == 1)
-                    {
-                        Parse(
-                            "ID " + idsList[0] + command.Replace(MaiCommandCommand.GetAliasStringUsingStartsWith(command),
-                                string.Empty), source);
+                            new MessageChain { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
                         return Task.CompletedTask;
                     }
 
-                    int index = MaiCommandCommand.GetSongIndexById(idsList[0]);
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
+                    if (!GetScoreDto.GetScore.userExists)
                     {
-                        new AtMessage(source.Sender.Id),
-                        new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] +
-                                         "\" 指令即可查询歌曲 " + MaiCommandCommand.Songs[index].Title + " [" +
-                                         MaiCommandCommand.Songs[index].Type + "] 的相关信息")
-                    });
+                        MessageManager.SendGroupMessageAsync(source.GroupId,
+                            new MessageChain { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                        return Task.CompletedTask;
+                    }
                 }
             }
             else
             {
-                var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
-                var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
-                if (idRegex.IsMatch(command))
+                var id = Int64.Parse(source.Sender.Id);
+                GetScoreDto.GetScore.Get(id, songs[0]);
+            }
+
+            Program.settingsCommand.GetSettings(source);
+            var image = new ImageMessage
+            {
+                Base64 = new InfoImageGenerator().Generate(songs[0], "歌曲信息",
+                    GetScoreDto.GetScore.Levels,
+                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
+            };
+            MessageManager.SendGroupMessageAsync(source.GroupId,
+                new MessageChain() { new AtMessage(source.Sender.Id), image });
+
+            if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
+            {
+                var voice = new VoiceMessage
                 {
-                    try
-                    {
-                        var id = idHeadRegex.Replace(command, string.Empty).ToInt32();
-                        int index = MaiCommandCommand.GetSongIndexById(id);
-                        if (index != -1)
-                        {
-                            //try
-                            //{
-                            GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), MaiCommandCommand.Songs[index].BasicInfo.Version,
-                                MaiCommandCommand.Songs[index].Id);
-                            Program.settingsCommand.GetSettings(source);
-                            var image = new ImageMessage
-                            {
-                                Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
-                                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                            };
-
-                            MessageManager.SendGroupMessageAsync(source.GroupId,
-                                new MessageChain() { new AtMessage(source.Sender.Id), image });
-
-                            if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-                            {
-                                var voice = new VoiceMessage
-                                {
-                                    Path = new AudioToVoiceConverter().ConvertSong(id)
-                                };
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
-                            }
-                            /*}
-                            catch
-                            {
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定") });
-                            }*/
-                        }
-                        else
-                            ParseWithArgument(command, source);
-                    }
-                    catch
-                    {
-                        ParseWithArgument(command, source);
-                    }
-
-                }
-                else
-                {
-                    int index = MaiCommandCommand.GetSongIndexByTitle(command);
-                    if (index != -1)
-                    {
-                        try
-                        {
-                            GetScoreDto.GetScore.Get(source.Sender.Id.ToInt64(), MaiCommandCommand.Songs[index].BasicInfo.Version,
-                                MaiCommandCommand.Songs[index].Id);
-                            Program.settingsCommand.GetSettings(source);
-                            var _image = new ImageMessage
-                            {
-                                Base64 = new InfoImageGenerator().Generate(index, MaiCommandCommand.Songs, "歌曲信息", GetScoreDto.GetScore.Levels,
-                                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                            };
-                            MessageManager.SendGroupMessageAsync(source.GroupId,
-                                new MessageChain() { new AtMessage(source.Sender.Id), _image });
-
-                            if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-                            {
-                                var _voice = new VoiceMessage
-                                {
-                                    Path = new AudioToVoiceConverter().ConvertSong(MaiCommandCommand.Songs[index].Id)
-                                };
-                                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { _voice });
-                            }
-                        }
-                        catch
-                        {
-                            MessageManager.SendGroupMessageAsync(source.GroupId,
-                                new MessageChain()
-                                {
-                                    new AtMessage(source.Sender.Id),
-                                    new PlainMessage(
-                                        " 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
-                                });
-                        }
-                    }
-                    else
-                        ParseWithArgument(command, source);
-                }
-                //MessageManager.SendGroupMessageAsync(source.GroupId, " ");
+                    Path = new AudioToVoiceConverter().ConvertSong(songs[0].Id)
+                };
+                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
             }
 
             return Task.CompletedTask;

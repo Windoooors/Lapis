@@ -12,7 +12,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
     {
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^add\s");
+            HeadCommand = new Regex(@"^alias add\s");
             DirectCommand = new Regex(@"^添加别名\s");
             DefaultSettings.SettingsName = "添加别名";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
