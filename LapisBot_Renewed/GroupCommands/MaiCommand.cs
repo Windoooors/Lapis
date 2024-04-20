@@ -265,26 +265,26 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 foreach (var aliasString in alias.Aliases)
                 {
-                    if (inputString.StartsWith(aliasString + " "))
+                    if (inputString.StartsWith(aliasString))
                         tempAlias.Add(aliasString);
                 }
             }
 
             foreach (var song in Songs)
             {
-                if (inputString.StartsWith(song.Title + " "))
+                if (inputString.StartsWith(song.Title))
                     tempTitles.Add(song.Title);
 
-                if (inputString.StartsWith("id" + song.Id + " "))
+                if (inputString.StartsWith("id" + song.Id))
                     tempIds.Add("id" + song.Id);
 
-                if (inputString.StartsWith("ID" + song.Id + " "))
+                if (inputString.StartsWith("ID" + song.Id))
                     tempIds.Add("ID" + song.Id);
 
-                if (inputString.StartsWith("id " + song.Id + " "))
+                if (inputString.StartsWith("id " + song.Id))
                     tempIds.Add("id " + song.Id);
 
-                if (inputString.StartsWith("ID " + song.Id + " "))
+                if (inputString.StartsWith("ID " + song.Id))
                     tempIds.Add("ID " + song.Id);
             }
 
@@ -293,13 +293,13 @@ namespace LapisBot_Renewed.GroupCommands
             var sortedTempTitles = tempTitles.OrderByDescending(t => t.Length);
             
             foreach (string alias in sortedTempAlias)
-                if (inputString.StartsWith(alias))
+                if (inputString.StartsWith(alias + " ") || inputString == alias)
                     return alias;
             foreach (string id in sortedTempIds)
-                if (inputString.StartsWith(id))
+                if (inputString.StartsWith(id + " ") || inputString == id)
                     return id;
             foreach (string title in sortedTempTitles)
-                if (inputString.StartsWith(title))
+                if (inputString.StartsWith(title + " ") || inputString == title)
                     return title;
 
             return null;
