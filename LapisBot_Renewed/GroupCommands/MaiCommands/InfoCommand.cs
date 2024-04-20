@@ -169,6 +169,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 }
                 catch
                 {
+                    Levels = new Level[0];
                     userExists = false;
                 }
             }
@@ -236,6 +237,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 }
                 catch
                 {
+                    Levels = new Level[0];
                     userExists = false;
                 }
             }
@@ -285,6 +287,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     ids += "ID " + songs[i].Id + " - " + songs[i].Title + " [" + songs[i].Type + "]";
                     if (i != songs.Length - 1)
                         ids += "\n";
+                    idsList.Add(songs[i].Id);
                 }
 
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
