@@ -66,11 +66,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             else
             {
                 MaiCommandCommand.LevelDictionary.TryGetValue(command, out i);
-                if (i == MaiCommandCommand.LevelDictionary.Count - 1)
-                {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, "潘你妈");
-                }
                 SongDto[] songs = MaiCommandCommand.Levels[i].ToArray();
+                if (songs.Length == 0)
+                {
+                    MessageManager.SendGroupMessageAsync(source.GroupId, "不支持的等级名称");
+                    return Task.CompletedTask;
+                }
 
                 Random random = new Random();
                 int j = random.Next(0, songs.Length);

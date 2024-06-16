@@ -208,6 +208,42 @@ namespace LapisBot_Renewed.GroupCommands
                 CancelCoolDownTimer(source.GroupId);
                 return Task.CompletedTask;
             }
+            
+            foreach (Vocabulary vocabulary in Vocabularies)
+            {
+                foreach (WordDto wordItem in vocabulary.Words)
+                {
+                    if (wordItem.Word == command)
+                    {
+                        if (_guessingGroupsMap.ContainsKey(source.GroupId))
+                        {
+                            MessageManager.SendGroupMessageAsync(source.GroupId,
+                                new MessageChain()
+                                {
+                                    new AtMessage() { Target = source.Sender.Id },
+                                    new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                                });
+                            return Task.CompletedTask;
+                        }
+                        
+                        var word = wordItem;
+                        var text = "试试看吧！\n";
+                        foreach (WordDto.TranslationDto translation in word.Translations)
+                            text += translation.Type + "." + translation.Translation + "; \n";
+                        for (int j = 0; j < word.Word.Length; j++)
+                            text += "_ ";
+                        text.TrimEnd();
+                        text += "\nLapis Bot 将在 30 秒后公布答案！";
+            
+                        _guessingGroupsMap.Add(source.GroupId,
+                            (word, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
+
+                        MessageManager.SendGroupMessageAsync(source.GroupId,
+                            new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + text) });
+                        return Task.CompletedTask;
+                    }
+                }
+            }
 
             Program.helpCommand.Parse(command, source);
             CancelCoolDownTimer(source.GroupId);

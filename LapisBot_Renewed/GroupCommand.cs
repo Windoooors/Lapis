@@ -175,7 +175,9 @@ namespace LapisBot_Renewed
             if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator ||
                 source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
             {
-                var regex = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s((true)|(false))$");
+                var regexBool = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s((true)|(false))$");
+                var regexString = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s.*");
+                var regex = new Regex(@"settings\s[1-" + DefaultSettings.DisplayNames.Count + @"]\s");
                 CurrentGroupCommandSettings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
                 GetDefaultSettings();
                 //var settings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
@@ -199,7 +201,9 @@ namespace LapisBot_Renewed
                         JsonConvert.SerializeObject(CurrentGroupCommandSettings));
                 }
 
-                if (regex.IsMatch(command))
+                if (regexBool.IsMatch(command) && CurrentGroupCommandSettings.GetType().GetProperty(CurrentGroupCommandSettings.DisplayNames
+                            .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                        .GetValue(CurrentGroupCommandSettings) is bool)
                 {
                     if (command.Contains("true"))
                     {
@@ -215,6 +219,29 @@ namespace LapisBot_Renewed
                             .GetProperty(CurrentGroupCommandSettings.DisplayNames
                                 .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
                             .SetValue(CurrentGroupCommandSettings, false);
+                    }
+
+                    File.Delete(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
+                                source.GroupId + ".json");
+                    File.WriteAllText(
+                        AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
+                        source.GroupId +
+                        ".json", JsonConvert.SerializeObject(CurrentGroupCommandSettings));
+                    //settings = CurrentGroupCommandSettings;
+                    MessageManager.SendGroupMessageAsync(source.GroupId,
+                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
+                }
+                else if (regexString.IsMatch(command) && CurrentGroupCommandSettings.GetType().GetProperty(
+                                 CurrentGroupCommandSettings.DisplayNames
+                                     .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                             .GetValue(CurrentGroupCommandSettings) is string)
+                {
+                    if (regexString.Replace(command, "") != String.Empty)
+                    {
+                        CurrentGroupCommandSettings.GetType()
+                            .GetProperty(CurrentGroupCommandSettings.DisplayNames
+                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
+                            .SetValue(CurrentGroupCommandSettings, regex.Replace(command, ""));
                     }
 
                     File.Delete(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +

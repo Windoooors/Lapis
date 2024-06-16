@@ -172,49 +172,33 @@ namespace LapisBot_Renewed.ImageGenerators
                         .Draw(difficultyLayerImage);
                 }
             }
-            if (song.Ratings.Length == 5)
+
+            int[] difficultyFactorYPositions = { 170, 307, 444, 581, 718 };
+            int[] charterYPositions = { 124, 262, 399, 536, 673 };
+
+            for (int i = 0; i < song.Ratings.Length; i++)
             {
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(40)
                     .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, 170, song.Ratings[0].ToString("0.0"))
-                    .Text(0, 307, song.Ratings[1].ToString("0.0"))
-                    .Text(0, 444, song.Ratings[2].ToString("0.0"))
-                    .Text(0, 581, song.Ratings[3].ToString("0.0"))
-                    .Text(0, 718, song.Ratings[4].ToString("0.0"))
+                    .Text(0, difficultyFactorYPositions[i], song.Ratings[i].ToString("0.0"))
                     .Draw(difficultyLayerImage);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, 124, song.Charts[0].Charter == "-" ? "未知作谱者" : "by " + song.Charts[0].Charter)
-                    .Text(0, 262, song.Charts[1].Charter == "-" ? "未知作谱者" : "by " + song.Charts[1].Charter)
-                    .Text(0, 399, song.Charts[2].Charter == "-" ? "未知作谱者" : "by " + song.Charts[2].Charter)
-                    .Text(0, 536, song.Charts[3].Charter == "-" ? "未知作谱者" : "by " + song.Charts[3].Charter)
-                    .Text(0, 673, song.Charts[4].Charter == "-" ? "未知作谱者" : "by " + song.Charts[4].Charter)
+                    .Text(0, charterYPositions[i], song.Charts[i].Charter == "-" ? "未知作谱者" : "by " + song.Charts[i].Charter)
                     .Draw(difficultyLayerImage);
             }
-            else
+            
+            if (song.Ratings.Length == 4 && song.Id.ToString().Length == 6)
             {
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(40)
                     .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, 170, song.Ratings[0].ToString("0.0"))
-                    .Text(0, 307, song.Ratings[1].ToString("0.0"))
-                    .Text(0, 444, song.Ratings[2].ToString("0.0"))
-                    .Text(0, 581, song.Ratings[3].ToString("0.0"))
                     .Text(0, 718, "NaN")
-                    .Draw(difficultyLayerImage);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(24)
-                    .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, 124, song.Charts[0].Charter == "-" ? "未知作谱者" : "by " + song.Charts[0].Charter)
-                    .Text(0, 262, song.Charts[1].Charter == "-" ? "未知作谱者" : "by " + song.Charts[1].Charter)
-                    .Text(0, 399, song.Charts[2].Charter == "-" ? "未知作谱者" : "by " + song.Charts[2].Charter)
-                    .Text(0, 536, song.Charts[3].Charter == "-" ? "未知作谱者" : "by " + song.Charts[3].Charter)
                     .Draw(difficultyLayerImage);
             }
             return difficultyLayerImage;
@@ -232,8 +216,11 @@ namespace LapisBot_Renewed.ImageGenerators
             var coverImage = new MagickImage(_coverImagePath);
             coverImage.Resize(1077, 1077);
             image.Composite(coverImage, 324, 207, CompositeOperator.Atop);
-
-            var foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground.png");
+            MagickImage foreImage;
+            if (song.Id.ToString().Length == 6)
+                foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground_utage.png");
+            else
+                foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground.png");
             image.Composite(foreImage, 0, 0, CompositeOperator.Atop);
 
             new Drawables()

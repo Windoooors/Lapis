@@ -293,7 +293,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
                 {
                     new AtMessage(source.Sender.Id),
-                    new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
+                    new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + "\" 指令即可查询歌曲 " +
                                      songs[0].Title + " [" + songs[0].Type +
                                      "] 的信息")
                 });

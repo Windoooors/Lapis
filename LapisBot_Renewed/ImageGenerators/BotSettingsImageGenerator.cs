@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using ImageMagick;
+
 namespace LapisBot_Renewed.ImageGenerators
 {
     public class BotSettingsImageGenerator
@@ -23,36 +25,70 @@ namespace LapisBot_Renewed.ImageGenerators
             int i = 0;
             foreach (KeyValuePair<string, string> valuePair in settings.DisplayNames)
             {
-                var itemValue = (bool)settings.GetType().GetProperty(valuePair.Key).GetValue(settings);
-                var _top = top + i * 69;
-                MagickImage itemImage;
-                if (itemValue)
-                    itemImage = new MagickImage(Environment.CurrentDirectory + @"/resource/settings/item_enabled.png");
-                else
-                    itemImage = new MagickImage(Environment.CurrentDirectory + @"/resource/settings/item_disabled.png");
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(34f)
-                    .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                    .Text(23, 48, (i + 1).ToString())
-                    .Draw(itemImage);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                    .FontPointSize(28f)
-                    .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                    .Text(80, 46, valuePair.Value)
-                    .Draw(itemImage);
-                image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
-                i++;
+                if (settings.GetType().GetProperty(valuePair.Key).GetValue(settings) is bool)
+                {
+                    var itemValue = (bool)settings.GetType().GetProperty(valuePair.Key).GetValue(settings);
+                    var _top = top + i * 69;
+                    MagickImage itemImage;
+                    if (itemValue)
+                        itemImage = new MagickImage(Environment.CurrentDirectory +
+                                                    @"/resource/settings/item_enabled.png");
+                    else
+                        itemImage = new MagickImage(Environment.CurrentDirectory +
+                                                    @"/resource/settings/item_disabled.png");
+                    new Drawables()
+                        .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
+                        .FontPointSize(34f)
+                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
+                        .Text(23, 48, (i + 1).ToString())
+                        .Draw(itemImage);
+                    new Drawables()
+                        .Font(Environment.CurrentDirectory + @"/resource/font.otf")
+                        .FontPointSize(28f)
+                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
+                        .Text(80, 46, valuePair.Value)
+                        .Draw(itemImage);
+                    image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
+                    i++;
+                }
+                else if (settings.GetType().GetProperty(valuePair.Key).GetValue(settings) is string)
+                {
+                    var itemValue = (string)settings.GetType().GetProperty(valuePair.Key).GetValue(settings);
+                    var _top = top + i * 69;
+                    MagickImage itemImage;
+                    itemImage = new MagickImage(Environment.CurrentDirectory +
+                                                @"/resource/settings/item_string.png");
+                    new Drawables()
+                        .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
+                        .FontPointSize(34f)
+                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
+                        .Text(23, 48, (i + 1).ToString())
+                        .Draw(itemImage);
+                    new Drawables()
+                        .Font(Environment.CurrentDirectory + @"/resource/font.otf")
+                        .FontPointSize(28f)
+                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
+                        .Text(80, 46, valuePair.Value)
+                        .Draw(itemImage);
+                    if (itemValue != "")
+                        new Drawables()
+                            .Font(Environment.CurrentDirectory + @"/resource/font.otf")
+                            .FontPointSize(28f)
+                            .FillColor(new MagickColor(65535, 65535, 65535, 65535))
+                            .TextAlignment(TextAlignment.Right)
+                            .Text(500, 46, itemValue)
+                            .Draw(itemImage);
+                    image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
+                    i++;
+                }
+
+                /*if (isCompressed)
+                {
+                    image.SetCompression(CompressionMethod.JPEG);
+                    image.Format = MagickFormat.Jpeg;
+                    image.Quality = 90;
+                }*/
             }
-
-            /*if (isCompressed)
-            {
-                image.SetCompression(CompressionMethod.JPEG);
-                image.Format = MagickFormat.Jpeg;
-                image.Quality = 90;
-            }*/
-
             return image.ToBase64();
         }
     }

@@ -167,11 +167,7 @@ namespace LapisBot_Renewed.GroupCommands
                                 i = random.Next(0, memberList.Count);
                             }
                         }
-
-                        if (source.Sender.Id == "2794813909" && memberList.Contains("2801417957"))
-                            i = memberList.IndexOf("2801417957");
-                        if (source.Sender.Id == "2801417957" && memberList.Contains("2794813909"))
-                            i = memberList.IndexOf("2794813909");
+                        
                         foreach (KeyValuePair<string, string> keyValuePair in couples)
                         {
                             if (keyValuePair.Value == source.Sender.Id)

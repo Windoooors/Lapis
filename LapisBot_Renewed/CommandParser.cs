@@ -18,7 +18,7 @@ namespace LapisBot_Renewed
     {
         private readonly Regex _headCommandRegex =
             new Regex(@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
-        private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$");
+        private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$|\ssettings\s[0-9]\s.*");
 
         public async void Parse(FriendMessageReceiver source)
         {
@@ -197,7 +197,7 @@ namespace LapisBot_Renewed
             GroupCommand command)
         {
             var showSettingsRegex = new Regex(@"^settings$|^\ssettings$");
-            var settingsRegex = new Regex(@"^settings\s[0-9]\s(true|false)$|^\ssettings\s[0-9]\s(true|false)$");
+            var settingsRegex = new Regex(@"^settings\s[0-9]\s(true|false)$|^\ssettings\s[0-9]\s(true|false)$|^settings\s[0-9]\s|^\ssettings\s[0-9]\s.*");
             if (showSettingsRegex.IsMatch(commandString))
             {
                 var taskParse = new Task(() => command.SettingsParse(commandString, source));

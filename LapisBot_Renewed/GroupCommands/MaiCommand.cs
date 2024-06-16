@@ -478,8 +478,8 @@ namespace LapisBot_Renewed.GroupCommands
             if (OperatingSystem.IsLinux())
                 Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
             else if (OperatingSystem.IsMacOS())
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_70738752.json"), typeof(SongDto[]));
-            for (int i = 0; i < 24; i++)
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_21011504.json"), typeof(SongDto[]));
+            for (int i = 0; i < 48; i++)
                 Levels.Add(new List<SongDto>());
             for (int i = 0; i < 48; i++)
                 ExtraLevels.Add(new List<ExtraSongDto>());
@@ -522,7 +522,7 @@ namespace LapisBot_Renewed.GroupCommands
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
             SubCommands.Add(new GuessCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new QueueQueryCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new AircadeCommand() { MaiCommandCommand = this });
             
             foreach (var subMaiCommand in SubCommands)
             {
