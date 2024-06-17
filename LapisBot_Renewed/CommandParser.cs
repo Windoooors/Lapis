@@ -73,9 +73,9 @@ namespace LapisBot_Renewed
 
         public void MainParse(GroupMessageReceiver source)
         {
-            if ((RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
-                 (source.Sender.Id == "2794813909" || source.Sender.Id == "361851827")) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if ((Program.BotSettings.IsDevelopingMode &&
+                 (source.Sender.Id == "2794813909" || source.Sender.Id == "361851827" || source.Sender.Id == "2750558108")) ||
+                !Program.BotSettings.IsDevelopingMode)
             {
                 Program.settingsCommand.GetSettings(source);
 

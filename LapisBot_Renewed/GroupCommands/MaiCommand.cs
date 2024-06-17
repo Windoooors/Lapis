@@ -388,10 +388,10 @@ namespace LapisBot_Renewed.GroupCommands
 
             try
             {
-                if (OperatingSystem.IsLinux())
+                if (!Program.BotSettings.IsDevelopingMode)
                     _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
-                else if (OperatingSystem.IsMacOS())
-                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_94470325.json"));
+                else if (Program.BotSettings.IsDevelopingMode)
+                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_80845285.json"));
                 /*_aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
             */            
             }
@@ -475,10 +475,10 @@ namespace LapisBot_Renewed.GroupCommands
             LevelDictionary.Add("14?", 45);
             LevelDictionary.Add("14+?", 46);
             LevelDictionary.Add("15?", 47);
-            if (OperatingSystem.IsLinux())
+            if (!Program.BotSettings.IsDevelopingMode)
                 Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
-            else if (OperatingSystem.IsMacOS())
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_21011504.json"), typeof(SongDto[]));
+            else if (Program.BotSettings.IsDevelopingMode)
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_29986616.json"), typeof(SongDto[]));
             for (int i = 0; i < 48; i++)
                 Levels.Add(new List<SongDto>());
             for (int i = 0; i < 48; i++)

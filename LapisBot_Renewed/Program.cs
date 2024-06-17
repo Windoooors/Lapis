@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions;
@@ -11,9 +11,19 @@ using Mirai.Net.Data.Shared;
 using Newtonsoft.Json;
 using LapisBot_Renewed.GroupCommands;
 using System.Threading;
+using Xamarin.Forms.PlatformConfiguration.AndroidSpecific.AppCompat;
+using File = Mirai.Net.Data.Shared.File;
 
 namespace LapisBot_Renewed
 {
+    public class BotSettings
+    {
+        public string Address = "";
+        public string Qq = "";
+        public string VerifyKey = "";
+        public bool IsDevelopingMode = false;
+    }
+    
     public class Program
     {
         public static List<GroupCommand> groupCommands = new List<GroupCommand>();
@@ -28,14 +38,9 @@ namespace LapisBot_Renewed
 
         public static ApiOperator apiOperator = new ApiOperator(@"https://www.diving-fish.com");
 
-        public static MiraiBot bot = new MiraiBot
-        {
-            Address = "10.45.72.126:8080",
-            QQ = "3064967438",
-            //QQ = "3180904635",
-            //QQ = "3279357760",
-            VerifyKey = "1234567890"
-        };
+        public static BotSettings BotSettings = new BotSettings();
+
+        public static MiraiBot bot;
 
         public static event EventHandler DateChanged;
 
@@ -43,6 +48,21 @@ namespace LapisBot_Renewed
 
         public static async Task Main()
         {
+            if (System.IO.File.Exists(AppContext.BaseDirectory + "config.json"))
+                BotSettings =
+                    JsonConvert.DeserializeObject<BotSettings>(
+                        System.IO.File.ReadAllText(AppContext.BaseDirectory + "config.json"));
+            else
+            {
+                System.IO.File.WriteAllText(AppContext.BaseDirectory + "config.json",
+                    JsonConvert.SerializeObject(BotSettings));
+                Console.WriteLine("Please set up the Lapis Bot via editing \"" + AppContext.BaseDirectory + "config.json\"");
+                return;
+            }
+
+            bot = new MiraiBot
+                { QQ = BotSettings.Qq, VerifyKey = BotSettings.VerifyKey, Address = BotSettings.Address };
+            
             Console.CancelKeyPress += Console_CancelKeyPress;
 
             await bot.LaunchAsync();
