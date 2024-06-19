@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
@@ -103,6 +103,25 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
 
+            var localAlias = LocalAlias.singleton;
+            foreach(var e1 in localAlias.GetKeyCollection())
+            {
+    
+                var a = LocalAlias.singleton.Get(e1);
+                if(a.Contains(alias))
+                {
+                    var temp = new Alias();
+                    temp.Id = e1;
+                    foreach(var e2 in a)
+                    {
+                        temp.Aliases.Add(e2);
+                        Console.WriteLine(e2);
+                    }
+                
+                    aliases.Add(temp);
+                }
+            }
+
             return aliases.ToArray();
         }
 
@@ -122,15 +141,25 @@ namespace LapisBot_Renewed.GroupCommands
 
         public Alias GetAliasById(int id)
         {
+            var rt = new Alias() { Id = id, Aliases = new List<string>() };
             foreach (Alias alias in _songAliases)
             {
                 if (alias.Id == id)
                 {
-                    return alias;
+                    rt = alias;
+                    break;
+                }
+            }
+            var local = LocalAlias.singleton.Get(id);
+            if(local != null)
+            {
+                foreach(var e in local)
+                {
+                    if(!rt.Aliases.Contains(e))rt.Aliases.Add(e);
                 }
             }
 
-            return new Alias() { Id = id, Aliases = new List<string>() };
+            return rt;
         }
 
         private Alias GetAliasByIdWithDifferentAliases(int id, List<Alias> SongAliases)
