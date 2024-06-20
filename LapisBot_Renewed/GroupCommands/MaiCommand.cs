@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Receivers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using Manganese.Text;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
@@ -87,37 +86,21 @@ namespace LapisBot_Renewed.GroupCommands
                         aliases.Add(valueAlias);
                 }
             }
-
-            return aliases.ToArray();
-        }
-
-        private Alias[] GetAliasByAliasStringUsingStartsWith(string alias)
-        {
-            var aliases = new List<Alias>();
-            foreach (Alias valueAlias in _songAliases)
+            
+            var localAlias = LocalAlias.Singleton;
+            foreach(var e1 in localAlias.GetIds())
             {
-                foreach (var valueAliasString in valueAlias.Aliases)
-                {
-                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
-                        aliases.Add(valueAlias);
-                }
-            }
-
-            var localAlias = LocalAlias.singleton;
-            foreach(var e1 in localAlias.GetKeyCollection())
-            {
-    
-                var a = LocalAlias.singleton.Get(e1);
+                var a = LocalAlias.Singleton.Get(e1);
                 if(a.Contains(alias))
                 {
-                    var temp = new Alias();
+                    var temp = new Alias(){Aliases = new List<string>()};
                     temp.Id = e1;
-                    foreach(var e2 in a)
+                    
+                    foreach (var e2 in a)
                     {
                         temp.Aliases.Add(e2);
-                        Console.WriteLine(e2);
                     }
-                
+                    
                     aliases.Add(temp);
                 }
             }
@@ -125,70 +108,37 @@ namespace LapisBot_Renewed.GroupCommands
             return aliases.ToArray();
         }
 
-        private string GetAliasStringUsingStartsWith(string alias)
-        {
-            foreach (Alias valueAlias in _songAliases)
-            {
-                foreach (string valueAliasString in valueAlias.Aliases)
-                {
-                    if (alias.ToLower().StartsWith(valueAliasString.ToLower()))
-                        return valueAliasString;
-                }
-            }
-
-            return null;
-        }
-
         public Alias GetAliasById(int id)
         {
-            var rt = new Alias() { Id = id, Aliases = new List<string>() };
+            var valueAlias = new Alias() { Id = id, Aliases = new List<string>() };
             foreach (Alias alias in _songAliases)
             {
                 if (alias.Id == id)
                 {
-                    rt = alias;
+                    valueAlias = alias;
                     break;
                 }
             }
-            var local = LocalAlias.singleton.Get(id);
-            if(local != null)
+            
+            var tempAlias = new Alias() { Id = id, Aliases = new List<string>() };
+            foreach (var aliasString in valueAlias.Aliases)
             {
-                foreach(var e in local)
+                tempAlias.Aliases.Add(aliasString);
+            }
+            
+            var local = LocalAlias.Singleton.Get(id);
+            if (local != null)
+            {
+                foreach (var e in local)
                 {
-                    if(!rt.Aliases.Contains(e))rt.Aliases.Add(e);
+                    if (!valueAlias.Aliases.Contains(e))
+                    {
+                        tempAlias.Aliases.Add(e);
+                    }
                 }
             }
 
-            return rt;
-        }
-
-        private Alias GetAliasByIdWithDifferentAliases(int id, List<Alias> SongAliases)
-        {
-            foreach (Alias alias in SongAliases)
-            {
-                if (alias.Id == id)
-                {
-                    return alias;
-                }
-            }
-
-            return new Alias() { Id = id, Aliases = new List<string>() };
-        }
-
-        private int GetAliasIndexById(int id)
-        {
-            int i = 0;
-            foreach (Alias alias in _songAliases)
-            {
-                if (alias.Id == id)
-                {
-                    return i;
-                }
-
-                i += 1;
-            }
-
-            return -1;
+            return tempAlias;
         }
 
         private int GetSongIndexById(int id)
@@ -202,34 +152,11 @@ namespace LapisBot_Renewed.GroupCommands
             return -1;
         }
 
-        private int GetSongIndexByIdUsingStartsWith(int id)
-        {
-            var regex = new Regex(@"\d+");
-            for (int i = 0; i < Songs.Length; i++)
-            {
-                if (regex.Matches(id.ToString())[0].ToString() == Songs[i].Id.ToString())
-                    return i;
-            }
-
-            return -1;
-        }
-
         private int GetSongIndexByTitle(string title)
         {
             for (int i = 0; i < Songs.Length; i++)
             {
                 if (title.ToLower() == Songs[i].Title.ToLower())
-                    return i;
-            }
-
-            return -1;
-        }
-
-        private int GetSongIndexByTitleUsingStartsWith(string title)
-        {
-            for (var i = 0; i < Songs.Length; i++)
-            {
-                if (title.ToLower().StartsWith(Songs[i].Title.ToLower() + " "))
                     return i;
             }
 
@@ -293,6 +220,17 @@ namespace LapisBot_Renewed.GroupCommands
             foreach (var alias in _songAliases)
             {
                 foreach (var aliasString in alias.Aliases)
+                {
+                    if (inputString.StartsWith(aliasString))
+                        tempAlias.Add(aliasString);
+                }
+            }
+            
+            var localAlias = LocalAlias.Singleton;
+            foreach(var e1 in localAlias.GetIds())
+            {
+                var a = LocalAlias.Singleton.Get(e1);
+                foreach (var aliasString in a)
                 {
                     if (inputString.StartsWith(aliasString))
                         tempAlias.Add(aliasString);
@@ -382,6 +320,7 @@ namespace LapisBot_Renewed.GroupCommands
         }
 
         public MaiCommand MaiCommandCommand;
+        public AliasAddCommand AliasAddCommand;
         public SongDto[] Songs;
         public ExtraSongDto[] ExtraSongs;
         private JObject _aliasJObject;
@@ -405,6 +344,7 @@ namespace LapisBot_Renewed.GroupCommands
         private async void Reload(object sender, EventArgs e)
         {
             await Start();
+            await AliasAddCommand.Unload();
         }
 
         private Task Start()
@@ -444,6 +384,7 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 var idString = obj.Key;
                 var id = idString.ToInt32();
+                
                 if (id == 11422)
                 {
                     var aliasesList = new List<string>();
@@ -544,9 +485,11 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
 
+            AliasAddCommand = new() { MaiCommandCommand = this };
+            
             SubCommands.Add(new RandomCommand() { MaiCommandCommand = this });
             SubCommands.Add(new InfoCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new AliasAddCommand() { MaiCommandCommand = this });
+            SubCommands.Add(AliasAddCommand);
             SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
@@ -558,6 +501,24 @@ namespace LapisBot_Renewed.GroupCommands
                 subMaiCommand.Initialize();
                 subMaiCommand.ParentCommand = this;
             }
+
+            //除去 LocalAlias 中已存在的别名
+            foreach (var alias in _songAliases)
+            {
+                var localAlias = LocalAlias.Singleton;
+                foreach(var e1 in localAlias.GetIds())
+                {
+                    if (e1 != alias.Id)
+                        continue;
+                    var a = LocalAlias.Singleton.Get(e1);
+                    foreach (var aliasString in a)
+                    {
+                        if (alias.Aliases.Contains(aliasString))
+                            alias.Aliases.Remove(aliasString);
+                    }
+                }
+            }
+            
             Console.WriteLine("MaiCommand Initialized");
             return Task.CompletedTask;
         }

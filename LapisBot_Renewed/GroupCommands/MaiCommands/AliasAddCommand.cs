@@ -27,6 +27,18 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
 
+            if (File.Exists(AppContext.BaseDirectory + "local_aliases.json"))
+                LocalAlias.Singleton.AliasCollection.Aliases =
+                    JsonConvert.DeserializeObject<List<Alias>>(File.ReadAllText(AppContext.BaseDirectory + "local_aliases.json"));
+
+            return Task.CompletedTask;
+        }
+
+        public override Task Unload()
+        {
+            File.WriteAllText(AppContext.BaseDirectory + "local_aliases.json",
+                JsonConvert.SerializeObject(LocalAlias.Singleton.AliasCollection.Aliases)); 
+            Console.WriteLine("Local aliases have been saved");
             return Task.CompletedTask;
         }
 
@@ -42,6 +54,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 {
                     oname+=cmds[i] + " ";
                 }
+
+                oname = oname.Substring(0, oname.Length - 1);
 
 
                 if(oname == "")
@@ -64,13 +78,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     {
                         var id = songs[0].Id;
                         
-                        var success = LocalAlias.singleton.Add(id,oname);
+                        var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(oname) && LocalAlias.Singleton.Add(id,oname);
                         if(success)MessageManager.SendGroupMessageAsync(source.GroupId, "添加成功！");
                         else MessageManager.SendGroupMessageAsync(source.GroupId, "已经存在此别名");
                     }
-                    
                 }
-
             }
             else
             {
@@ -80,54 +92,106 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
     }
+    
+    public class AliasCollection()
+    {
+        public List<MaiCommand.Alias> Aliases = [];
 
+        public bool ContainsId(int id)
+        {
+            foreach (var alias in Aliases)
+            {
+                if (alias.Id == id)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void Add(int id, string aliasString)
+        {
+            if (ContainsId(id))
+            {
+                GetAlias(id).Aliases.Add(aliasString);
+                return;
+            }
+
+            Aliases.Add(new MaiCommand.Alias { Id = id, Aliases = [aliasString] });
+        }
+
+        public MaiCommand.Alias GetAlias(int id)
+        {
+            foreach (var alias in Aliases)
+            {
+                if (alias.Id == id)
+                    return alias;
+            }
+
+            return null;
+        }
+
+        public void Remove(int id)
+        {
+            Aliases.RemoveAt(id);
+        }
+            
+        public int[] GetIds()
+        {
+            var ids = new List<int>();
+            foreach (var alias in Aliases)
+            {
+                ids.Add(alias.Id);
+            }
+
+            return ids.ToArray();
+        }
+    }
+    
     public class LocalAlias
     {
-        Dictionary<int,HashSet<string>> alias = new();
+        public readonly AliasCollection AliasCollection = new();
 
-        public bool Add(int originalName,string alia)
+        public bool Add(int id, string alias)
         {
-            if(!alias.ContainsKey(originalName))alias.Add(originalName,new());
+            if (AliasCollection.GetAlias(id) != null && AliasCollection.GetAlias(id).Aliases.Contains(alias))
+                return false;
 
-            if(alias[originalName].Contains(alia))return false;
+            AliasCollection.Add(id, alias);
+            return true;
+        }
+
+        public bool Remove(int id,string alias)
+        {
+            if(!AliasCollection.ContainsId(id))return false;
+            if(AliasCollection.GetAlias(id).Aliases.Contains(alias))
+            {
+                AliasCollection.GetAlias(id).Aliases.Remove(alias);
+                return true;
+            }
+            return false;
+        }
+        public bool RemoveAll(int id)
+        {
+            if(!AliasCollection.ContainsId(id))return false;
             else
             {
-                alias[originalName].Add(alia);
+                AliasCollection.Remove(id);
                 return true;
             }
         }
-        public bool Remove(int originalId,string alia)
+        public List<string> Get(int id)
         {
-            if(!alias.ContainsKey(originalId))return false;
-            if(alias[originalId].Contains(alia))
-            {
-                alias[originalId].Remove(alia);
-                return true;
-            }
-            else return false;
+            if(!AliasCollection.ContainsId(id))return null;
+            else return AliasCollection.GetAlias(id).Aliases;
         }
-        public bool RemoveAll(int originalId)
+
+        public int[] GetIds()
         {
-            if(!alias.ContainsKey(originalId))return false;
-            else
-            {
-                alias.Remove(originalId);
-                return true;
-            }
-        }
-        public HashSet<string> Get(int originalId)
-        {
-            
-            if(!alias.ContainsKey(originalId))return null;
-            else return alias[originalId];
-        }
-        public Dictionary<int,HashSet<string>>.KeyCollection GetKeyCollection()
-        {
-            return alias.Keys;
+            return AliasCollection.GetIds();
         }
 
         private LocalAlias(){}
 
-        public static LocalAlias singleton{get;} = new();
+        public static LocalAlias Singleton{get;} = new();
     }
 }
