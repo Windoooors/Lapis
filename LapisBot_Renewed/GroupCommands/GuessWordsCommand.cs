@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Sessions.Http.Managers;
 using System.IO;
 using System.Linq;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -62,16 +62,16 @@ namespace LapisBot_Renewed.GroupCommands
             }
         }
 
-        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
-            if (!_guessingGroupsMap.ContainsKey(source.GroupId))
+            if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
                 return Task.CompletedTask;
             var keyWordDateTimePair = (new WordDto(), DateTime.MinValue);
-            _guessingGroupsMap.TryGetValue(source.GroupId, out keyWordDateTimePair);
+            _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out keyWordDateTimePair);
             var word = keyWordDateTimePair.Item1;
             if (command.ToUpper() == word.Word.ToUpper())
             {
-                AnnounceAnswer(word, source.GroupId, true, source.Sender.Id);
+                AnnounceAnswer(word, source.GroupId.ToString(), true, source.Sender.UserId.ToString());
                 return Task.CompletedTask;
             }
 
@@ -113,9 +113,11 @@ namespace LapisBot_Renewed.GroupCommands
                 titleText += translation.Type + "." + translation.Translation + "; \n";
             titleText += "提示：\n";
             titleText += text;
-
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + titleText) });
+            
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" " + titleText)
+            ]);
             
             return Task.CompletedTask;
         }
@@ -134,19 +136,21 @@ namespace LapisBot_Renewed.GroupCommands
                 text += translation.Type + "." + translation.Translation + "; \n";
 
             if (senderId != null)
-                MessageManager.SendGroupMessageAsync(groupId,
-                    new MessageChain()
-                        { new AtMessage() { Target = senderId }, new PlainMessage(" " + text) });
+                Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
+                    new CqAtMsg(long.Parse(senderId)),
+                    new CqTextMsg(" " + text)
+                ]);
             else
-                MessageManager.SendGroupMessageAsync(groupId,
-                    new MessageChain() { new PlainMessage(text) });
+                Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
+                    new CqTextMsg(" " + text)
+                ]);
             
             GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
 
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             var text = "Lapis Bot 可从以下词库选取词语猜词\n";
             var i = 0;
@@ -165,35 +169,37 @@ namespace LapisBot_Renewed.GroupCommands
                                                             "resource/vocabulary/")[0]), string.Empty)
                                                     + " 词库开始游戏";
             text.TrimEnd();
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + text) });
-            CancelCoolDownTimer(source.GroupId);
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" " + text)
+            ]);
+            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public override Task SubParse(string command, CqGroupMessagePostContext source)
         {
             if (command == "answer")
             {
-                if (!_guessingGroupsMap.ContainsKey(source.GroupId))
+                if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain
-                        {
-                            new AtMessage(source.Sender.Id),
-                            new PlainMessage(" 没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
-                        });
-                    CancelCoolDownTimer(source.GroupId);
+
+                    Program.Session.SendGroupMessageAsync(source.GroupId, [
+                        new CqAtMsg(source.Sender.UserId),
+                        new CqTextMsg(" 没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
+                    ]);
+                    CancelCoolDownTimer(source.GroupId.ToString());
                     return Task.CompletedTask;
                 }
 
                 for (int i = 0; i < _guessingGroupsMap.Count; i++)
                 {
-                    if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId)
+                    if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId.ToString())
                     {
-                        CancelCoolDownTimer(source.GroupId);
-                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i].Item1, source.GroupId, false,
-                            source.Sender.Id);
+                        CancelCoolDownTimer(source.GroupId.ToString());
+                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i].Item1, source.GroupId.ToString(), false,
+                            source.Sender.UserId.ToString());
                     }
                 }
 
@@ -205,7 +211,7 @@ namespace LapisBot_Renewed.GroupCommands
             if (indexRegex.IsMatch(command))
             {
                 StartGuessing(int.Parse(command) - 1, source);
-                CancelCoolDownTimer(source.GroupId);
+                CancelCoolDownTimer(source.GroupId.ToString());
                 return Task.CompletedTask;
             }
             
@@ -215,14 +221,13 @@ namespace LapisBot_Renewed.GroupCommands
                 {
                     if (wordItem.Word == command)
                     {
-                        if (_guessingGroupsMap.ContainsKey(source.GroupId))
+                        if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
                         {
-                            MessageManager.SendGroupMessageAsync(source.GroupId,
-                                new MessageChain()
-                                {
-                                    new AtMessage() { Target = source.Sender.Id },
-                                    new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
-                                });
+
+                            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                                new CqAtMsg(source.Sender.UserId),
+                                new CqTextMsg(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                            ]);
                             return Task.CompletedTask;
                         }
                         
@@ -235,31 +240,32 @@ namespace LapisBot_Renewed.GroupCommands
                         text.TrimEnd();
                         text += "\nLapis Bot 将在 30 秒后公布答案！";
             
-                        _guessingGroupsMap.Add(source.GroupId,
+                        _guessingGroupsMap.Add(source.GroupId.ToString(),
                             (word, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
 
-                        MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + text) });
+
+                        Program.Session.SendGroupMessageAsync(source.GroupId, [
+                            new CqAtMsg(source.Sender.UserId),
+                            new CqTextMsg(" " + text)
+                        ]);
                         return Task.CompletedTask;
                     }
                 }
             }
 
             Program.helpCommand.Parse(command, source);
-            CancelCoolDownTimer(source.GroupId);
+            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
 
-        private Task StartGuessing(int vocabularyIndex, GroupMessageReceiver source)
+        private Task StartGuessing(int vocabularyIndex, CqGroupMessagePostContext source)
         {
-            if (_guessingGroupsMap.ContainsKey(source.GroupId))
+            if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain()
-                    {
-                        new AtMessage() { Target = source.Sender.Id },
-                        new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
-                    });
+                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                ]);
                 return Task.CompletedTask;
             }
 
@@ -273,11 +279,14 @@ namespace LapisBot_Renewed.GroupCommands
             text.TrimEnd();
             text += "\nLapis Bot 将在 30 秒后公布答案！";
             
-            _guessingGroupsMap.Add(source.GroupId,
+            _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (word, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
 
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + text) });
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" " + text)
+            ]);
             return Task.CompletedTask;
         }
     }

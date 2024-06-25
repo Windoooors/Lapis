@@ -1,11 +1,13 @@
 ﻿using System.Text.RegularExpressions;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -42,7 +44,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             var cmds = command.Split(" ");
 
@@ -60,7 +62,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 if(oname == "")
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, "没有别名吗...那我怎么知道要添加什么啊喵！");
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [
+                        new CqTextMsg("没有别名吗...那我怎么知道要添加什么啊喵！") //喵
+                    ]);
                 }
                 else
                 {
@@ -68,25 +73,42 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                     if(songs == null || songs.Length == 0)
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, "添加失败！找不到歌曲！");
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                        [
+                            new CqTextMsg("添加失败！找不到歌曲！")
+                        ]);
                     }
                     else if(songs.Length > 1)
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId, "添加失败！无法确定是哪个歌曲！");
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                        [
+                            new CqTextMsg("添加失败！无法确定是哪个歌曲！")
+                        ]);
                     }
                     else
                     {
                         var id = songs[0].Id;
                         
                         var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(oname) && LocalAlias.Singleton.Add(id,oname);
-                        if(success)MessageManager.SendGroupMessageAsync(source.GroupId, "添加成功！");
-                        else MessageManager.SendGroupMessageAsync(source.GroupId, "已经存在此别名");
+                        if (success)
+                            Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [
+                                new CqTextMsg("添加成功！")
+                            ]);
+                        else
+                            Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [
+                                new CqTextMsg("已存在此别名")
+                            ]);
                     }
                 }
             }
             else
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId, "没有参数吗...那我怎么知道要添加什么啊喵！");
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqTextMsg("没有参数吗...那我怎么知道要添加什么啊喵！")
+                ]);
             }
 
             return Task.CompletedTask;

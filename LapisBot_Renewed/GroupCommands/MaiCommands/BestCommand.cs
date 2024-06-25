@@ -1,12 +1,12 @@
 ﻿using System.Text.RegularExpressions;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
 using System.Threading.Tasks;
 using System.IO;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
@@ -38,7 +38,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public override Task SubParse(string command, CqGroupMessagePostContext source)
         {
             var content = string.Empty;
             BestDto best;
@@ -54,8 +54,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             if (best.Charts == null)
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 未找到该玩家")
+                ]);
                 return Task.CompletedTask;
             }
 
@@ -132,26 +135,25 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
 
             Program.settingsCommand.GetSettings(source);
-            var image = new BestImageGenerator().Generate(best, source.Sender.Id, false,
+            var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), false,
                 Program.settingsCommand.CurrentBotSettings.CompressedImage);
             //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
-            var imageMessage = new ImageMessage
-            {
-                Base64 = image
-            };
 
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage(source.Sender.Id), imageMessage });
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+            [
+                new CqAtMsg(source.Sender.UserId),
+                new CqImageMsg("base64://" + image)
+            ]);
 
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             try
             {
                 var content = Program.apiOperator.Post("api/maimaidxprober/query/player",
-                    new { qq = source.Sender.Id, b50 = true });
+                    new { qq = source.Sender.UserId.ToString(), b50 = true });
                 //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
 
                 BestDto best = JsonConvert.DeserializeObject<BestDto>(content);
@@ -227,26 +229,22 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 Program.settingsCommand.GetSettings(source);
 
-                var image = new BestImageGenerator().Generate(best, source.Sender.Id, true,
+                var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), true,
                     Program.settingsCommand.CurrentBotSettings.CompressedImage);
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
-                var imageMessage = new ImageMessage
-                {
-                    Base64 = image
-                };
-
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), imageMessage });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqImageMsg("base64://" + image)
+                ]);
             }
             catch (Exception)
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain()
-                    {
-                        new AtMessage(source.Sender.Id),
-                        new PlainMessage(
-                            " 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
-                    });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+                ]);
             }
 
             return Task.CompletedTask;

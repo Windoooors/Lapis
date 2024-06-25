@@ -1,19 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
 using LapisBot_Renewed.ImageGenerators;
-using Manganese.Text;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
-using Xamarin.Forms;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -32,8 +28,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             var audioCount = Directory.GetFiles(AppContext.BaseDirectory + "temp/" + id).Length;
             var audioIndex = new Random().Next(3, audioCount - 3);
 
-            return new AudioToVoiceConverter().ConvertAudio(AppContext.BaseDirectory + "temp/" + id + "/" +
-                                               audioIndex.ToString("00000") + ".mp3", AppContext.BaseDirectory + "temp/" + id + "_" + audioIndex.ToString("00000") + ".silk");
+            return new(AppContext.BaseDirectory + "temp/" + id + "/" +
+                       audioIndex.ToString("00000") + ".mp3");
         }
     }
     
@@ -106,59 +102,55 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             StartGuessing(source);
-            CancelCoolDownTimer(source.GroupId);
+            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
         
-        private Task StartGuessing(GroupMessageReceiver source, int difficulty)
+        private Task StartGuessing(CqGroupMessagePostContext source, int difficulty)
         {
-            if (!_guessingGroupsMap.ContainsKey(source.GroupId))
+            if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
                 var random = new Random();
                 SongDto[] songs = MaiCommandCommand.Levels[difficulty].ToArray();
                 var songIndex = random.Next(0, songs.Length);
-                _guessingGroupsMap.Add(source.GroupId,
+                _guessingGroupsMap.Add(source.GroupId.ToString(),
                     (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain()
-                        { new AtMessage(source.Sender.Id), new PlainMessage(" 试试看吧！Lapis Bot 将在 30s 后公布答案") });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 试试看吧！Lapis Bot 将在 30s 后公布答案")]);
 
-                var voice = new VoiceMessage
-                {
-                    Path = AudioEditor.Convert(songs[songIndex].Id)
-                };
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain { voice });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqRecordMsg("file:///" + AudioEditor.Convert(songs[songIndex].Id))]);
             }
             else
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"") });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"")
+                ]);
             return Task.CompletedTask;
         }
 
-        private Task StartGuessing(GroupMessageReceiver source)
+        private Task StartGuessing(CqGroupMessagePostContext source)
         {
-            if (!_guessingGroupsMap.ContainsKey(source.GroupId))
+            if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
                 var random = new Random();
                 var songIndex = random.Next(0, MaiCommandCommand.Songs.Length);
-                _guessingGroupsMap.Add(source.GroupId,
+                _guessingGroupsMap.Add(source.GroupId.ToString(),
                     (MaiCommandCommand.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain()
-                        { new AtMessage(source.Sender.Id), new PlainMessage(" 试试看吧！Lapis Bot 将在 30s 后公布答案") });
-                
-                var voice = new VoiceMessage
-                {
-                    Path = AudioEditor.Convert(MaiCommandCommand.Songs[songIndex].Id)
-                };
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain { voice });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 试试看吧！Lapis Bot 将在 30s 后公布答案")]);
+
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqRecordMsg("file:///" + AudioEditor.Convert(MaiCommandCommand.Songs[songIndex].Id))]);
             }
             else
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"") });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"")
+                ]);
             return Task.CompletedTask;
         }
 
@@ -179,59 +171,47 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             var image = new InfoImageGenerator().Generate(MaiCommandCommand.GetSong((keyIdDateTimePair.Item1)),
                 "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
-
+            
             if (senderId == null)
-                MessageManager.SendGroupMessageAsync(groupId,
-                    new MessageChain()
-                    {
-                        new PlainMessage(text),
-                        new ImageMessage { Base64 = image }
-                    });
+                Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+                    [new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
             else
-                MessageManager.SendGroupMessageAsync(groupId,
-                    new MessageChain()
-                    {
-                        new AtMessage(senderId),
-                        new PlainMessage(" " + text),
-                        new ImageMessage { Base64 = image }
-                    });
+                Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+                    [new CqAtMsg(long.Parse(senderId)), new CqTextMsg(" " + text), new CqImageMsg("base64://" + image)]);
             
             GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
 
             if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
                 return Task.CompletedTask;
-            var voice = new VoiceMessage
-            {
-                Path = new AudioToVoiceConverter().ConvertSong(keyIdDateTimePair.Item1)
-            };
-            MessageManager.SendGroupMessageAsync(groupId, new MessageChain() { voice });
+            
+            Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+                [new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(keyIdDateTimePair.Item1))]);
 
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public override Task SubParse(string command, CqGroupMessagePostContext source)
         {
             if (command == "answer")
             {
-                if (!_guessingGroupsMap.ContainsKey(source.GroupId))
+                if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain
-                        {
-                            new AtMessage(source.Sender.Id),
-                            new PlainMessage(" 没有游戏正在进行喔！发送指令 \"l mai guess\" 即可开启新一轮的游戏")
-                        });
-                    CancelCoolDownTimer(source.GroupId);
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [
+                        new CqAtMsg(source.Sender.UserId),
+                        new CqTextMsg(" 没有游戏正在进行喔！发送指令 \"l mai guess\" 即可开启新一轮的游戏")
+                    ]);
+                    CancelCoolDownTimer(source.GroupId.ToString());
                     return Task.CompletedTask;
                 }
 
                 for (int i = 0; i < _guessingGroupsMap.Count; i++)
                 {
-                    if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId)
+                    if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId.ToString())
                     {
-                        CancelCoolDownTimer(source.GroupId);
-                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i], source.GroupId, false,
-                            source.Sender.Id);
+                        CancelCoolDownTimer(source.GroupId.ToString());
+                        AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i], source.GroupId.ToString(), false,
+                            source.Sender.UserId.ToString());
                     }
                 }
                 
@@ -240,11 +220,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             if (!MaiCommandCommand.LevelDictionary.ContainsKey(command))
             {
-                CancelCoolDownTimer(source.GroupId);
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain
-                {
-                    new AtMessage(source.Sender.Id), new PlainMessage(" 不支持的等级名称")
-                });
+                CancelCoolDownTimer(source.GroupId.ToString());
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 不支持的等级名称")
+                ]);
                 return Task.CompletedTask;
             }
             else
@@ -254,20 +235,20 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (i == 6)
                     return Task.CompletedTask;
                 StartGuessing(source, i);
-                CancelCoolDownTimer(source.GroupId);
+                CancelCoolDownTimer(source.GroupId.ToString());
                 
                 return Task.CompletedTask;
             }
         }
 
-        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
             var passed = false;
 
-            if (_guessingGroupsMap.ContainsKey(source.GroupId))
+            if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
                 var keyIdDateTimePair = (-1, DateTime.MinValue);
-                _guessingGroupsMap.TryGetValue(source.GroupId, out keyIdDateTimePair);
+                _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out keyIdDateTimePair);
 
                 var songs = MaiCommandCommand.GetSongs(command);
                 if (songs.Length != 0)
@@ -275,7 +256,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (passed && songs[0].Id == keyIdDateTimePair.Item1)
                 {
                     var task = new Task(() =>
-                        AnnounceAnswer(keyIdDateTimePair, source.GroupId, true, source.Sender.Id));
+                        AnnounceAnswer(keyIdDateTimePair, source.GroupId.ToString(), true, source.Sender.UserId.ToString()));
                     task.Start();
 
                     return Task.CompletedTask;
@@ -283,10 +264,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
 
             if (passed)
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                {
-                    new AtMessage(source.Sender.Id), new PlainMessage(" 不对喔")
-                });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 不对哦")
+                ]);
 
             return Task.CompletedTask;
         }

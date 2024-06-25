@@ -1,14 +1,13 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using Manganese.Text;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using System.IO;
 using System.Linq;
+using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -189,7 +188,7 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 try
                 {
-                    var id = idHeadRegex.Replace(inputString, string.Empty).ToInt32();
+                    var id = int.Parse(idHeadRegex.Replace(inputString, string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
                         return [Songs[index]];
@@ -298,7 +297,7 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 try
                 {
-                    var id = idHeadRegex.Replace(songIndicator, string.Empty).ToInt32();
+                    var id = int.Parse(idHeadRegex.Replace(songIndicator, string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
                         return [Songs[index]];
@@ -383,7 +382,7 @@ namespace LapisBot_Renewed.GroupCommands
             foreach (KeyValuePair<string, string[]> obj in aliasObject)
             {
                 var idString = obj.Key;
-                var id = idString.ToInt32();
+                var id = int.Parse(idString);
                 
                 if (id == 11422)
                 {
@@ -543,7 +542,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public override Task SubParse(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
         }
@@ -554,7 +553,7 @@ namespace LapisBot_Renewed.GroupCommands
             var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
             if (idRegex.IsMatch(command))
             {
-                var id = idHeadRegex.Replace(command, string.Empty).ToInt32();
+                var id = int.Parse(idHeadRegex.Replace(command, string.Empty));
                 int index = GetSongIndexById(id);
                 return index;
             }

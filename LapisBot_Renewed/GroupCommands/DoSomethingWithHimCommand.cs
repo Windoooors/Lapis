@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -29,7 +28,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public override Task SubParse(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
         }
@@ -44,19 +43,19 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
-            if (Groups.ContainsKey(source.GroupId))
+            if (Groups.ContainsKey(source.GroupId.ToString()))
             {
                 var memberList = new List<string>();
-                Groups.TryGetValue(source.GroupId, out memberList);
-                if (!memberList.Contains(source.Sender.Id) && source.Sender.Id != "3358897233" && source.Sender.Id != "2739176241")
-                    memberList.Add(source.Sender.Id);
-                Groups.Remove(source.GroupId);
-                Groups.Add(source.GroupId, memberList);
+                Groups.TryGetValue(source.GroupId.ToString(), out memberList);
+                if (!memberList.Contains(source.Sender.UserId.ToString()) && source.Sender.UserId != 3358897233 && source.Sender.UserId != 2739176241)
+                    memberList.Add(source.Sender.UserId.ToString());
+                Groups.Remove(source.GroupId.ToString());
+                Groups.Add(source.GroupId.ToString(), memberList);
             }
             else
-                Groups.Add(source.GroupId, new List<string>() { source.Sender.Id });
+                Groups.Add(source.GroupId.ToString(), new List<string>() { source.Sender.UserId.ToString() });
 
             foreach (DoSomethingWithHimCommand subCommand in SubCommands)
                 subCommand.Groups = Groups;

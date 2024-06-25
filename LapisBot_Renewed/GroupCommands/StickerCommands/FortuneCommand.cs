@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
-using Mirai.Net.Sessions.Http.Managers;
 using ImageMagick;
-using Mirai.Net.Data.Messages.Concretes;
 using System.IO;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands.StickerCommands
@@ -35,7 +34,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
         private Regex fontSizeCommand = new Regex(@"^-s\s(([0-7][0-2]\s)|([0-9]\s)|([0-6][0-9]\s))");
         private Regex topCommand = new Regex(@"^-t\s(([0-2][0-9][0-9]\s)|([0-9][0-9]\s)|([0-9]\s))");
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             if (command != string.Empty)
             {
@@ -87,11 +86,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
                     .FillColor(new MagickColor(65535, 0, 0, 65535))
                     .Text(233, top, command)
                     .Draw(image);
-                var _image = new ImageMessage
-                {
-                    Base64 = image.ToBase64(),
-                };
-                MessageManager.SendGroupMessageAsync(source.GroupId, _image);
+                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqImageMsg("base64://" + image.ToBase64())]);
                 return Task.CompletedTask;
             }
             else

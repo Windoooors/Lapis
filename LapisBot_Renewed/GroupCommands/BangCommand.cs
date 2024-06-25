@@ -1,11 +1,8 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Sessions.Http.Managers;
 using System.IO;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -35,11 +32,11 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             //var path = AudioToVoiceConverter.ConvertAudio(AppContext.BaseDirectory + "resource/bang.mp3");
             
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new VoiceMessage(){ Path = AppContext.BaseDirectory + "resource/bang.silk" } });
+            //CqGroupMessagePostContext.SendGroupMessageAsync(source.GroupId, new MessageChain() { new VoiceMessage(){ Path = AppContext.BaseDirectory + "resource/bang.silk" } });
             return Task.CompletedTask;
         }
     }

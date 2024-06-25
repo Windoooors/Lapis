@@ -7,7 +7,6 @@ using ImageMagick;
 using LapisBot_Renewed.Collections;
 using System.DrawingCore;
 using System.Xml.Linq;
-using Flurl;
 using System.Diagnostics;
 using System.Net.Http;
 

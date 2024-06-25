@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
-using Mirai.Net.Sessions.Http.Managers;
-using Mirai.Net.Data.Messages;
 using System.IO;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -31,9 +29,9 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId, command);
+            Program.Session.SendGroupMessageAsync(source.GroupId, [command]);
             return Task.CompletedTask;
         }
     }

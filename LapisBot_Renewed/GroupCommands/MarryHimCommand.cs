@@ -1,13 +1,13 @@
 ﻿using System;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed.GroupCommands
 {
@@ -100,69 +100,72 @@ namespace LapisBot_Renewed.GroupCommands
             return false;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             if (Groups.Count != 0)
             {
                 Random random = new Random();
                 var memberList = new List<string>();
-                Groups.TryGetValue(source.GroupId, out memberList);
-                if (_couplesInGroups.ContainsKey(source.GroupId))
+                Groups.TryGetValue(source.GroupId.ToString(), out memberList);
+                if (_couplesInGroups.ContainsKey(source.GroupId.ToString()))
                 {
                     var couples = new List<KeyValuePair<string, string>>();
-                    _couplesInGroups.TryGetValue(source.GroupId, out couples);
+                    _couplesInGroups.TryGetValue(source.GroupId.ToString(), out couples);
                     foreach (KeyValuePair<string, string> couple in couples)
                     {
-                        if (couple.Key == source.Sender.Id)
+                        if (couple.Key == source.Sender.UserId.ToString())
                         {
-                            var message = new MessageChain();
+                            var message = new CqMessage();
                             try
                             {
-                                var memberName = GroupManager.GetMemberAsync(couple.Value, source.GroupId).Result.Name;
+                                var result =
+                                    Program.Session.GetGroupMemberInformation(source.GroupId, long.Parse(couple.Value));
+                                if (result == null)
+                                    return Task.CompletedTask; 
+                                var memberName = result.Nickname;
                                 if (!OperatingSystem.IsMacOS())
                                 {
                                     var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
                                         couple.Value + "&s=640");
-                                    message = new MessageChain()
-                                    {
-                                        new AtMessage() { Target = source.Sender.Id },
-                                        new ImageMessage() { Base64 = image },
-                                        new PlainMessage("您的对象是 "),
-                                        new PlainMessage(memberName + " (" + couple.Value + ") "),
-                                        new PlainMessage("！")
-                                    };
+                                    message = [
+                                        new CqAtMsg(source.Sender.UserId),
+                                        new CqImageMsg("base64://" + image),
+                                        new CqTextMsg("您的对象是 "),
+                                        new CqTextMsg(memberName + " (" + couple.Value + ") "),
+                                        new CqTextMsg("！")
+                                    ];
                                 }
                                 else
                                 {
-                                    message = new MessageChain()
-                                    {
-                                        new AtMessage() { Target = source.Sender.Id },
-                                        new PlainMessage(" 您的对象是 "),
-                                        new PlainMessage(memberName + " (" + couple.Value + ") "),
-                                        new PlainMessage("！")
-                                    };
+                                    message =
+                                    [
+                                        new CqAtMsg(source.Sender.UserId),
+                                        new CqTextMsg(" 您的对象是 "),
+                                        new CqTextMsg(memberName + " (" + couple.Value + ") "),
+                                        new CqTextMsg("！")
+                                    ];
                                 }
                             }
                             catch
                             {
                                 couples.Remove(couple);
-                                _couplesInGroups.Remove(source.GroupId);
-                                _couplesInGroups.Add(source.GroupId, couples);
+                                _couplesInGroups.Remove(source.GroupId.ToString());
+                                _couplesInGroups.Add(source.GroupId.ToString(), couples);
                                 Parse(command, source);
                             }
-
-                            MessageManager.SendGroupMessageAsync(source.GroupId, message);
+                            
+                            Program.Session.SendGroupMessageAsync(source.GroupId, message);
                             return Task.CompletedTask;
                         }
                     }
 
-                    if (UnmarriedCount(couples, memberList) != 1 || (IsMarried(source.Sender.Id, couples) &&
+                    if (UnmarriedCount(couples, memberList) != 1 || (IsMarried(source.Sender.UserId.ToString(), couples) &&
                                                                      UnmarriedCount(couples, memberList) == 1))
                     {
                         var i = random.Next(0, memberList.Count);
                         if (UnmarriedCount(couples, memberList) > 1)
                         {
-                            while (memberList[i] == source.Sender.Id || IsMarried(memberList[i], couples))
+                            while (memberList[i] == source.Sender.UserId.ToString() || IsMarried(memberList[i], couples))
                             {
                                 i = random.Next(0, memberList.Count);
                             }
@@ -170,7 +173,7 @@ namespace LapisBot_Renewed.GroupCommands
                         
                         foreach (KeyValuePair<string, string> keyValuePair in couples)
                         {
-                            if (keyValuePair.Value == source.Sender.Id)
+                            if (keyValuePair.Value == source.Sender.UserId.ToString())
                             {
                                 i = memberList.IndexOf(keyValuePair.Key);
                             }
@@ -178,58 +181,64 @@ namespace LapisBot_Renewed.GroupCommands
 
                         try
                         {
-                            var memberName = GroupManager.GetMemberAsync(memberList[i], source.GroupId).Result.Name;
-                            var message = new MessageChain();
+                            var result =
+                                Program.Session.GetGroupMemberInformation(source.GroupId, long.Parse(memberList[i]));
+                            if (result == null)
+                                return Task.CompletedTask; 
+                            var memberName = result.Nickname;
+                            var message = new CqMessage();
                             if (!OperatingSystem.IsMacOS())
                             {
                                 var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                               memberList[i] + "&s=640");
-                                message = new MessageChain()
-                                {
-                                    new AtMessage() { Target = source.Sender.Id },
-                                    new ImageMessage() { Base64 = image },
-                                    new PlainMessage("您的对象是 "),
-                                    new PlainMessage(memberName + " (" + memberList[i] + ") "),
-                                    new PlainMessage("！")
-                                };
+                                message =
+                                [
+                                    new CqAtMsg(source.Sender.UserId),
+                                    new CqImageMsg("base64://" + image),
+                                    new CqTextMsg("您的对象是 "),
+                                    new CqTextMsg(memberName + " (" + memberList[i] + ") "),
+                                    new CqTextMsg("！")
+                                ];
                             }
                             else
                             {
-                                message = new MessageChain()
-                                {
-                                    new AtMessage() { Target = source.Sender.Id },
-                                    new PlainMessage(" 您的对象是 "),
-                                    new PlainMessage(memberName + " (" + memberList[i] + ") "),
-                                    new PlainMessage("！")
-                                };
+                                message =
+                                [
+                                    new CqAtMsg(source.Sender.UserId),
+                                    new CqTextMsg("您的对象是 "),
+                                    new CqTextMsg(memberName + " (" + memberList[i] + ") "),
+                                    new CqTextMsg("！")
+                                ];
                             }
 
-                            couples.Add(new KeyValuePair<string, string>(source.Sender.Id, memberList[i]));
-                            _couplesInGroups.Remove(source.GroupId);
-                            _couplesInGroups.Add(source.GroupId, couples);
-                            MessageManager.SendGroupMessageAsync(source.GroupId, message);
+                            couples.Add(new KeyValuePair<string, string>(source.Sender.UserId.ToString(), memberList[i]));
+                            _couplesInGroups.Remove(source.GroupId.ToString());
+                            _couplesInGroups.Add(source.GroupId.ToString(), couples);
+                            
+                            Program.Session.SendGroupMessageAsync(source.GroupId, message);
                         }
                         catch
                         {
                             memberList.RemoveAt(i);
-                            Groups.Remove(source.GroupId);
-                            Groups.Add(source.GroupId, memberList);
+                            Groups.Remove(source.GroupId.ToString());
+                            Groups.Add(source.GroupId.ToString(), memberList);
                             Parse(command, source);
                         }
                     }
                     else
                     {
-                        var message = new MessageChain()
-                        {
-                            new AtMessage() { Target = source.Sender.Id },
-                            new PlainMessage(" 近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
-                        };
-                        MessageManager.SendGroupMessageAsync(source.GroupId, message);
+                        CqMessage message =
+                        [
+                            new CqAtMsg(source.Sender.UserId),
+                            new CqTextMsg(" 近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
+                        ];
+
+                        Program.Session.SendGroupMessageAsync(source.GroupId, message);
                     }
                 }
                 else
                 {
-                    _couplesInGroups.Add(source.GroupId, new List<KeyValuePair<string, string>>());
+                    _couplesInGroups.Add(source.GroupId.ToString(), new List<KeyValuePair<string, string>>());
                     Parse(command, source);
                 }
             }
@@ -237,7 +246,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
         
-        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
         }

@@ -1,12 +1,14 @@
 ﻿using System.Text.RegularExpressions;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization.Metadata;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
@@ -60,19 +62,22 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         private string _originalCommand = string.Empty;
 
-        public override Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
             _originalCommand = command;
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             try
             {
                 if (((AircadeSettings)CurrentGroupCommandSettings).LocationId == string.Empty)
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, "查询失败！\n未设置 Location ID，请发送 \"几爷 settings 2 [Location ID]\" 以进行设置");
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [
+                        new CqTextMsg("查询失败！\n未设置 Location ID，请发送 \"几爷 settings 2 [Location ID]\" 以进行设置")
+                    ]);
                     return Task.CompletedTask;
                 }
                 
@@ -89,7 +94,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 if (queue.StatusCode != 200)
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, "查询失败！");
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [
+                        new CqTextMsg("查询失败！")
+                    ]);
                     return Task.CompletedTask;
                 }
 
@@ -115,11 +123,17 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 
                 text = text.Substring(0, text.Length - 1);
 
-                MessageManager.SendGroupMessageAsync(source.GroupId, text);
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqTextMsg(text)
+                ]);
             }
             catch
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId, "查询失败！");
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqTextMsg("查询失败！")
+                ]);
             }
             return Task.CompletedTask;
         }

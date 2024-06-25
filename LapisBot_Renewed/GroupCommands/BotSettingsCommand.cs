@@ -1,20 +1,14 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Data;
-using Mirai.Net.Sessions.Http.Managers;
-using ImageMagick;
-using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Flurl.Util;
 using System.Linq;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
 
 namespace LapisBot_Renewed
@@ -71,41 +65,42 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             foreach (BotSettings settings in botSettingsList)
             {
-                if (settings.GroupId == source.GroupId)
+                if (settings.GroupId == source.GroupId.ToString())
                 {
                     var _image = new BotSettingsImageGenerator().Generate(settings, settings.CompressedImage);
-                    var _messageChain = new MessageChain()
-                        { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = _image } };
+                    var _messageChain = new CqMessage()
+                        { new CqAtMsg(source.Sender.UserId), new CqImageMsg("base64://" + _image)};
                     //MessageManager.SendGroupMessageAsync()
-                    MessageManager.SendGroupMessageAsync(source.GroupId, _messageChain);
+                    Program.Session.SendGroupMessageAsync(source.GroupId, _messageChain);
                     return Task.CompletedTask;
                 }
             }
 
             var _settings = botDefaultSettings.Clone();
-            _settings.GroupId = source.GroupId;
+            _settings.GroupId = source.GroupId.ToString();
             botSettingsList.Add(_settings);
             File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
                 JsonConvert.SerializeObject(_settings));
             var image = new BotSettingsImageGenerator().Generate(_settings, _settings.CompressedImage);
-            var messageChain = new MessageChain()
-                { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } };
+            var messageChain = new CqMessage()
+                { new CqAtMsg(source.Sender.UserId), new CqImageMsg("base64://" + image) };
+            Program.Session.SendGroupMessageAsync(source.GroupId, messageChain);
             //MessageManager.SendGroupMessageAsync()
-            MessageManager.SendGroupMessageAsync(source.GroupId, messageChain);
+
             return Task.CompletedTask;
         }
 
-        public override Task SettingsParse(string command, GroupMessageReceiver source)
+        public override Task SettingsParse(string command, CqGroupMessagePostContext source)
         {
             Program.helpCommand.Parse(command, source);
             return Task.CompletedTask;
         }
 
-        public override Task SubSettingsParse(string command, GroupMessageReceiver source)
+        public override Task SubSettingsParse(string command, CqGroupMessagePostContext source)
         {
             Program.helpCommand.Parse(command, source);
             return Task.CompletedTask;
@@ -133,12 +128,12 @@ namespace LapisBot_Renewed
             }
         }
 
-        public void GetSettings(GroupMessageReceiver source)
+        public void GetSettings(CqGroupMessagePostContext source)
         {
             CurrentBotSettings = botDefaultSettings.Clone();
             foreach (BotSettings settings in botSettingsList)
             {
-                if (settings.GroupId == source.GroupId)
+                if (settings.GroupId == source.GroupId.ToString())
                 {
                     CurrentBotSettings = settings;
                     break;
@@ -146,17 +141,17 @@ namespace LapisBot_Renewed
             }
             if (CurrentBotSettings.GroupId == null)
             {
-                CurrentBotSettings.GroupId = source.GroupId;
+                CurrentBotSettings.GroupId = source.GroupId.ToString();
                 botSettingsList.Add(CurrentBotSettings);
                 File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
                     JsonConvert.SerializeObject(CurrentBotSettings));
             }
         }
 
-        public override Task SubParse(string command, GroupMessageReceiver source)
+        public override Task SubParse(string command, CqGroupMessagePostContext source)
         {
-            if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator ||
-                source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
+            if (source.Sender.Role == CqRole.Admin ||
+                source.Sender.Role == CqRole.Owner || source.Sender.UserId == 2794813909)
             {
                 //var _settings = new BotSettings();
                 var regex = new Regex(@"[1-3]\s((true)|(false))$");
@@ -182,21 +177,21 @@ namespace LapisBot_Renewed
                     File.Delete(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json");
                     File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
                         JsonConvert.SerializeObject(CurrentBotSettings));
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 设置已生效") });
                 }
                 else
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 输入格式有误") });
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 输入格式有误") });
                 }
 
                 return Task.CompletedTask;
             }
             else
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您无权执行该命令") });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 您无权执行该命令") });
                 return Task.CompletedTask;
             }
         }

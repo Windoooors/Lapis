@@ -1,8 +1,8 @@
-﻿using System;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
 {
@@ -14,21 +14,25 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, FriendMessageReceiver source)
+        public override Task Parse(string command, CqPrivateMessagePostContext source)
         {
-            if (source.FriendId == "2794813909")
+            if (source.Sender.UserId == 2794813909)
             {
                 var message = command;
-                foreach (Mirai.Net.Data.Shared.Group group in Program.bot.Groups.Value)
+                var result = Program.Session.GetGroupList();
+                if (result == null)
+                    return Task.CompletedTask;
+                foreach (CqGroup group in result.Groups)
                 {
                     BotSettingsCommand.BotSettings settings = Program.settingsCommand.botDefaultSettings;
                     foreach(BotSettingsCommand.BotSettings _settings in Program.settingsCommand.botSettingsList)
                     {
-                        if (_settings.GroupId == group.Id)
+                        if (_settings.GroupId == group.GroupId.ToString())
                             settings = _settings;
                     }
+
                     if (settings.UpdateMessage)
-                        MessageManager.SendGroupMessageAsync(group.Id, message);
+                        Program.Session.SendGroupMessageAsync(group.GroupId, [message]);
                 }
             }
             return Task.CompletedTask;

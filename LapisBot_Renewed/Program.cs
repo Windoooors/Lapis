@@ -1,26 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
-using Mirai.Net.Sessions.Http.Managers;
-using Mirai.Net.Data.Events.Concretes.Request;
-using Mirai.Net.Data.Shared;
 using Newtonsoft.Json;
 using LapisBot_Renewed.GroupCommands;
 using System.Threading;
-using Xamarin.Forms.PlatformConfiguration.AndroidSpecific.AppCompat;
-using File = Mirai.Net.Data.Shared.File;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
 {
     public class BotSettings
     {
-        public string Address = "";
-        public string Qq = "";
-        public string VerifyKey = "";
+        public string Address;
         public bool IsDevelopingMode = false;
     }
     
@@ -40,7 +33,7 @@ namespace LapisBot_Renewed
 
         public static BotSettings BotSettings = new BotSettings();
 
-        public static MiraiBot bot;
+        public static CqWsSession Session;
 
         public static event EventHandler DateChanged;
 
@@ -59,26 +52,15 @@ namespace LapisBot_Renewed
                 Console.WriteLine("Please set up the Lapis Bot via editing \"" + AppContext.BaseDirectory + "config.json\"");
                 return;
             }
-
-            bot = new MiraiBot
-                { QQ = BotSettings.Qq, VerifyKey = BotSettings.VerifyKey, Address = BotSettings.Address };
+            
+            Session = new CqWsSession(new CqWsSessionOptions()
+            {
+                BaseUri = new Uri("ws://" + BotSettings.Address),  // WebSocket 地址
+            });
+            
+            Session.Start();
             
             Console.CancelKeyPress += Console_CancelKeyPress;
-
-            await bot.LaunchAsync();
-
-            bot.EventReceived.OfType<NewFriendRequestedEvent>().Subscribe(async e =>
-            {
-                await RequestManager.HandleNewFriendRequestedAsync(e, NewFriendRequestHandlers.Approve);
-            });
-
-            bot.EventReceived
-                .OfType<NewInvitationRequestedEvent>()
-                .Subscribe(async e =>
-                {
-                    //同意入群
-                    await RequestManager.HandleNewInvitationRequestedAsync(e, NewInvitationRequestHandlers.Approve, "");
-                });
 
             var _helpCommand = new HelpCommand();
             var _botSettingsCommand = new BotSettingsCommand();
@@ -86,7 +68,6 @@ namespace LapisBot_Renewed
             groupCommands.Add(new RepeatCommand());
             groupCommands.Add(new AbuseCommand());
             groupCommands.Add(new VocabularyCommand());
-            groupCommands.Add(new GoMadCommand());
             groupCommands.Add(new McPingCommand());
             groupCommands.Add(_helpCommand);
             groupCommands.Add(_botSettingsCommand);
@@ -110,12 +91,28 @@ namespace LapisBot_Renewed
                 new Task(() => command.Initialize()).Start();
 
             var commandParser = new CommandParser();
+            
+            Session.UseGroupMessage(async (context, next) =>
+            {
+                commandParser.MainParse(context);
+                await next.Invoke();
+            });
 
-            bot.MessageReceived
-                .OfType<GroupMessageReceiver>()
-                .Subscribe(commandParser.MainParse);
+            Session.UseFriendRequest(async (context, next) =>
+            {
+                await Session.ApproveFriendRequestAsync(context.Flag, "");
+                var thread = new Task(() => Welcome(context.UserId));
+                thread.Start();
+                await next.Invoke();
+            });
+            
+            Session.UseGroupRequest(async (context, next) =>
+            {
+                await Session.ApproveGroupRequestAsync(context.Flag, context.GroupRequestType);
+                await next.Invoke();
+            });
 
-            bot.MessageReceived.OfType<FriendMessageReceiver>().Subscribe(commandParser.Parse);
+            //bot.MessageReceived.OfType<FriendMessageReceiver>().Subscribe(commandParser.Parse);
 
             if (System.IO.File.Exists(Environment.CurrentDirectory + "/date.json"))
             {
@@ -125,6 +122,12 @@ namespace LapisBot_Renewed
             thread.Start();
 
             Console.ReadLine();
+        }
+
+        static void Welcome(long userId)
+        { 
+            Thread.Sleep(3000);
+            Session.SendPrivateMessageAsync(userId, [new CqTextMsg("感谢使用！请邀请 Lapis Bot 进入您的群聊！")]);
         }
 
         static void SaveDate()

@@ -1,10 +1,12 @@
 ﻿using System.Text.RegularExpressions;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
 using System;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -32,9 +34,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId, "你是我的欧尼将🥺");
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+            [
+                new CqTextMsg("你是我的欧尼将🥺")
+            ]);
             return Task.CompletedTask;
         }
     }

@@ -1,16 +1,14 @@
 ﻿using System;
-using Mirai.Net.Data.Messages.Receivers;
-using System.Threading;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using Newtonsoft.Json;
-using Mirai.Net.Sessions.Http.Managers;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Data.Messages;
 using System.Linq;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
 
 namespace LapisBot_Renewed
@@ -40,12 +38,12 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public void GetCurrentGroupCommandSettings(GroupMessageReceiver source)
+        public void GetCurrentGroupCommandSettings(CqGroupMessagePostContext source)
         {
             GetDefaultSettings();
             foreach (GroupCommandSettings groupCommandSettings in settingsList)
             {
-                if (groupCommandSettings.GroupId == source.GroupId)
+                if (groupCommandSettings.GroupId == source.GroupId.ToString())
                     CurrentGroupCommandSettings = groupCommandSettings;
             }
         }
@@ -68,12 +66,12 @@ namespace LapisBot_Renewed
                 GroupsMap.Remove(groupId);
         }
 
-        public virtual Task Parse(string command, GroupMessageReceiver source)
+        public virtual Task Parse(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
         }
 
-        public virtual Task SubParse(string command, GroupMessageReceiver source)
+        public virtual Task SubParse(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
         }
@@ -84,12 +82,12 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public virtual Task RespondWithoutParsingCommand(string command, GroupMessageReceiver source)
+        public virtual Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
         }
 
-        public Task AbilityCheckingParse(string command, GroupMessageReceiver source)
+        public Task AbilityCheckingParse(string command, CqGroupMessagePostContext source)
         {
             var currentParentGroupCommandSettings = DefaultSettings;
             if (ParentCommand != null)
@@ -104,16 +102,16 @@ namespace LapisBot_Renewed
 
                 if (CurrentGroupCommandSettings != null)
                 {
-                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId))
+                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId.ToString()))
                     {
                         Program.TimeChanged += TimeChanged;
-                        GroupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
+                        GroupsMap.Add(source.GroupId.ToString(), DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
                         Parse(command, source);
                     }
-                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId))
+                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId.ToString()))
                     {
                         var dateTime = new DateTime();
-                        GroupsMap.TryGetValue(source.GroupId, out dateTime);
+                        GroupsMap.TryGetValue(source.GroupId.ToString(), out dateTime);
                         Program.helpCommand.CoolDownParse(command, source, dateTime);
                     }
                 }
@@ -124,7 +122,7 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public Task SubAbilityCheckingParse(string command, GroupMessageReceiver source)
+        public Task SubAbilityCheckingParse(string command, CqGroupMessagePostContext source)
         {
             var currentParentGroupCommandSettings = DefaultSettings;
             if (ParentCommand != null)
@@ -139,16 +137,16 @@ namespace LapisBot_Renewed
 
                 if (CurrentGroupCommandSettings != null)
                 {
-                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId))
+                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId.ToString()))
                     {
                         Program.TimeChanged += TimeChanged;
-                        GroupsMap.Add(source.GroupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
+                        GroupsMap.Add(source.GroupId.ToString(), DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
                         SubParse(command, source);
                     }
-                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId))
+                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId.ToString()))
                     {
                         var dateTime = new DateTime();
-                        GroupsMap.TryGetValue(source.GroupId, out dateTime);
+                        GroupsMap.TryGetValue(source.GroupId.ToString(), out dateTime);
                         Program.helpCommand.CoolDownParse(command, source, dateTime);
                     }
                 }
@@ -170,10 +168,10 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public virtual Task SubSettingsParse(string command, GroupMessageReceiver source)
+        public virtual Task SubSettingsParse(string command, CqGroupMessagePostContext source)
         {
-            if (source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Administrator ||
-                source.Sender.Permission == Mirai.Net.Data.Shared.Permissions.Owner || source.Sender.Id == "2794813909")
+            if (source.Sender.Role == CqRole.Admin ||
+                source.Sender.Role == CqRole.Owner || source.Sender.UserId == 2794813909)
             {
                 var regexBool = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s((true)|(false))$");
                 var regexString = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s.*");
@@ -183,13 +181,13 @@ namespace LapisBot_Renewed
                 //var settings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
                 for (int i = 0; i < settingsList.Count; i++)
                 {
-                    if (settingsList[i].GroupId == source.GroupId)
+                    if (settingsList[i].GroupId == source.GroupId.ToString())
                         CurrentGroupCommandSettings = settingsList[i];
                 }
 
                 if (CurrentGroupCommandSettings.GroupId == null)
                 {
-                    CurrentGroupCommandSettings.GroupId = source.GroupId;
+                    CurrentGroupCommandSettings.GroupId = source.GroupId.ToString();
                     settingsList.Add(CurrentGroupCommandSettings);
                     if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
                                           " Settings"))
@@ -228,8 +226,8 @@ namespace LapisBot_Renewed
                         source.GroupId +
                         ".json", JsonConvert.SerializeObject(CurrentGroupCommandSettings));
                     //settings = CurrentGroupCommandSettings;
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 设置已生效") });
                 }
                 else if (regexString.IsMatch(command) && CurrentGroupCommandSettings.GetType().GetProperty(
                                  CurrentGroupCommandSettings.DisplayNames
@@ -251,21 +249,21 @@ namespace LapisBot_Renewed
                         source.GroupId +
                         ".json", JsonConvert.SerializeObject(CurrentGroupCommandSettings));
                     //settings = CurrentGroupCommandSettings;
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 设置已生效") });
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 设置已生效") });
                 }
                 else
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 输入格式有误") });
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 输入格式有误") });
                 }
 
                 return Task.CompletedTask;
             }
             else
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 您无权执行该命令") });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 您无权执行该命令") });
                 return Task.CompletedTask;
             }
         }
@@ -290,20 +288,20 @@ namespace LapisBot_Renewed
             return tOut;
         }
 
-        public virtual Task SettingsParse(string command, GroupMessageReceiver source)
+        public virtual Task SettingsParse(string command, CqGroupMessagePostContext source)
         {
             CurrentGroupCommandSettings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
             GetDefaultSettings();
             //var settings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
             for (int i = 0; i < settingsList.Count; i++)
             {
-                if (settingsList[i].GroupId == source.GroupId)
+                if (settingsList[i].GroupId == source.GroupId.ToString())
                     CurrentGroupCommandSettings = settingsList[i];
             }
 
             if (CurrentGroupCommandSettings.GroupId == null)
             {
-                CurrentGroupCommandSettings.GroupId = source.GroupId;
+                CurrentGroupCommandSettings.GroupId = source.GroupId.ToString();
                 settingsList.Add(CurrentGroupCommandSettings);
                 if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
                                       " Settings"))
@@ -317,8 +315,8 @@ namespace LapisBot_Renewed
             Program.settingsCommand.GetSettings(source);
             var image = new BotSettingsImageGenerator().Generate(CurrentGroupCommandSettings,
                 Program.settingsCommand.CurrentBotSettings.CompressedImage);
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage(source.Sender.Id), new ImageMessage() { Base64 = image } });
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+                new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqImageMsg("base64://" + image) });
             return Task.CompletedTask;
         }
 

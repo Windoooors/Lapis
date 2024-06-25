@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Sessions.Http.Managers;
 using System.IO;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -38,7 +37,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
         
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             WordDto targetWordItem = null;
             foreach (Vocabulary vocabulary in Vocabularies)
@@ -55,8 +54,10 @@ namespace LapisBot_Renewed.GroupCommands
 
             if (targetWordItem == null)
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" 未查询到该词语") });
+                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 未查询到该词语")
+                ]);
                 return Task.CompletedTask;
             }
 
@@ -65,10 +66,12 @@ namespace LapisBot_Renewed.GroupCommands
             foreach (WordDto.TranslationDto translation in targetWordItem.Translations)
                 text += translation.Type + "." + translation.Translation + "; \n";
             text.TrimEnd();
-            
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage() { Target = source.Sender.Id }, new PlainMessage(" " + text) });
-            CancelCoolDownTimer(source.GroupId);
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" " + text)
+            ]);
+            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
     }

@@ -209,7 +209,7 @@ namespace LapisBot_Renewed.ImageGenerators
             var image = GenerateBackground(song, title, Program.apiOperator);
 
             image.Composite(GenerateDifficultyLayer(song, levels), 90, 305, CompositeOperator.Atop);
-
+            
             var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resource/random/coverimage.png");
             image.Composite(coverImageShadow, 0, 0, CompositeOperator.Atop);
 

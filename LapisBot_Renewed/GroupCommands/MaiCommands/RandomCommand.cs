@@ -2,12 +2,12 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Data.Messages;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using static LapisBot_Renewed.GroupCommand;
 using LapisBot_Renewed.ImageGenerators;
 
@@ -31,6 +31,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             CurrentGroupCommandSettings = ((RandomSettings)DefaultSettings).Clone((RandomSettings)DefaultSettings);
             return Task.CompletedTask;
         }
+
         //public new RandomSettings _groupCommandSettings;
         //public new RandomSettings defaultSettings;
         public override Task Initialize()
@@ -47,29 +48,34 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-                
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
+                                          " Settings");
+
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
+
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
+                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<RandomSettings>(settingsString));
             }
+
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             int i;
             if (!MaiCommandCommand.LevelDictionary.ContainsKey(command))
-                MessageManager.SendGroupMessageAsync(source.GroupId, "不支持的等级名称");
+                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("不支持的等级名称")]);
             else
             {
                 MaiCommandCommand.LevelDictionary.TryGetValue(command, out i);
                 SongDto[] songs = MaiCommandCommand.Levels[i].ToArray();
                 if (songs.Length == 0)
                 {
-                    MessageManager.SendGroupMessageAsync(source.GroupId, "不支持的等级名称");
+
+                    Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("不支持的等级名称")]);
                     return Task.CompletedTask;
                 }
 
@@ -77,21 +83,22 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 int j = random.Next(0, songs.Length);
 
                 Program.settingsCommand.GetSettings(source);
-                var image = new ImageMessage
-                {
-                    Base64 = new InfoImageGenerator().Generate(songs[j], "随机歌曲", null, Program.settingsCommand.CurrentBotSettings.CompressedImage)
-                };
-
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), image });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
+                        Program.settingsCommand.CurrentBotSettings.CompressedImage))
+                ]);
                 if (((RandomSettings)CurrentGroupCommandSettings).SongPreview)
                 {
-                    var voice = new VoiceMessage
-                    {
-                        Path = new AudioToVoiceConverter().ConvertSong(songs[j].Id)
-                    };
-                    MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
+                    var voice = new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(songs[j].Id));
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [
+                        voice
+                    ]);
                 }
             }
+
             return Task.CompletedTask;
         }
     }

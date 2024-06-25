@@ -1,7 +1,7 @@
 ﻿using System;
-using Mirai.Net.Data.Messages.Receivers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
 {
@@ -13,11 +13,11 @@ namespace LapisBot_Renewed
 
         public virtual Task Initialize() { return Task.CompletedTask; }
 
-        public virtual Task Parse(string command, FriendMessageReceiver source) { return Task.CompletedTask; }
+        public virtual Task Parse(string command, CqPrivateMessagePostContext source) { return Task.CompletedTask; }
 
-        public virtual Task Parse(string command, FriendMessageReceiver source, bool isSubParse) { return Task.CompletedTask; }
+        public virtual Task Parse(string command, CqPrivateMessagePostContext  source, bool isSubParse) { return Task.CompletedTask; }
 
-        public virtual Task ParseWithoutPreparse(string command, FriendMessageReceiver source) { return Task.CompletedTask; }
+        public virtual Task ParseWithoutPreparse(string command, CqPrivateMessagePostContext  source) { return Task.CompletedTask; }
 
         public virtual Task Unload() { return Task.CompletedTask; }
     }

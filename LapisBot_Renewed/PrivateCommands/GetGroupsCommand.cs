@@ -1,8 +1,10 @@
 ﻿using System;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
 {
@@ -14,14 +16,17 @@ namespace LapisBot_Renewed
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, FriendMessageReceiver source)
+        public override Task Parse(string command, CqPrivateMessagePostContext source)
         {
-            if (source.FriendId == "2794813909")
+            if (source.Sender.UserId == 2794813909)
             {
                 var message = string.Empty;
-                foreach (Mirai.Net.Data.Shared.Group group in Program.bot.Groups.Value)
-                    message += group.Id + " - " + group.Name + "\n";
-                MessageManager.SendFriendMessageAsync(source.Sender, message.TrimEnd());
+                var result = Program.Session.GetGroupList();
+                if (result == null)
+                    return Task.CompletedTask;
+                foreach (CqGroup group in result.Groups)
+                    message += group.GroupId + " - " + group.GroupName + "\n";
+                Program.Session.SendPrivateMessage(source.Sender.UserId, [message.TrimEnd()]);
             }
             return Task.CompletedTask;
         }

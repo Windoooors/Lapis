@@ -1,16 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions;
-using Mirai.Net.Sessions.Http.Managers;
-using System.Threading;
-using Manganese.Array;
-using System.Runtime.InteropServices;
-using System.Linq;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
 {
@@ -20,9 +12,10 @@ namespace LapisBot_Renewed
             new Regex(@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
         private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$|\ssettings\s[0-9]\s.*");
 
-        public async void Parse(FriendMessageReceiver source)
+        
+        public async void Parse(CqPrivateMessagePostContext  source)
         {
-            var command = source.MessageChain.GetPlainMessage();
+            var command = source.Message.Text;
 
             foreach (PrivateCommand _command in Program.privateCommands)
             {
@@ -71,15 +64,15 @@ namespace LapisBot_Renewed
                     commandRegex.IsMatch(commandString));
         }
 
-        public void MainParse(GroupMessageReceiver source)
+        public void MainParse(CqGroupMessagePostContext source)
         {
             if ((Program.BotSettings.IsDevelopingMode &&
-                 (source.Sender.Id == "2794813909" || source.Sender.Id == "361851827" || source.Sender.Id == "2750558108")) ||
+                 (source.Sender.UserId == 2794813909 || source.Sender.UserId == 361851827 || source.Sender.UserId == 2750558108)) ||
                 !Program.BotSettings.IsDevelopingMode)
             {
                 Program.settingsCommand.GetSettings(source);
 
-                var commandString = source.MessageChain.GetPlainMessage();
+                var commandString = source.Message.Text;
 
                 RespondWithoutParsingCommand(source, commandString, Program.groupCommands);
 
@@ -97,7 +90,7 @@ namespace LapisBot_Renewed
             }
         }
 
-        private void RespondWithoutParsingCommand(GroupMessageReceiver source, string commandString,
+        private void RespondWithoutParsingCommand(CqGroupMessagePostContext source, string commandString,
             List<GroupCommand> commands)
         {
             foreach (GroupCommand command in commands)
@@ -111,7 +104,7 @@ namespace LapisBot_Renewed
             }
         }
 
-        private bool Parse(GroupMessageReceiver source, string commandString, List<GroupCommand> commands)
+        private bool Parse(CqGroupMessagePostContext source, string commandString, List<GroupCommand> commands)
         {
             var parsed = false;
             foreach (GroupCommand command in commands)
@@ -163,7 +156,7 @@ namespace LapisBot_Renewed
             return false;
         }
 
-        private void ParseHeadlessly(GroupMessageReceiver source, string commandString,
+        private void ParseHeadlessly(CqGroupMessagePostContext source, string commandString,
             List<GroupCommand> commands)
         {
             foreach (GroupCommand command in commands)
@@ -193,7 +186,7 @@ namespace LapisBot_Renewed
             }
         }
 
-        private bool SettingsParse(GroupMessageReceiver source, string commandString,
+        private bool SettingsParse(CqGroupMessagePostContext source, string commandString,
             GroupCommand command)
         {
             var showSettingsRegex = new Regex(@"^settings$|^\ssettings$");

@@ -28,10 +28,10 @@
     <None Remove="ZKWeb.System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Magick.NET.Core" Version="13.4.0" />
-    <PackageReference Include="Mirai.Net" Version="2.5.1" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.4.0" />
+    <PackageReference Include="EleCho.GoCqHttpSdk" Version="1.2.5" />
     <PackageReference Include="Font" Version="0.3.0.3" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.4.0" />
+    <PackageReference Include="Magick.NET.Core" Version="13.4.0" />
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2612" />
     <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
     <PackageReference Include="DNS" Version="7.0.0" />
@@ -39,5 +39,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="..\ConnectiveKits\">
+      <Link>ConnectiveKits</Link>
+    </Folder>
   </ItemGroup>
 </Project>

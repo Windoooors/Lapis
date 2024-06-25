@@ -1,16 +1,13 @@
 ﻿using System.Text.RegularExpressions;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using Manganese.Text;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Manganese.Array;
 using System.Threading.Tasks;
 using System.IO;
 using System;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -102,27 +99,27 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
 
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             var songs = MaiCommandCommand.GetSongs(command);
 
             if (songs == null)
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                {
-                    new AtMessage(source.Sender.Id), new PlainMessage(" 不存在该歌曲")
-                });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" 不存在该歌曲")
+                ]);
                 return Task.CompletedTask;
             }
 
             if (songs.Length == 1)
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId,
-                    new MessageChain()
-                    {
-                        new AtMessage(source.Sender.Id),
-                        new PlainMessage(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
-                    });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqAtMsg(source.Sender.UserId),
+                    new CqTextMsg(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
+                ]);
                 return Task.CompletedTask;
             }
 
@@ -135,14 +132,15 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     ids += "\n";
                 idsList.Add(songs[i].Id);
             }
-            
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-            {
-                new AtMessage(source.Sender.Id),
-                new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
-                                 songs[0].Title + " [" + songs[0].Type +
-                                 "] 的别称")
-            });
+
+
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+            [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
+                              songs[0].Title + " [" + songs[0].Type +
+                              "] 的别称")
+            ]);
 
             return Task.CompletedTask;
         }

@@ -2,13 +2,12 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Data.Messages;
-using Manganese.Text;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using static LapisBot_Renewed.GroupCommand;
 using LapisBot_Renewed.ImageGenerators;
 
@@ -263,16 +262,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             public static GetScoreDto GetScore = new GetScoreDto();
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             var songs = MaiCommandCommand.GetSongsUsingStartsWith(command);
 
             if (songs == null)
             {
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                {
-                    new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该歌曲")
-                });
+                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("未找到该歌曲")]);
                 return Task.CompletedTask;
             }
 
@@ -290,13 +286,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     idsList.Add(songs[i].Id);
                 }
 
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain()
-                {
-                    new AtMessage(source.Sender.Id),
-                    new PlainMessage(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + "\" 指令即可查询歌曲 " +
-                                     songs[0].Title + " [" + songs[0].Type +
-                                     "] 的信息")
-                });
+                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                    new CqAtMsg(source.Sender.UserId), new CqTextMsg(
+                        " 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + "\" 指令即可查询歌曲 " +
+                        songs[0].Title + " [" + songs[0].Type +
+                        "] 的信息")
+                ]);
                 
                 return Task.CompletedTask;
             }
@@ -314,42 +309,36 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     }
                     catch
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 未找到该玩家")]);
                         return Task.CompletedTask;
                     }
 
                     if (!GetScoreDto.GetScore.userExists)
                     {
-                        MessageManager.SendGroupMessageAsync(source.GroupId,
-                            new MessageChain { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该玩家") });
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 未找到该玩家")]);
                         return Task.CompletedTask;
                     }
                 }
             }
             else
             {
-                var id = Int64.Parse(source.Sender.Id);
+                var id = source.Sender.UserId;
                 GetScoreDto.GetScore.Get(id, songs[0]);
             }
 
             Program.settingsCommand.GetSettings(source);
-            var image = new ImageMessage
-            {
-                Base64 = new InfoImageGenerator().Generate(songs[0], "歌曲信息",
-                    GetScoreDto.GetScore.Levels,
-                    Program.settingsCommand.CurrentBotSettings.CompressedImage)
-            };
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain() { new AtMessage(source.Sender.Id), image });
+            var image = new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[0], "歌曲信息",
+                GetScoreDto.GetScore.Levels,
+                Program.settingsCommand.CurrentBotSettings.CompressedImage));
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqAtMsg(source.Sender.UserId), image]);
 
             if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
             {
-                var voice = new VoiceMessage
-                {
-                    Path = new AudioToVoiceConverter().ConvertSong(songs[0].Id)
-                };
-                MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { voice });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(songs[0].Id))]);
             }
 
             return Task.CompletedTask;

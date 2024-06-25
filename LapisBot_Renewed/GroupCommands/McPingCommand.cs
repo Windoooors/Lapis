@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Sessions.Http.Managers;
 using Newtonsoft.Json;
 using mcswlib.ServerStatus;
 using DNS.Protocol;
@@ -13,6 +9,10 @@ using DNS.Client;
 using System.IO;
 using mcswlib.ServerStatus.ServerInfo;
 using System.Drawing;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed.GroupCommands
 {
@@ -44,7 +44,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override async Task Parse(string command, GroupMessageReceiver source)
+        public override async Task Parse(string command, CqGroupMessagePostContext source)
         {
             try
             {
@@ -54,8 +54,8 @@ namespace LapisBot_Renewed.GroupCommands
                 var inst = factory.Make(address, port);
                 var res = inst.Updater;
                 //Console.WriteLine("Result: " + res.Ping());
-                await MessageManager.SendGroupMessageAsync(source.GroupId,
-                    ServerInformationMessage(res.Ping(), source.Sender));
+                await (
+                    Program.Session.SendGroupMessageAsync(source.GroupId, ServerInformationMessage(res.Ping(), source.Sender)));
             }
             catch
             {
@@ -70,30 +70,31 @@ namespace LapisBot_Renewed.GroupCommands
                     var inst = factory.Make(record.Target.ToString(), record.Port);
                     var res = inst.Updater.Ping();
                     //Console.WriteLine("Result: " + res.Ping());
-                    await MessageManager.SendGroupMessageAsync(source.GroupId,
-                        ServerInformationMessage(res, source.Sender));
+                    await (
+                        Program.Session.SendGroupMessageAsync(source.GroupId, ServerInformationMessage(res, source.Sender)));
                 }
                 catch
                 {
-                    await MessageManager.SendGroupMessageAsync(source.GroupId,
-                        new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 未找到该服务器") });
+                    await (
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 未找到该服务器")]));
                 }
             }
         }
 
         private readonly Regex _regex = new Regex("§.");
 
-        private MessageChain ServerInformationMessage(ServerInfoBase server, Mirai.Net.Data.Shared.Member sender)
+        private CqMessage ServerInformationMessage(ServerInfoBase server, CqMessageSender sender)
         {
             //var _information = server.Ping();
-            var plainMessage = new PlainMessage(_regex.Replace(server.RawMotd, string.Empty) + "\n" + "版本：" +
-                                                _regex.Replace(server.MinecraftVersion, string.Empty) + "\n" + "人数：" +
-                                                server.CurrentPlayerCount + "/" + server.MaxPlayerCount);
+            var plainMessage = new CqTextMsg(_regex.Replace(server.RawMotd, string.Empty) + "\n" + "版本：" +
+                                             _regex.Replace(server.MinecraftVersion, string.Empty) + "\n" + "人数：" +
+                                             server.CurrentPlayerCount + "/" + server.MaxPlayerCount);
 
-            var messageChain = new MessageChain()
+            var messageChain = new CqMessage()
             {
-                new AtMessage(sender.Id), new PlainMessage(" "),
-                new ImageMessage() { Base64 = ImgToBase64String(server.FavIcon) }, plainMessage
+                new CqAtMsg(sender.UserId), new CqTextMsg(" "),
+                new CqImageMsg("base64://" + ImgToBase64String(server.FavIcon)), plainMessage
             };
             return messageChain;
         }

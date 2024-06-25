@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mirai.Net.Data.Messages.Receivers;
-using Mirai.Net.Data.Messages;
-using Mirai.Net.Data.Messages.Concretes;
-using Mirai.Net.Sessions.Http.Managers;
 using System.IO;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
+using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -31,20 +31,23 @@ namespace LapisBot_Renewed.GroupCommands
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, GroupMessageReceiver source)
+        public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" 请访问链接以查询 Lapis 的使用方法：https://www.setchin.com/lapis_docs.html") });
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" 请访问链接以查询 Lapis 的使用方法：https://www.setchin.com/lapis_docs.html")
+            ]);
             return Task.CompletedTask;
         }
 
-        public Task CoolDownParse(string command, GroupMessageReceiver source, DateTime dateTime)
+        public Task CoolDownParse(string command, CqGroupMessagePostContext source, DateTime dateTime)
         {
-            MessageManager.SendGroupMessageAsync(source.GroupId,
-                new MessageChain()
-                {
-                    new AtMessage(source.Sender.Id),
-                    new PlainMessage(" 使用太频繁啦！请等待 " + (dateTime - DateTime.Now).Seconds + " 秒后再试")
-                });
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                new CqAtMsg(source.Sender.UserId),
+                new CqTextMsg(" 使用太频繁啦！请等待 " + (dateTime - DateTime.Now).Seconds + " 秒后再试")
+            ]);
             return Task.CompletedTask;
         }
     }
