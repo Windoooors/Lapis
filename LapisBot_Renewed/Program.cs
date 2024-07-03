@@ -65,6 +65,7 @@ namespace LapisBot_Renewed
             var _helpCommand = new HelpCommand();
             var _botSettingsCommand = new BotSettingsCommand();
 
+            groupCommands.Add(new TaskHandleQueueCommand());
             groupCommands.Add(new RepeatCommand());
             groupCommands.Add(new AbuseCommand());
             groupCommands.Add(new VocabularyCommand());
