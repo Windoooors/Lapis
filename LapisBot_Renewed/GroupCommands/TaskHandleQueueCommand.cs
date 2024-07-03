@@ -85,10 +85,10 @@ namespace LapisBot_Renewed.GroupCommands
 		public bool IsFull() => tasks.Count >= maxTaskCount;
 		public bool HandleTask(bool confirm = true,int index = 0)
 		{
-			if(tasks.Count >= index)return false;
+			if(tasks.Count <= index)return false;
 			if(confirm)tasks[index].whenConfirm();
 			else tasks[index].whenCancel();
-			tasks.RemoveAt(0);
+			tasks.RemoveAt(index);
 			return true;
 		}
 		public bool IsEmpty() => tasks.Count == 0;
