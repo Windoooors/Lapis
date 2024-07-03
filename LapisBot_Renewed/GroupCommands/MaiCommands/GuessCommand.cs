@@ -253,13 +253,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var songs = MaiCommandCommand.GetSongs(command);
                 if (songs.Length != 0)
                     passed = true;
-                if (passed && songs[0].Id == keyIdDateTimePair.Item1)
+                for (int j = 0; j < songs.Length; j++)
                 {
-                    var task = new Task(() =>
-                        AnnounceAnswer(keyIdDateTimePair, source.GroupId.ToString(), true, source.Sender.UserId.ToString()));
-                    task.Start();
+                    if (passed && songs[j].Id == keyIdDateTimePair.Item1)
+                    {
+                        var task = new Task(() =>
+                            AnnounceAnswer(keyIdDateTimePair, source.GroupId.ToString(), true, source.Sender.UserId.ToString()));
+                        task.Start();
 
-                    return Task.CompletedTask;
+                        return Task.CompletedTask;
+                    }
                 }
             }
 
