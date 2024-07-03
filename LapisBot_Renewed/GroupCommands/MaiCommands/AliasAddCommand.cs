@@ -111,11 +111,15 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                     new CqTextMsg("别名添加已取消！")
                                 ]);
                         };
-                        TaskHandleQueue.Singleton.AddTask(task);
+                        var success = TaskHandleQueue.Singleton.AddTask(task);
 
-                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                        if(success)Program.Session.SendGroupMessageAsync(source.GroupId,
                             [
                                 new CqTextMsg("你正在尝试为歌曲\"" + songs[0].Title + "\"" + "添加别名\"" + oname + "\"" + "\n输入l handle confirm以确认，发送 l handle cancel以取消")
+                            ]);
+                        else Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [
+                                new CqTextMsg("当前已有代办事项！请处理后再试！")
                             ]);
                         
                     }
