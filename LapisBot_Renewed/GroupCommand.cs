@@ -56,8 +56,8 @@ namespace LapisBot_Renewed
             for (int i = 0; i < GroupsMap.Count; i++)
             {
                 //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
-                if (!(GroupsMap.Values.ToArray()[i].Ticks <= DateTime.Now.Ticks))
-                    return;
+                if (GroupsMap.Values.ToArray()[i].Ticks > DateTime.Now.Ticks)
+                    continue;
                 var groupId = GroupsMap.Keys.ToArray()[i];
                 groupIds.Add(groupId);
             }

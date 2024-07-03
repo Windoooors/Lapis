@@ -52,8 +52,8 @@ namespace LapisBot_Renewed.GroupCommands
             for (int i = 0; i < _guessingGroupsMap.Count; i++)
             {
                 //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
-                if (!(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks <= DateTime.Now.Ticks))
-                    return;
+                if (_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks > DateTime.Now.Ticks)
+                    continue;
                 var keyWordDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
                 var groupId = _guessingGroupsMap.Keys.ToArray()[i];
                 var taskAnnounce = new Task(() =>
@@ -142,7 +142,7 @@ namespace LapisBot_Renewed.GroupCommands
                 ]);
             else
                 Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
-                    new CqTextMsg(" " + text)
+                    new CqTextMsg(text)
                 ]);
             
             GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
