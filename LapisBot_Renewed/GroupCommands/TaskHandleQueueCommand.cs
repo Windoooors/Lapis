@@ -54,7 +54,7 @@ namespace LapisBot_Renewed.GroupCommands
 			{
 				Program.Session.SendGroupMessageAsync(source.GroupId,
                         [
-                            new CqTextMsg("命令错误！应为 \"confirm\" 或 \"cancel\"！")
+                            new CqTextMsg("参数错误！应为 \"confirm\" 或 \"cancel\"！")
                         ]);
 			}
 			
