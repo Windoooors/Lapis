@@ -87,19 +87,37 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     }
                     else
                     {
-                        var id = songs[0].Id;
+                        Action action = ()=>
+                        {
+                            var id = songs[0].Id;
+
+                            var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(oname) && LocalAlias.Singleton.Add(id,oname);
+                            if (success)
+                                Program.Session.SendGroupMessageAsync(source.GroupId,
+                                [
+                                    new CqTextMsg("添加成功！")
+                                ]);
+                            else
+                                Program.Session.SendGroupMessageAsync(source.GroupId,
+                                [
+                                    new CqTextMsg("已存在此别名")
+                            ]);
+                        };
+                        TaskHandleQueue.HandlableTask task = new();
+                        task.whenConfirm = action;
+                        task.whenCancel = ()=>{
+                             Program.Session.SendGroupMessageAsync(source.GroupId,
+                                [
+                                    new CqTextMsg("别名添加已取消！")
+                                ]);
+                        };
+                        TaskHandleQueue.Singleton.AddTask(task);
+
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [
+                                new CqTextMsg("你正在尝试为歌曲\"" + songs[0].Title + "\"" + "添加别名\"" + oname + "\"" + "\n输入l handle confirm以确认，发送 l handle cancel以取消")
+                            ]);
                         
-                        var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(oname) && LocalAlias.Singleton.Add(id,oname);
-                        if (success)
-                            Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [
-                                new CqTextMsg("添加成功！")
-                            ]);
-                        else
-                            Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [
-                                new CqTextMsg("已存在此别名")
-                            ]);
                     }
                 }
             }
