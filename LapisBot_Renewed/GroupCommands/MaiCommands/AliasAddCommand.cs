@@ -115,7 +115,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                         Program.Session.SendGroupMessageAsync(source.GroupId,
                             [
-                                new CqTextMsg("你正在尝试为歌曲\"" + songs[0].Title + "\"" + "添加别名\"" + oname + "\"" + "\n输入l handle confirm以确认，发送 l handle cancel以取消")
+                                new CqTextMsg("你正在尝试为歌曲 \"" + songs[0].Title + "\"" + " 添加别名 \"" + oname + "\"" + "\n发送 \"l handle confirm\" 以确认，发送 \"l handle cancel\" 以取消")
                             ]);
                         
                     }

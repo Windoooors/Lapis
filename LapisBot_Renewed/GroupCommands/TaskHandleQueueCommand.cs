@@ -13,8 +13,8 @@ namespace LapisBot_Renewed.GroupCommands
     {
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^handle$");
-            DirectCommand = new Regex(@"^待处理$");
+            HeadCommand = new Regex(@"^handle\s");
+            DirectCommand = new Regex(@"^待处理\s");
             DefaultSettings.SettingsName = "待处理列表";
 
             return Task.CompletedTask;
@@ -22,9 +22,7 @@ namespace LapisBot_Renewed.GroupCommands
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-			var cmds = command.Split(" ");
-
-			if(cmds[0] == "confirm")
+			if (command == "confirm")
 			{
 				if(TaskHandleQueue.Singleton.IsEmpty())
 				{
@@ -38,7 +36,7 @@ namespace LapisBot_Renewed.GroupCommands
 					TaskHandleQueue.Singleton.HandleTask(true);
 				}
 			}
-			else if(cmds[0] == "cancel")
+			else if(command == "cancel")
 			{
 				if(TaskHandleQueue.Singleton.IsEmpty())
 				{
@@ -56,7 +54,7 @@ namespace LapisBot_Renewed.GroupCommands
 			{
 				Program.Session.SendGroupMessageAsync(source.GroupId,
                         [
-                            new CqTextMsg("命令错误！应为confirm或cancel！")
+                            new CqTextMsg("命令错误！应为 \"confirm\" 或 \"cancel\"！")
                         ]);
 			}
 			

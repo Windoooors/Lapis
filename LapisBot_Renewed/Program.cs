@@ -75,6 +75,7 @@ namespace LapisBot_Renewed
             groupCommands.Add(new AboutCommand());
             groupCommands.Add(new BangCommand());
             groupCommands.Add(new DoSomethingWithHimCommand());
+            groupCommands.Add(new TaskHandleQueueCommand());
             groupCommands.Add(new MaiCommand());
 
             helpCommand = _helpCommand;

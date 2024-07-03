@@ -486,7 +486,6 @@ namespace LapisBot_Renewed.GroupCommands
 
             AliasAddCommand = new() { MaiCommandCommand = this };
             
-            SubCommands.Add(new TaskHandleQueueCommand() {});
             SubCommands.Add(new RandomCommand() { MaiCommandCommand = this });
             SubCommands.Add(new InfoCommand() { MaiCommandCommand = this });
             SubCommands.Add(AliasAddCommand);
