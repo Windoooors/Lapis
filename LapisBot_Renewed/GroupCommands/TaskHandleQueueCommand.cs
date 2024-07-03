@@ -79,7 +79,7 @@ namespace LapisBot_Renewed.GroupCommands
 			if(tasks.Count <= index)return false;
 			if(confirm)tasks[index].whenConfirm();
 			else tasks[index].whenCancel();
-			tasks.RemoveAt(0);
+			tasks.RemoveAt(index);
 			return true;
 		}
 		public bool IsEmpty() => tasks.Count == 0;
