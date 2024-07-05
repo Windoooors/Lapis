@@ -36,12 +36,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        public override Task Unload()
+        private static void Save()
         {
             File.WriteAllText(AppContext.BaseDirectory + "local_aliases.json",
                 JsonConvert.SerializeObject(LocalAlias.Singleton.AliasCollection.Aliases)); 
             Console.WriteLine("Local aliases have been saved");
-            return Task.CompletedTask;
         }
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
@@ -93,10 +92,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                             var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(oname) && LocalAlias.Singleton.Add(id,oname);
                             if (success)
+                            {
                                 Program.Session.SendGroupMessageAsync(source.GroupId,
                                 [
                                     new CqTextMsg("添加成功！")
                                 ]);
+                                Save();
+                            }
                             else
                                 Program.Session.SendGroupMessageAsync(source.GroupId,
                                 [
