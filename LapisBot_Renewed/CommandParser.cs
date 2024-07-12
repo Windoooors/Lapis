@@ -11,9 +11,8 @@ namespace LapisBot_Renewed
         private readonly Regex _headCommandRegex =
             new Regex(@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
         private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$|\ssettings\s[0-9]\s.*");
-
         
-        public async void Parse(CqPrivateMessagePostContext  source)
+        public async void Parse(CqPrivateMessagePostContext source)
         {
             var command = source.Message.Text;
 

@@ -115,6 +115,14 @@ namespace LapisBot_Renewed
             stream.Read(bytes, 0, (int)stream.Length); stream.Close();
             return Convert.ToBase64String(bytes);
         }
+        
+        public MemoryStream ImageToMemoryStream(string fileFullName)
+        {
+            var client = new HttpClient();
+            var bytes = client.GetByteArrayAsync(fileFullName).Result;
+            var stream = new MemoryStream(bytes);
+            return stream;
+        }
 
         public string ImageToPng(string fileFullName, string fatherPath, string name)
         {

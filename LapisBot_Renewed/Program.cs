@@ -82,12 +82,12 @@ namespace LapisBot_Renewed
             helpCommand = _helpCommand;
             settingsCommand = _botSettingsCommand;
 
+            privateCommands.Add(new GetStickerImageCommand());
             privateCommands.Add(new GetGroupsCommand());
             privateCommands.Add(new UpdateMessageCommand());
 
             foreach (GroupCommand command in groupCommands)
                 new Task(() => command.Initialize()).Start();
-
 
             foreach (PrivateCommand command in privateCommands)
                 new Task(() => command.Initialize()).Start();
@@ -111,6 +111,12 @@ namespace LapisBot_Renewed
             Session.UseGroupRequest(async (context, next) =>
             {
                 await Session.ApproveGroupRequestAsync(context.Flag, context.GroupRequestType);
+                await next.Invoke();
+            });
+            
+            Session.UsePrivateMessage(async (context, next) =>
+            {
+                commandParser.Parse(context);
                 await next.Invoke();
             });
 
