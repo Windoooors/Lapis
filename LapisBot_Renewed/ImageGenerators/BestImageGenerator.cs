@@ -45,7 +45,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
                 ratingBackground =
                     new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_regular.png");
-                image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
+                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(36)
@@ -58,7 +58,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
                 ratingBackground =
                     new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_blue.png");
-                image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
+                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(36)
@@ -71,7 +71,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
                 ratingBackground =
                     new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_green.png");
-                image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
+                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(36)
@@ -81,15 +81,16 @@ namespace LapisBot_Renewed.ImageGenerators
             }
             else if (best.Rating > 3999 && best.Rating <= 6999)
             {
+                ratingBackground =
+                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_yellow.png");
+                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(36)
                     .FillColor(new MagickColor(23296, 19968, 15872))
                     .Text(74, 150, best.Rating.ToString())
                     .Draw(image);
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_yellow.png");
-                image.Composite(ratingBackground, 8, 25, CompositeOperator.Atop);
+
             }
             else if (best.Rating > 6999 && best.Rating <= 9999)
             {
