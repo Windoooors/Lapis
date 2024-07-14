@@ -48,6 +48,8 @@ namespace LapisBot_Renewed.GroupCommands
 
         [JsonProperty("basic_info")] public BasicInfoDto BasicInfo;
 
+        public float[] FitRatings;
+
         public class ChartDto
         {
             [JsonProperty("charter")] public string Charter;
@@ -62,6 +64,16 @@ namespace LapisBot_Renewed.GroupCommands
             [JsonProperty("artist")] public string Artist;
 
             [JsonProperty("from")] public string Version;
+        }
+    }
+    
+    public class ChartStatisticsDto
+    {
+        [JsonProperty("charts")]
+        public Dictionary<string, ChartStatisticDto[]> Charts;
+        public class ChartStatisticDto
+        {
+            [JsonProperty("fit_diff")] public float FitRating;
         }
     }
 
@@ -322,6 +334,7 @@ namespace LapisBot_Renewed.GroupCommands
         public AliasAddCommand AliasAddCommand;
         public SongDto[] Songs;
         public ExtraSongDto[] ExtraSongs;
+        public ChartStatisticsDto ChartStatistics;
         private JObject _aliasJObject;
         public readonly List<List<SongDto>> Levels = [];
         public readonly List<List<ExtraSongDto>> ExtraLevels = [];
@@ -357,7 +370,12 @@ namespace LapisBot_Renewed.GroupCommands
             try
             {
                 if (!Program.BotSettings.IsDevelopingMode)
-                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                {
+                    _aliasJObject =
+                        JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                    ChartStatistics =
+                        JsonConvert.DeserializeObject<ChartStatisticsDto>(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
+                }
                 else if (Program.BotSettings.IsDevelopingMode)
                     _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_80845285.json"));
                 /*_aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
@@ -468,6 +486,16 @@ namespace LapisBot_Renewed.GroupCommands
                     LevelDictionary.TryGetValue(level, out j);
                     Levels[j].Add(song);
                 }
+
+                ChartStatisticsDto.ChartStatisticDto[] chartStatistics = [];
+                ChartStatistics.Charts.TryGetValue(song.Id.ToString(), out chartStatistics);
+                List<float> fitRatings = [];
+                foreach (ChartStatisticsDto.ChartStatisticDto chartStatistic in chartStatistics)
+                {
+                    fitRatings.Add(chartStatistic.FitRating);
+                }
+
+                song.FitRatings = fitRatings.ToArray();
             }
 
             ExtraSongs = (ExtraSongDto[])JsonConvert.DeserializeObject(

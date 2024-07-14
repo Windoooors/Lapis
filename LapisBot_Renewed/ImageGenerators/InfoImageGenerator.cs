@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using ImageMagick;
+using System.Drawing;
+using System.Drawing.Text;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using LapisBot_Renewed.GroupCommands;
 
@@ -160,10 +162,16 @@ namespace LapisBot_Renewed.ImageGenerators
                     else
                         fsIndicatorText = level.Fs.ToUpper();
 
-                    var indicatorText = fcIndicatorText + " " + fsIndicatorText;
+                    var indicatorText = string.Empty;
+                    if (fcIndicatorText != string.Empty)
+                        indicatorText = fcIndicatorText + " " + fsIndicatorText;
+                    else
+                        indicatorText = fsIndicatorText;
                     if (indicatorText.Length != 0)
                         indicatorText.TrimEnd();
 
+                    if (indicatorText == string.Empty)
+                        continue;
                     new Drawables()
                         .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                         .FontPointSize(18)
@@ -184,6 +192,24 @@ namespace LapisBot_Renewed.ImageGenerators
                     .FillColor(new MagickColor(65535, 65535, 65535))
                     .Text(0, difficultyFactorYPositions[i], song.Ratings[i].ToString("0.0"))
                     .Draw(difficultyLayerImage);
+                
+                var privateFontCollection = new PrivateFontCollection();
+                privateFontCollection.AddFontFile(Environment.CurrentDirectory + @"/resource/font-light.otf");
+                
+                Font font = new Font(privateFontCollection.Families[0], 40);
+                Bitmap bitMap = new Bitmap(1400, 1280);
+                Graphics graphics = Graphics.FromImage(bitMap);
+                SizeF sizeOfString = new SizeF();
+                sizeOfString = graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
+                //Console.WriteLine("String Width: " + sizeOfString.Width);
+                
+                new Drawables()
+                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
+                    .FontPointSize(24)
+                    .FillColor(new MagickColor(65535, 65535, 65535, 32768))
+                    .Text(sizeOfString.Width * 2.3f - 10, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
+                    .Draw(difficultyLayerImage);
+                
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
@@ -192,7 +218,7 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Draw(difficultyLayerImage);
             }
             
-            if (song.Ratings.Length == 4 && song.Id.ToString().Length == 6)
+            if (song.Ratings.Length == 4 && song.Id.ToString().Length != 6)
             {
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
