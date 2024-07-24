@@ -490,9 +490,15 @@ namespace LapisBot_Renewed.GroupCommands
                 ChartStatisticsDto.ChartStatisticDto[] chartStatistics = [];
                 ChartStatistics.Charts.TryGetValue(song.Id.ToString(), out chartStatistics);
                 List<float> fitRatings = [];
-                foreach (ChartStatisticsDto.ChartStatisticDto chartStatistic in chartStatistics)
+                if (chartStatistics != null)
+                    foreach (ChartStatisticsDto.ChartStatisticDto chartStatistic in chartStatistics)
+                    {
+                        fitRatings.Add(chartStatistic.FitRating);
+                    }
+                else
                 {
-                    fitRatings.Add(chartStatistic.FitRating);
+                    foreach (float rating in song.Ratings)
+                        fitRatings.Add(rating);
                 }
 
                 song.FitRatings = fitRatings.ToArray();

@@ -31,7 +31,7 @@ namespace LapisBot_Renewed.ImageGenerators
             }
             catch
             {
-                _coverImagePath = Environment.CurrentDirectory + @"/resource/covers/01000.png";
+                _coverImagePath = Environment.CurrentDirectory + @"/resource/covers/1000.png";
             }
             var backgroundCoverImage = new MagickImage(_coverImagePath);
             backgroundCoverImage.Resize(64, 64);
