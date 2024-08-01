@@ -128,7 +128,7 @@ namespace LapisBot_Renewed.GroupCommands
                                     var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
                                         couple.Value + "&s=640");
                                     message = [
-                                        new CqAtMsg(source.Sender.UserId),
+                                        new CqReplyMsg(source.MessageId),
                                         new CqImageMsg("base64://" + image),
                                         new CqTextMsg("您的对象是 "),
                                         new CqTextMsg(memberName + " (" + couple.Value + ") "),
@@ -139,8 +139,8 @@ namespace LapisBot_Renewed.GroupCommands
                                 {
                                     message =
                                     [
-                                        new CqAtMsg(source.Sender.UserId),
-                                        new CqTextMsg(" 您的对象是 "),
+                                        new CqReplyMsg(source.MessageId),
+                                        new CqTextMsg("您的对象是 "),
                                         new CqTextMsg(memberName + " (" + couple.Value + ") "),
                                         new CqTextMsg("！")
                                     ];
@@ -193,7 +193,7 @@ namespace LapisBot_Renewed.GroupCommands
                                                                               memberList[i] + "&s=640");
                                 message =
                                 [
-                                    new CqAtMsg(source.Sender.UserId),
+                                    new CqReplyMsg(source.MessageId),
                                     new CqImageMsg("base64://" + image),
                                     new CqTextMsg("您的对象是 "),
                                     new CqTextMsg(memberName + " (" + memberList[i] + ") "),
@@ -204,7 +204,7 @@ namespace LapisBot_Renewed.GroupCommands
                             {
                                 message =
                                 [
-                                    new CqAtMsg(source.Sender.UserId),
+                                    new CqReplyMsg(source.MessageId),
                                     new CqTextMsg("您的对象是 "),
                                     new CqTextMsg(memberName + " (" + memberList[i] + ") "),
                                     new CqTextMsg("！")
@@ -229,8 +229,8 @@ namespace LapisBot_Renewed.GroupCommands
                     {
                         CqMessage message =
                         [
-                            new CqAtMsg(source.Sender.UserId),
-                            new CqTextMsg(" 近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
+                            new CqReplyMsg(source.MessageId),
+                            new CqTextMsg("近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
                         ];
 
                         Program.Session.SendGroupMessageAsync(source.GroupId, message);

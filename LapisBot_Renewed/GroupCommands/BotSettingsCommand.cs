@@ -73,7 +73,7 @@ namespace LapisBot_Renewed
                 {
                     var _image = new BotSettingsImageGenerator().Generate(settings, settings.CompressedImage);
                     var _messageChain = new CqMessage()
-                        { new CqAtMsg(source.Sender.UserId), new CqImageMsg("base64://" + _image)};
+                        { new CqReplyMsg(source.MessageId), new CqImageMsg("base64://" + _image)};
                     //MessageManager.SendGroupMessageAsync()
                     Program.Session.SendGroupMessageAsync(source.GroupId, _messageChain);
                     return Task.CompletedTask;
@@ -87,7 +87,7 @@ namespace LapisBot_Renewed
                 JsonConvert.SerializeObject(_settings));
             var image = new BotSettingsImageGenerator().Generate(_settings, _settings.CompressedImage);
             var messageChain = new CqMessage()
-                { new CqAtMsg(source.Sender.UserId), new CqImageMsg("base64://" + image) };
+                { new CqReplyMsg(source.MessageId), new CqImageMsg("base64://" + image) };
             Program.Session.SendGroupMessageAsync(source.GroupId, messageChain);
             //MessageManager.SendGroupMessageAsync()
 
@@ -178,12 +178,12 @@ namespace LapisBot_Renewed
                     File.WriteAllText(AppContext.BaseDirectory + "settings/" + source.GroupId + ".json",
                         JsonConvert.SerializeObject(CurrentBotSettings));
                     Program.Session.SendGroupMessageAsync(source.GroupId,
-                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 设置已生效") });
+                        new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("设置已生效") });
                 }
                 else
                 {
                     Program.Session.SendGroupMessageAsync(source.GroupId,
-                        new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 输入格式有误") });
+                        new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("输入格式有误") });
                 }
 
                 return Task.CompletedTask;
@@ -191,7 +191,7 @@ namespace LapisBot_Renewed
             else
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                    new CqMessage() { new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 您无权执行该命令") });
+                    new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("您无权执行该命令") });
                 return Task.CompletedTask;
             }
         }

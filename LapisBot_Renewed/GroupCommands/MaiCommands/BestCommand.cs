@@ -56,8 +56,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" 未找到该玩家")
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("未找到该玩家")
                 ]);
                 return Task.CompletedTask;
             }
@@ -141,7 +141,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             Program.Session.SendGroupMessageAsync(source.GroupId,
             [
-                new CqAtMsg(source.Sender.UserId),
+                new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + image)
             ]);
 
@@ -234,7 +234,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
-                    new CqAtMsg(source.Sender.UserId),
+                    new CqReplyMsg(source.MessageId),
                     new CqImageMsg("base64://" + image)
                 ]);
             }
@@ -242,8 +242,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" 您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
                 ]);
             }
 

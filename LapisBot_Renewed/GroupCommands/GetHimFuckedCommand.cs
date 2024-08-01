@@ -94,7 +94,7 @@ namespace LapisBot_Renewed.GroupCommands
                                                                           memberList[i] + "&s=640");
                             message = 
                             [
-                                new CqAtMsg(source.Sender.UserId),
+                                new CqReplyMsg(source.MessageId),
                                 new CqImageMsg("base64://" + image),
                                 new CqTextMsg("您把 "),
                                 new CqTextMsg(memberName + " (" + memberList[i] + ") "),
@@ -105,7 +105,7 @@ namespace LapisBot_Renewed.GroupCommands
                         {
                             message = 
                             [
-                                new CqAtMsg(source.Sender.UserId),
+                                new CqReplyMsg(source.MessageId),
                                 new CqTextMsg("您把 "),
                                 new CqTextMsg(memberName + " (" + memberList[i] + ") "),
                                 new CqTextMsg("狠狠地操了一顿")
@@ -126,8 +126,8 @@ namespace LapisBot_Renewed.GroupCommands
                 {
                     var message = new CqMessage()
                     {
-                        new CqAtMsg(source.Sender.UserId),
-                        new CqTextMsg(" 近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
                     };
                     Program.Session.SendGroupMessageAsync(source.GroupId, message);
                 }

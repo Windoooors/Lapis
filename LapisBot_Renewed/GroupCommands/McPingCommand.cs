@@ -77,7 +77,7 @@ namespace LapisBot_Renewed.GroupCommands
                 {
                     await (
                         Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 未找到该服务器")]));
+                            [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该服务器")]));
                 }
             }
         }
@@ -93,7 +93,7 @@ namespace LapisBot_Renewed.GroupCommands
 
             var messageChain = new CqMessage()
             {
-                new CqAtMsg(sender.UserId), new CqTextMsg(" "),
+                new CqAtMsg(sender.UserId), new CqTextMsg(""),
                 new CqImageMsg("base64://" + ImgToBase64String(server.FavIcon)), plainMessage
             };
             return messageChain;

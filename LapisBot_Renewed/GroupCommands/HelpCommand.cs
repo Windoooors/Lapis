@@ -35,8 +35,8 @@ namespace LapisBot_Renewed.GroupCommands
         {
 
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" 请访问链接以查询 Lapis 的使用方法：https://www.setchin.com/lapis_docs.html")
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("请访问链接以查询 Lapis 的使用方法：https://www.setchin.com/lapis_docs.html")
             ]);
             return Task.CompletedTask;
         }
@@ -45,8 +45,8 @@ namespace LapisBot_Renewed.GroupCommands
         {
 
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" 使用太频繁啦！请等待 " + (dateTime - DateTime.Now).Seconds + " 秒后再试")
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("使用太频繁啦！请等待 " + (dateTime - DateTime.Now).Seconds + " 秒后再试")
             ]);
             return Task.CompletedTask;
         }

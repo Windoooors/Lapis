@@ -85,7 +85,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.settingsCommand.GetSettings(source);
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
-                    new CqAtMsg(source.Sender.UserId),
+                    new CqReplyMsg(source.MessageId),
                     new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
                         Program.settingsCommand.CurrentBotSettings.CompressedImage))
                 ]);

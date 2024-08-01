@@ -47,16 +47,16 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 var i = new Random().Next(0, _dirtyWordsStrings.Length);
                 Program.Session.SendGroupMessageAsync(source.GroupId, [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" " + _dirtyWordsStrings[i])
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg(_dirtyWordsStrings[i])
                 ]);
             }
             else
             {
                 var i = new Random().Next(1, 5);
                 Program.Session.SendGroupMessageAsync(source.GroupId, [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" " + _dirtyWordsStrings[i])
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg(_dirtyWordsStrings[i])
                 ]);
             }
 

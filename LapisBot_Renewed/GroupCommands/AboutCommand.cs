@@ -61,7 +61,7 @@ namespace LapisBot_Renewed.GroupCommands
                 .Text(20.49, 325, "Version " + Assembly.GetAssembly(GetType()).GetName().Version.ToString())
                 .Draw(image);
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
+                new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + image.ToBase64())
             ]);
             return Task.CompletedTask;

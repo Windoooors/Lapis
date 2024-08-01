@@ -107,8 +107,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" 不存在该歌曲")
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("不存在该歌曲")
                 ]);
                 return Task.CompletedTask;
             }
@@ -117,8 +117,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" " + GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg(GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
                 ]);
                 return Task.CompletedTask;
             }
@@ -136,8 +136,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             Program.Session.SendGroupMessageAsync(source.GroupId,
             [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
                               songs[0].Title + " [" + songs[0].Type +
                               "] 的别称")
             ]);

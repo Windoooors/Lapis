@@ -57,7 +57,7 @@ namespace LapisBot_Renewed.GroupCommands
                 var keyWordDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
                 var groupId = _guessingGroupsMap.Keys.ToArray()[i];
                 var taskAnnounce = new Task(() =>
-                    AnnounceAnswer(keyWordDateTimePair.Item1, groupId, false, null));
+                    AnnounceAnswer(keyWordDateTimePair.Item1, groupId, false, 0));
                 taskAnnounce.Start();
             }
         }
@@ -71,7 +71,7 @@ namespace LapisBot_Renewed.GroupCommands
             var word = keyWordDateTimePair.Item1;
             if (command.ToUpper() == word.Word.ToUpper())
             {
-                AnnounceAnswer(word, source.GroupId.ToString(), true, source.Sender.UserId.ToString());
+                AnnounceAnswer(word, source.GroupId.ToString(), true, source.MessageId);
                 return Task.CompletedTask;
             }
 
@@ -115,14 +115,14 @@ namespace LapisBot_Renewed.GroupCommands
             titleText += text;
             
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" " + titleText)
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(titleText)
             ]);
             
             return Task.CompletedTask;
         }
 
-        private Task AnnounceAnswer(WordDto word, string groupId, bool won, string senderId)
+        private Task AnnounceAnswer(WordDto word, string groupId, bool won, long messageId)
         {
             _guessingGroupsMap.Remove(groupId);
 
@@ -135,10 +135,10 @@ namespace LapisBot_Renewed.GroupCommands
             foreach (WordDto.TranslationDto translation in word.Translations)
                 text += translation.Type + "." + translation.Translation + "; \n";
 
-            if (senderId != null)
+            if (messageId != 0)
                 Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
-                    new CqAtMsg(long.Parse(senderId)),
-                    new CqTextMsg(" " + text)
+                    new CqReplyMsg(messageId),
+                    new CqTextMsg(text)
                 ]);
             else
                 Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
@@ -171,8 +171,8 @@ namespace LapisBot_Renewed.GroupCommands
             text.TrimEnd();
 
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" " + text)
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(text)
             ]);
             CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
@@ -186,8 +186,8 @@ namespace LapisBot_Renewed.GroupCommands
                 {
 
                     Program.Session.SendGroupMessageAsync(source.GroupId, [
-                        new CqAtMsg(source.Sender.UserId),
-                        new CqTextMsg(" 没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
                     ]);
                     CancelCoolDownTimer(source.GroupId.ToString());
                     return Task.CompletedTask;
@@ -199,7 +199,7 @@ namespace LapisBot_Renewed.GroupCommands
                     {
                         CancelCoolDownTimer(source.GroupId.ToString());
                         AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i].Item1, source.GroupId.ToString(), false,
-                            source.Sender.UserId.ToString());
+                            source.MessageId);
                     }
                 }
 
@@ -225,8 +225,8 @@ namespace LapisBot_Renewed.GroupCommands
                         {
 
                             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                                new CqAtMsg(source.Sender.UserId),
-                                new CqTextMsg(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                                new CqReplyMsg(source.MessageId),
+                                new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
                             ]);
                             return Task.CompletedTask;
                         }
@@ -245,8 +245,8 @@ namespace LapisBot_Renewed.GroupCommands
 
 
                         Program.Session.SendGroupMessageAsync(source.GroupId, [
-                            new CqAtMsg(source.Sender.UserId),
-                            new CqTextMsg(" " + text)
+                            new CqReplyMsg(source.MessageId),
+                            new CqTextMsg(text)
                         ]);
                         return Task.CompletedTask;
                     }
@@ -263,8 +263,8 @@ namespace LapisBot_Renewed.GroupCommands
             if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId, [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" 本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
                 ]);
                 return Task.CompletedTask;
             }
@@ -284,8 +284,8 @@ namespace LapisBot_Renewed.GroupCommands
 
 
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" " + text)
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(text)
             ]);
             return Task.CompletedTask;
         }

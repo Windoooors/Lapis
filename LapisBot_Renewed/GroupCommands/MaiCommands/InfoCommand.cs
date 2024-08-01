@@ -287,7 +287,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 }
 
                 Program.Session.SendGroupMessageAsync(source.GroupId, [
-                    new CqAtMsg(source.Sender.UserId), new CqTextMsg(
+                    new CqReplyMsg(source.MessageId), new CqTextMsg(
                         " 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + "\" 指令即可查询歌曲 " +
                         songs[0].Title + " [" + songs[0].Type +
                         "] 的信息")
@@ -310,14 +310,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     catch
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 未找到该玩家")]);
+                            [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该玩家")]);
                         return Task.CompletedTask;
                     }
 
                     if (!GetScoreDto.GetScore.userExists)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [new CqAtMsg(source.Sender.UserId), new CqTextMsg(" 未找到该玩家")]);
+                            [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该玩家")]);
                         return Task.CompletedTask;
                     }
                 }
@@ -333,7 +333,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 GetScoreDto.GetScore.Levels,
                 Program.settingsCommand.CurrentBotSettings.CompressedImage));
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqAtMsg(source.Sender.UserId), image]);
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), image]);
 
             if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
             {

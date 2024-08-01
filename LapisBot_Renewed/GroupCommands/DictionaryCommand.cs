@@ -55,8 +55,8 @@ namespace LapisBot_Renewed.GroupCommands
             if (targetWordItem == null)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId, [
-                    new CqAtMsg(source.Sender.UserId),
-                    new CqTextMsg(" 未查询到该词语")
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("未查询到该词语")
                 ]);
                 return Task.CompletedTask;
             }
@@ -68,8 +68,8 @@ namespace LapisBot_Renewed.GroupCommands
             text.TrimEnd();
 
             Program.Session.SendGroupMessageAsync(source.GroupId, [
-                new CqAtMsg(source.Sender.UserId),
-                new CqTextMsg(" " + text)
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(text)
             ]);
             CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
