@@ -93,7 +93,7 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 foreach (var valueAliasString in valueAlias.Aliases)
                 {
-                    if (valueAliasString.Equals(alias))
+                    if (valueAliasString.ToLower().Equals(alias.ToLower()))
                         aliases.Add(valueAlias);
                 }
             }
@@ -196,11 +196,11 @@ namespace LapisBot_Renewed.GroupCommands
 
             var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
             var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
-            if (idRegex.IsMatch(inputString))
+            if (idRegex.IsMatch(inputString.ToLower()))
             {
                 try
                 {
-                    var id = int.Parse(idHeadRegex.Replace(inputString, string.Empty));
+                    var id = int.Parse(idHeadRegex.Replace(inputString.ToLower(), string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
                         return [Songs[index]];
@@ -232,8 +232,8 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 foreach (var aliasString in alias.Aliases)
                 {
-                    if (inputString.StartsWith(aliasString))
-                        tempAlias.Add(aliasString);
+                    if (inputString.ToLower().StartsWith(aliasString.ToLower()))
+                        tempAlias.Add(aliasString.ToLower());
                 }
             }
             
@@ -243,27 +243,21 @@ namespace LapisBot_Renewed.GroupCommands
                 var a = LocalAlias.Singleton.Get(e1);
                 foreach (var aliasString in a)
                 {
-                    if (inputString.StartsWith(aliasString))
-                        tempAlias.Add(aliasString);
+                    if (inputString.ToLower().StartsWith(aliasString.ToLower()))
+                        tempAlias.Add(aliasString.ToLower());
                 }
             }
 
             foreach (var song in Songs)
             {
-                if (inputString.StartsWith(song.Title))
-                    tempTitles.Add(song.Title);
+                if (inputString.ToLower().StartsWith(song.Title.ToLower()))
+                    tempTitles.Add(song.Title.ToLower());
 
-                if (inputString.StartsWith("id" + song.Id))
-                    tempIds.Add("id" + song.Id);
-
-                if (inputString.StartsWith("ID" + song.Id))
-                    tempIds.Add("ID" + song.Id);
-
-                if (inputString.StartsWith("id " + song.Id))
-                    tempIds.Add("id " + song.Id);
-
-                if (inputString.StartsWith("ID " + song.Id))
-                    tempIds.Add("ID " + song.Id);
+                if (inputString.ToLower().StartsWith(("id" + song.Id).ToLower()))
+                    tempIds.Add(("id" + song.Id).ToLower());
+                
+                if (inputString.ToLower().StartsWith(("id " + song.Id).ToLower()))
+                    tempIds.Add(("id " + song.Id).ToLower());
             }
 
             var sortedTempAlias = tempAlias.OrderByDescending(t => t.Length);
@@ -271,13 +265,13 @@ namespace LapisBot_Renewed.GroupCommands
             var sortedTempTitles = tempTitles.OrderByDescending(t => t.Length);
             
             foreach (string alias in sortedTempAlias)
-                if (inputString.StartsWith(alias + " ") || inputString == alias)
+                if (inputString.ToLower().StartsWith(alias + " ") || inputString.ToLower() == alias)
                     return alias;
             foreach (string id in sortedTempIds)
-                if (inputString.StartsWith(id + " ") || inputString == id)
+                if (inputString.ToLower().StartsWith(id + " ") || inputString.ToLower() == id)
                     return id;
             foreach (string title in sortedTempTitles)
-                if (inputString.StartsWith(title + " ") || inputString == title)
+                if (inputString.ToLower().StartsWith(title + " ") || inputString.ToLower() == title)
                     return title;
 
             return null;

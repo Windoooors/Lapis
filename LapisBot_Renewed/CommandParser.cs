@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
@@ -14,32 +16,40 @@ namespace LapisBot_Renewed
         
         public async void Parse(CqPrivateMessagePostContext source)
         {
-            var command = source.Message.Text;
-
-            foreach (PrivateCommand _command in Program.privateCommands)
+            try
             {
-                await _command.ParseWithoutPreparse(command, source);
-            }
+                var command = source.Message.Text;
 
-            if (_headCommandRegex.IsMatch(command))
-            {
-                command = _headCommandRegex.Replace(command, string.Empty);
                 foreach (PrivateCommand _command in Program.privateCommands)
                 {
-                    if (_command.HeadCommand != null && _command.HeadCommand.IsMatch(command))
+                    await _command.ParseWithoutPreparse(command, source);
+                }
+
+                if (_headCommandRegex.IsMatch(command))
+                {
+                    command = _headCommandRegex.Replace(command, string.Empty);
+                    foreach (PrivateCommand _command in Program.privateCommands)
                     {
-                        command = _command.HeadCommand.Replace(command, string.Empty);
-                        await _command.Parse(command, source, false);
-                        await _command.Parse(command, source);
-                        break;
-                    }
-                    else if (_command.SubHeadCommand != null && _command.SubHeadCommand.IsMatch(command))
-                    {
-                        command = _command.SubHeadCommand.Replace(command, string.Empty);
-                        await _command.Parse(command, source, true);
-                        break;
+                        if (_command.HeadCommand != null && _command.HeadCommand.IsMatch(command))
+                        {
+                            command = _command.HeadCommand.Replace(command, string.Empty);
+                            await _command.Parse(command, source, false);
+                            await _command.Parse(command, source);
+                            break;
+                        }
+                        else if (_command.SubHeadCommand != null && _command.SubHeadCommand.IsMatch(command))
+                        {
+                            command = _command.SubHeadCommand.Replace(command, string.Empty);
+                            await _command.Parse(command, source, true);
+                            break;
+                        }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                await Program.Session.SendPrivateMessageAsync(source.Sender.UserId,
+                    [new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)]);
             }
             //MessageManager.SendFriendMessageAsync(source.FriendId, "_(:_」∠)_\n感谢您对 Lapis 的支持\n在将 Lapis 拉入您的群聊后，您可以在群聊中发送 \"lps help\" 或访问 https://www.setchin.com/lapis.html 以获取帮助 \nLapis 不会占用其他 Bot 的触发指令，请使用 \"lps\" 或 \"l\" 来触发 Lapis");
         }
@@ -65,27 +75,36 @@ namespace LapisBot_Renewed
 
         public void MainParse(CqGroupMessagePostContext source)
         {
-            if ((Program.BotSettings.IsDevelopingMode &&
-                 (source.Sender.UserId == 2794813909 || source.Sender.UserId == 361851827 || source.Sender.UserId == 2750558108)) ||
-                !Program.BotSettings.IsDevelopingMode)
+            try
             {
-                Program.settingsCommand.GetSettings(source);
+                if ((Program.BotSettings.IsDevelopingMode &&
+                     (source.Sender.UserId == 2794813909 || source.Sender.UserId == 361851827 ||
+                      source.Sender.UserId == 2750558108)) ||
+                    !Program.BotSettings.IsDevelopingMode)
+                {
+                    Program.settingsCommand.GetSettings(source);
 
-                var commandString = source.Message.Text;
+                    var commandString = source.Message.Text;
 
-                RespondWithoutParsingCommand(source, commandString, Program.groupCommands);
+                    RespondWithoutParsingCommand(source, commandString, Program.groupCommands);
 
-                var currentBotSettings = Program.settingsCommand.CurrentBotSettings;
-                if (currentBotSettings.HeadlessCommand)
-                    ParseHeadlessly(source, commandString, Program.groupCommands);
+                    var currentBotSettings = Program.settingsCommand.CurrentBotSettings;
+                    if (currentBotSettings.HeadlessCommand)
+                        ParseHeadlessly(source, commandString, Program.groupCommands);
 
-                if (!_headCommandRegex.IsMatch(commandString))
-                    return;
+                    if (!_headCommandRegex.IsMatch(commandString))
+                        return;
 
-                commandString = _headCommandRegex.Replace(commandString, string.Empty);
-                
-                if (!Parse(source, commandString, Program.groupCommands))
-                    Program.helpCommand.Parse(commandString, source);
+                    commandString = _headCommandRegex.Replace(commandString, string.Empty);
+
+                    if (!Parse(source, commandString, Program.groupCommands))
+                        Program.helpCommand.Parse(commandString, source);
+                }
+            }
+            catch(Exception ex)
+            {
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)]);
             }
         }
 
@@ -94,11 +113,19 @@ namespace LapisBot_Renewed
         {
             foreach (GroupCommand command in commands)
             {
-                var taskParse = new Task(() => command.RespondWithoutParsingCommand(commandString, source));
-                taskParse.Start();
-                if (command.SubCommands.Count != 0)
+                try
                 {
-                    RespondWithoutParsingCommand(source, commandString, command.SubCommands);
+                    var taskParse = new Task(() => command.RespondWithoutParsingCommand(commandString, source));
+                    taskParse.Start();
+                    if (command.SubCommands.Count != 0)
+                    {
+                        RespondWithoutParsingCommand(source, commandString, command.SubCommands);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                        [new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)]);
                 }
             }
         }

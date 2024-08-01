@@ -268,7 +268,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             if (songs == null)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("未找到该歌曲")]);
+                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该歌曲")]);
                 return Task.CompletedTask;
             }
 
@@ -297,7 +297,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
 
             var indicatorRegex = new Regex(indicatorString);
-            var userName = indicatorRegex.Replace(command, "", 1);
+            var userName = indicatorRegex.Replace(command.ToLower(), "", 1);
             if (userName != string.Empty)
             {
                 GetScoreDto.GetScore.Get(userName.Substring(1, userName.Length - 1), songs[0]);
