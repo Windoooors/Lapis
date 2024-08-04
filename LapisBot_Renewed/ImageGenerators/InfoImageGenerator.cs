@@ -207,7 +207,7 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(sizeOfString.Width * 2.3f - 10, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
+                    .Text(sizeOfString.Width * 0.75f + 10, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
                     .Draw(difficultyLayerImage);
                 
                 new Drawables()

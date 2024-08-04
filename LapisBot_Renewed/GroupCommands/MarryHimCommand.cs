@@ -116,13 +116,20 @@ namespace LapisBot_Renewed.GroupCommands
                         if (couple.Key == source.Sender.UserId.ToString())
                         {
                             var message = new CqMessage();
-                            try
+                            if (IsGroupContainsMember(source.GroupId, long.Parse(couple.Value)))
                             {
                                 var result =
                                     Program.Session.GetGroupMemberInformation(source.GroupId, long.Parse(couple.Value));
                                 if (result == null)
                                     return Task.CompletedTask; 
-                                var memberName = result.Nickname;
+                                
+                                var memberName = "";
+
+                                if (result.GroupNickname != "")
+                                    memberName = result.GroupNickname;
+                                else
+                                    memberName = result.Nickname;
+                                
                                 if (!OperatingSystem.IsMacOS())
                                 {
                                     var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
@@ -146,7 +153,7 @@ namespace LapisBot_Renewed.GroupCommands
                                     ];
                                 }
                             }
-                            catch
+                            else
                             {
                                 couples.Remove(couple);
                                 _couplesInGroups.Remove(source.GroupId.ToString());
@@ -179,13 +186,20 @@ namespace LapisBot_Renewed.GroupCommands
                             }
                         }
 
-                        try
+                        if (IsGroupContainsMember(source.GroupId, long.Parse(memberList[i])))
                         {
                             var result =
                                 Program.Session.GetGroupMemberInformation(source.GroupId, long.Parse(memberList[i]));
                             if (result == null)
                                 return Task.CompletedTask; 
-                            var memberName = result.Nickname;
+                            
+                            var memberName = "";
+
+                            if (result.GroupNickname != "")
+                                memberName = result.GroupNickname;
+                            else
+                                memberName = result.Nickname;
+                            
                             var message = new CqMessage();
                             if (!OperatingSystem.IsMacOS())
                             {
@@ -217,7 +231,7 @@ namespace LapisBot_Renewed.GroupCommands
                             
                             Program.Session.SendGroupMessageAsync(source.GroupId, message);
                         }
-                        catch
+                        else
                         {
                             memberList.RemoveAt(i);
                             Groups.Remove(source.GroupId.ToString());

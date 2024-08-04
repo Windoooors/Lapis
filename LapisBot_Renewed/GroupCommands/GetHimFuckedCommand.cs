@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using DNS.Protocol;
 using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
@@ -80,13 +81,20 @@ namespace LapisBot_Renewed.GroupCommands
                         }
                     }
 
-                    try
+                    if (IsGroupContainsMember(source.GroupId, long.Parse(memberList[i])))
                     {
                         var result =
                             Program.Session.GetGroupMemberInformation(source.GroupId, long.Parse(memberList[i]));
                         if (result == null)
                             return Task.CompletedTask; 
-                        var memberName = result.Nickname;
+                        
+                        var memberName = "";
+
+                        if (result.GroupNickname != "")
+                            memberName = result.GroupNickname;
+                        else
+                            memberName = result.Nickname;
+                        
                         var message = new CqMessage();
                         if (!OperatingSystem.IsMacOS())
                         {
@@ -114,7 +122,7 @@ namespace LapisBot_Renewed.GroupCommands
                         
                         Program.Session.SendGroupMessageAsync(source.GroupId, message);
                     }
-                    catch
+                    else
                     {
                         memberList.RemoveAt(i);
                         Groups.Remove(source.GroupId.ToString());

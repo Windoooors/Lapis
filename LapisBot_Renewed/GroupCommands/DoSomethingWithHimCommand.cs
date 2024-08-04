@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
@@ -41,6 +42,22 @@ namespace LapisBot_Renewed.GroupCommands
                 subCommand.Unload();
             Console.WriteLine("Data of groups have been saved.");
             return Task.CompletedTask;
+        }
+
+        public bool IsGroupContainsMember(long groupId, long memberId)
+        {
+            var group = Program.Session.GetGroupMemberList(groupId);
+            if (group == null)
+                return false;
+            var memberList = group.Members;
+            
+            foreach (var member in memberList)
+            {
+                if (member.UserId == memberId)
+                    return true;
+            }
+
+            return false;
         }
 
         public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
