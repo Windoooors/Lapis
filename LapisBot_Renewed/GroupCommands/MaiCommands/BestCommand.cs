@@ -243,7 +243,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                 [
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，清前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+                    new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
                 ]);
             }
 

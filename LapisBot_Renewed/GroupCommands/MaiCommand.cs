@@ -179,7 +179,7 @@ namespace LapisBot_Renewed.GroupCommands
             return Songs[GetSongIndexById(id)];
         }
 
-        public SongDto[] GetSongs(string inputString)
+ public SongDto[] GetSongs(string inputString)
         {
             var aliases = GetAliasByAliasString(inputString);
             
@@ -188,7 +188,8 @@ namespace LapisBot_Renewed.GroupCommands
                 var songsList = new List<SongDto>();
                 foreach (var alias in aliases)
                 {
-                    songsList.Add(Songs[GetSongIndexById(alias.Id)]);
+                    if (!songsList.Contains(Songs[GetSongIndexById(alias.Id)]))
+                        songsList.Add(Songs[GetSongIndexById(alias.Id)]);
                 }
 
                 return songsList.ToArray();
@@ -291,7 +292,8 @@ namespace LapisBot_Renewed.GroupCommands
                 var songsList = new List<SongDto>();
                 foreach (var alias in aliases)
                 {
-                    songsList.Add(Songs[GetSongIndexById(alias.Id)]);
+                    if (!songsList.Contains(Songs[GetSongIndexById(alias.Id)]))
+                        songsList.Add(Songs[GetSongIndexById(alias.Id)]);
                 }
 
                 return songsList.ToArray();
