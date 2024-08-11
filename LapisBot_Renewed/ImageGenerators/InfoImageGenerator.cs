@@ -208,7 +208,7 @@ namespace LapisBot_Renewed.ImageGenerators
                     Font font = new Font(privateFontCollection.Families[0], 40);
                     Bitmap bitMap = new Bitmap(1400, 1280);
                     Graphics graphics = Graphics.FromImage(bitMap);
-                    graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
+                    sizeOfString = graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
                     bitMap.Dispose();
                     graphics.Dispose();
                 }
@@ -218,7 +218,7 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(sizeOfString.Width * 1f + 10, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
+                    .Text(sizeOfString.Width * 0.67f + 4, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
                     .Draw(difficultyLayerImage);
                 
                 new Drawables()

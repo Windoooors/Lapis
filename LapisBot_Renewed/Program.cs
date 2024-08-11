@@ -14,6 +14,7 @@ namespace LapisBot_Renewed
     public class BotSettings
     {
         public string Address;
+        public string FFMpegPath;
         public bool IsDevelopingMode = false;
     }
     

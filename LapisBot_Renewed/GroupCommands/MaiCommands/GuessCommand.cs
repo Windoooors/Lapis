@@ -10,6 +10,7 @@ using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
 using LapisBot_Renewed.ImageGenerators;
 using Newtonsoft.Json;
+using Xabe.FFmpeg;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -17,19 +18,47 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
     {
         public static string Convert(int id)
         {
-            if (!Directory.Exists(AppContext.BaseDirectory + "temp/" + id))
+            try
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + "temp/" + id);
-                var command = "ffmpeg -i " + AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3" + " -f segment -segment_time 3 -c copy " + AppContext.BaseDirectory +
-                              "temp/" + id + "/%5d.mp3";
-                ApiOperator.Bash(command);
+                if (!Directory.Exists(AppContext.BaseDirectory +
+                                      "temp/" + id + "/"))
+                    Directory.CreateDirectory(AppContext.BaseDirectory +
+                                              "temp/" + id + "/");
+
+                var info = FFmpeg.GetMediaInfo(AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3").Result;
+                var duration = (int)info
+                    .Duration
+                    .TotalSeconds;
+
+                var startTime = TimeSpan.FromSeconds(new Random().Next(10, duration - 13));
+
+                var outputDuration = TimeSpan.FromSeconds(3);
+
+                if (File.Exists(AppContext.BaseDirectory +
+                                "temp/" + id + "/" +
+                                startTime.TotalSeconds + ".mp3"))
+                    return new(AppContext.BaseDirectory +
+                               "temp/" + id + "/" +
+                               startTime.TotalSeconds + ".mp3");
+
+                var conversion = FFmpeg.Conversions.New();
+
+                conversion.AddStream(info.AudioStreams).AddParameter($"-ss {startTime} -t {outputDuration}")
+                    .SetOutput(AppContext.BaseDirectory +
+                               "temp/" + id + "/" +
+                               startTime.TotalSeconds + ".mp3");
+                    
+                var result = conversion.Start().Result;
+                
+                return new(AppContext.BaseDirectory +
+                           "temp/" + id + "/" +
+                           startTime.TotalSeconds + ".mp3");
             }
-
-            var audioCount = Directory.GetFiles(AppContext.BaseDirectory + "temp/" + id).Length;
-            var audioIndex = new Random().Next(3, audioCount - 3);
-
-            return new(AppContext.BaseDirectory + "temp/" + id + "/" +
-                       audioIndex.ToString("00000") + ".mp3");
+            catch (Exception ex)
+            {
+                Console.Write(ex.StackTrace);
+                return "";
+            }
         }
     }
     
@@ -120,9 +149,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     [new CqReplyMsg(source.MessageId), new CqTextMsg("试试看吧！Lapis Bot 将在 30s 后公布答案")]);
-
+                
+                var path = AudioEditor.Convert(songs[songIndex].Id);
+                
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                    [new CqRecordMsg("file:///" + AudioEditor.Convert(songs[songIndex].Id))]);
+                    [new CqRecordMsg("file:///" + path)]);
             }
             else
                 Program.Session.SendGroupMessageAsync(source.GroupId,
