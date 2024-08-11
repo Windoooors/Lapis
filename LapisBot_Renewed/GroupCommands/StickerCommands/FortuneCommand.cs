@@ -87,6 +87,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
                     .Text(233, top, command)
                     .Draw(image);
                 Program.Session.SendGroupMessageAsync(source.GroupId, [new CqImageMsg("base64://" + image.ToBase64())]);
+                image.Dispose();
                 return Task.CompletedTask;
             }
             else

@@ -28,6 +28,8 @@ namespace LapisBot_Renewed
         public static BotSettingsCommand settingsCommand;
 
         private static DateTime lastDateTime;
+        
+        private static DateTime lastDateTimeHour;
 
         public static ApiOperator apiOperator = new ApiOperator(@"https://www.diving-fish.com");
 
@@ -36,6 +38,8 @@ namespace LapisBot_Renewed
         public static CqWsSession Session;
 
         public static event EventHandler DateChanged;
+        
+        public static event EventHandler HourChanged;
 
         public static event EventHandler TimeChanged;
 
@@ -158,6 +162,12 @@ namespace LapisBot_Renewed
                     SaveDate();
                     if (DateChanged != null)
                         DateChanged(new Object(), new EventArgs());
+                }
+                if (lastDateTimeHour.Hour != DateTime.Now.Hour)
+                {
+                    lastDateTimeHour = DateTime.Now;
+                    if (HourChanged != null)
+                        HourChanged(new Object(), new EventArgs());
                 }
             }
         }

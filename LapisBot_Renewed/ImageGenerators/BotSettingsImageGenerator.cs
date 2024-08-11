@@ -49,6 +49,7 @@ namespace LapisBot_Renewed.ImageGenerators
                         .Text(80, 46, valuePair.Value)
                         .Draw(itemImage);
                     image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
+                    itemImage.Dispose();
                     i++;
                 }
                 else if (settings.GetType().GetProperty(valuePair.Key).GetValue(settings) is string)
@@ -79,6 +80,7 @@ namespace LapisBot_Renewed.ImageGenerators
                             .Text(500, 46, itemValue)
                             .Draw(itemImage);
                     image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
+                    itemImage.Dispose();
                     i++;
                 }
 
@@ -89,7 +91,9 @@ namespace LapisBot_Renewed.ImageGenerators
                     image.Quality = 90;
                 }*/
             }
-            return image.ToBase64();
+            var result = image.ToBase64();
+            image.Dispose();
+            return result;
         }
     }
 }

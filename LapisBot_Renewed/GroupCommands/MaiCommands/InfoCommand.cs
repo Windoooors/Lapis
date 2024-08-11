@@ -328,8 +328,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 GetScoreDto.GetScore.Get(id, songs[0]);
             }
 
+            var generator = new InfoImageGenerator();
+            
             Program.settingsCommand.GetSettings(source);
-            var image = new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[0], "歌曲信息",
+            var image = new CqImageMsg("base64://" + generator.Generate(songs[0], "歌曲信息",
                 GetScoreDto.GetScore.Levels,
                 Program.settingsCommand.CurrentBotSettings.CompressedImage));
 

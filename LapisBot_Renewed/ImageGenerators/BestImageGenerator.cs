@@ -39,6 +39,8 @@ namespace LapisBot_Renewed.ImageGenerators
                 .Draw(nameForm);
             image.Composite(nameForm, 74, 25, CompositeOperator.Atop);
             
+            nameForm.Dispose();
+            
             MagickImage ratingBackground = null;
             if (best.Rating <= 999)
             {
@@ -185,6 +187,11 @@ namespace LapisBot_Renewed.ImageGenerators
             }
 
             image.Composite(head, 8, 25, CompositeOperator.Atop);
+            
+            head.Dispose();
+            if (ratingBackground != null)
+                ratingBackground.Dispose();
+            
             for (int i = 0; i < best.Charts.SdCharts.Length; i++)
             {
                 var x = 0;
@@ -231,7 +238,11 @@ namespace LapisBot_Renewed.ImageGenerators
                     x = (i - 30) * 350;
                 }
 
-                image.Composite(GenerateItem(best.Charts.SdCharts[i], i + 1), x, y, CompositeOperator.Atop);
+                var item = GenerateItem(best.Charts.SdCharts[i], i + 1);
+
+                image.Composite(item, x, y, CompositeOperator.Atop);
+                
+                item.Dispose();
             }
 
             for (int i = 0; i < best.Charts.DxCharts.Length; i++)
@@ -256,7 +267,11 @@ namespace LapisBot_Renewed.ImageGenerators
                     x = (i - 10) * 350;
                 }
 
-                image.Composite(GenerateItem(best.Charts.DxCharts[i], i + 1), x, y, CompositeOperator.Atop);
+                var item = GenerateItem(best.Charts.DxCharts[i], i + 1);
+
+                image.Composite(item, x, y, CompositeOperator.Atop);
+                
+                item.Dispose();
             }
 
             if (isCompressed)
@@ -272,7 +287,11 @@ namespace LapisBot_Renewed.ImageGenerators
                 image.Quality = 100;
             }
 
-            return image.ToBase64();
+            var result = image.ToBase64();
+            
+            image.Dispose();
+            
+            return result;
         }
 
         private MagickImage GenerateItem(BestDto.ScoreDto score, int rank)
@@ -330,6 +349,9 @@ namespace LapisBot_Renewed.ImageGenerators
             var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 350, Height = 100 });
             image.Composite(foreground, 0, 0, CompositeOperator.Atop);
             image.Composite(background, 0, 0, CompositeOperator.Atop);
+            
+            foreground.Dispose();
+            background.Dispose();
 
             var info = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 350, Height = 100 });
             new Drawables()
@@ -368,6 +390,7 @@ namespace LapisBot_Renewed.ImageGenerators
                 .TextAlignment(TextAlignment.Left)
                 .Text(114, 88, "#" + rank.ToString() + "·ID " + score.Id.ToString())
                 .Draw(info);
+            
             MagickImage _image = null;
             MagickImage _rateBackgroundImage = null;
             MagickImage _rateShadowImage = null;
@@ -533,6 +556,11 @@ namespace LapisBot_Renewed.ImageGenerators
                 image.Composite(_rateBackgroundImage, info.BaseWidth - _rateBackgroundImage.Width,
                     info.BaseHeight - _rateBackgroundImage.Height,
                     CompositeOperator.Atop);
+                
+                info.Dispose();
+                _image.Dispose();
+                _rateBackgroundImage.Dispose();
+                _rateShadowImage.Dispose();
             }
 
             return image;
@@ -552,6 +580,10 @@ namespace LapisBot_Renewed.ImageGenerators
             image.Composite(background, 0, 0, CompositeOperator.Atop);
             var foreground = new MagickImage(Environment.CurrentDirectory + @"/resource/best50/best50_background.png");
             image.Composite(foreground, 0, 0, CompositeOperator.Atop);
+            
+            background.Dispose();
+            foreground.Dispose();
+            
             return image;
         }
     }

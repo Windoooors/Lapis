@@ -10,8 +10,6 @@ namespace LapisBot_Renewed.ImageGenerators
 {
     public class InfoImageGenerator
     {
-        //public static System.Drawing.Text.PrivateFontCollection PrivateFonts;
-
         private string GetPictureId(int id)
         {
             return id.ToString("00000");
@@ -39,6 +37,8 @@ namespace LapisBot_Renewed.ImageGenerators
             backgroundCoverImage.Resize(1400, 1400);
 
             backgroundCoverImage.Composite(image, 0, 0, CompositeOperator.Atop);
+            
+            image.Dispose();
 
             image = backgroundCoverImage;
 
@@ -57,7 +57,11 @@ namespace LapisBot_Renewed.ImageGenerators
                 .Text(0, 310, song.Title)
                 .Draw(backgroundLayer);
             backgroundLayer.Rotate(-90);
+            
             image.Composite(backgroundLayer, 0, -150, CompositeOperator.Atop);
+            
+            backgroundLayer.Dispose();
+            
             new Drawables()
                 .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                 .FontPointSize(48)
@@ -148,6 +152,7 @@ namespace LapisBot_Renewed.ImageGenerators
                             difficultyLayerImage.Composite(image, x, y + 70, CompositeOperator.Blend);
                         if (image.BaseHeight == 19 || image.BaseHeight == 20 || image.BaseHeight == 18)
                             difficultyLayerImage.Composite(image, x, y + 73, CompositeOperator.Blend);
+                        image.Dispose();
                     }
 
                     var fcIndicatorText = string.Empty;
@@ -192,22 +197,28 @@ namespace LapisBot_Renewed.ImageGenerators
                     .FillColor(new MagickColor(65535, 65535, 65535))
                     .Text(0, difficultyFactorYPositions[i], song.Ratings[i].ToString("0.0"))
                     .Draw(difficultyLayerImage);
+
+                var sizeOfString = new SizeF();
                 
-                var privateFontCollection = new PrivateFontCollection();
-                privateFontCollection.AddFontFile(Environment.CurrentDirectory + @"/resource/font-light.otf");
-                
-                Font font = new Font(privateFontCollection.Families[0], 40);
-                Bitmap bitMap = new Bitmap(1400, 1280);
-                Graphics graphics = Graphics.FromImage(bitMap);
-                SizeF sizeOfString = new SizeF();
-                sizeOfString = graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
+                if (!OperatingSystem.IsMacOS())
+                {
+                    var privateFontCollection = new PrivateFontCollection();
+                    privateFontCollection.AddFontFile(Environment.CurrentDirectory + @"/resource/font-light.otf");
+
+                    Font font = new Font(privateFontCollection.Families[0], 40);
+                    Bitmap bitMap = new Bitmap(1400, 1280);
+                    Graphics graphics = Graphics.FromImage(bitMap);
+                    graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
+                    bitMap.Dispose();
+                    graphics.Dispose();
+                }
                 //Console.WriteLine("String Width: " + sizeOfString.Width);
                 
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(sizeOfString.Width * 0.75f + 10, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
+                    .Text(sizeOfString.Width * 1f + 10, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
                     .Draw(difficultyLayerImage);
                 
                 new Drawables()
@@ -234,20 +245,31 @@ namespace LapisBot_Renewed.ImageGenerators
         {
             var image = GenerateBackground(song, title, Program.apiOperator);
 
-            image.Composite(GenerateDifficultyLayer(song, levels), 90, 305, CompositeOperator.Atop);
+            var difficultyLayer = GenerateDifficultyLayer(song, levels);
+            
+            image.Composite(difficultyLayer, 90, 305, CompositeOperator.Atop);
+            
+            difficultyLayer.Dispose();
             
             var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resource/random/coverimage.png");
             image.Composite(coverImageShadow, 0, 0, CompositeOperator.Atop);
+            
+            coverImageShadow.Dispose();
 
             var coverImage = new MagickImage(_coverImagePath);
             coverImage.Resize(1077, 1077);
             image.Composite(coverImage, 324, 207, CompositeOperator.Atop);
+            
+            coverImage.Dispose();
+            
             MagickImage foreImage;
             if (song.Id.ToString().Length == 6)
                 foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground_utage.png");
             else
                 foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground.png");
             image.Composite(foreImage, 0, 0, CompositeOperator.Atop);
+            
+            foreImage.Dispose();
 
             new Drawables()
                 .Font(Environment.CurrentDirectory + @"/resource/font.otf")
@@ -282,6 +304,9 @@ namespace LapisBot_Renewed.ImageGenerators
 
             songTypeLayer.Rotate(-90);
             image.Composite(songTypeLayer, 30, 214, CompositeOperator.Atop);
+            
+            songTypeLayer.Dispose();
+            
             //image.Resize(1047, 952);
             if (isCompressed)
             {
@@ -290,7 +315,9 @@ namespace LapisBot_Renewed.ImageGenerators
                 image.Quality = 90;
             }
 
-            return image.ToBase64();
+            var result = image.ToBase64();
+            image.Dispose();
+            return result;
         }
     }
 }

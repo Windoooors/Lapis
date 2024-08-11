@@ -113,6 +113,9 @@ namespace LapisBot_Renewed
             bitmap.Save(stream, System.DrawingCore.Imaging.ImageFormat.Jpeg);
             byte[] bytes = new byte[stream.Length]; stream.Position = 0;
             stream.Read(bytes, 0, (int)stream.Length); stream.Close();
+            image.Dispose();
+            bitmap.Dispose();
+            stream.Dispose();
             return Convert.ToBase64String(bytes);
         }
         

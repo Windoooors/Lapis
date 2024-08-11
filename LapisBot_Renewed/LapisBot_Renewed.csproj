@@ -30,9 +30,9 @@
   <ItemGroup>
     <PackageReference Include="EleCho.GoCqHttpSdk" Version="1.2.5" />
     <PackageReference Include="Font" Version="0.3.0.3" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.4.0" />
-    <PackageReference Include="Magick.NET.Core" Version="13.4.0" />
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2612" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.10.0" />
+    <PackageReference Include="Magick.NET.Core" Version="13.10.0" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2662" />
     <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
     <PackageReference Include="DNS" Version="7.0.0" />
     <PackageReference Include="mcswlib" Version="2.1.1" />
