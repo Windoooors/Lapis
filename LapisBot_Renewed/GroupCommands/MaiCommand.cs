@@ -88,6 +88,7 @@ namespace LapisBot_Renewed.GroupCommands
 
         private Alias[] GetAliasByAliasString(string alias)
         {
+            alias = alias.ToLower();
             var aliases = new List<Alias>();
             foreach (var valueAlias in _songAliases)
             {
@@ -102,17 +103,20 @@ namespace LapisBot_Renewed.GroupCommands
             foreach(var e1 in localAlias.GetIds())
             {
                 var a = LocalAlias.Singleton.Get(e1);
-                if(a.Contains(alias))
+                foreach (var aliasString in a)
                 {
-                    var temp = new Alias(){Aliases = new List<string>()};
-                    temp.Id = e1;
-                    
-                    foreach (var e2 in a)
+                    if (aliasString.ToLower() == alias)
                     {
-                        temp.Aliases.Add(e2);
-                    }
+                        var temp = new Alias(){Aliases = new List<string>()};
+                        temp.Id = e1;
                     
-                    aliases.Add(temp);
+                        foreach (var e2 in a)
+                        {
+                            temp.Aliases.Add(e2);
+                        }
+                    
+                        aliases.Add(temp);
+                    }
                 }
             }
 
@@ -179,10 +183,11 @@ namespace LapisBot_Renewed.GroupCommands
             return Songs[GetSongIndexById(id)];
         }
 
- public SongDto[] GetSongs(string inputString)
+        public SongDto[] GetSongs(string inputString)
         {
+            inputString = inputString.ToLower();
             var aliases = GetAliasByAliasString(inputString);
-            
+
             if (aliases.Length != 0)
             {
                 var songsList = new List<SongDto>();
@@ -280,6 +285,7 @@ namespace LapisBot_Renewed.GroupCommands
 
         public SongDto[] GetSongsUsingStartsWith(string inputString)
         {
+            inputString = inputString.ToLower();
             var songIndicator = GetSongIndicatorString(inputString);
 
             if (songIndicator == null)
