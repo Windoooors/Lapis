@@ -151,25 +151,33 @@ namespace LapisBot_Renewed
 
         static void Reload()
         {
-            while (true)
+            try
             {
-                Thread.Sleep(1000);
-                if (TimeChanged != null)
-                    TimeChanged(new Object(), new EventArgs());
-                //Console.WriteLine(DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second);
-                if (lastDateTime.Date != DateTime.Now.Date)
+                while (true)
                 {
-                    lastDateTime = DateTime.Now;
-                    SaveDate();
-                    if (DateChanged != null)
-                        DateChanged(new Object(), new EventArgs());
+                    Thread.Sleep(1000);
+                    if (TimeChanged != null)
+                        TimeChanged(new Object(), new EventArgs());
+                    //Console.WriteLine(DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second);
+                    if (lastDateTime.Date != DateTime.Now.Date)
+                    {
+                        lastDateTime = DateTime.Now;
+                        SaveDate();
+                        if (DateChanged != null)
+                            DateChanged(new Object(), new EventArgs());
+                    }
+
+                    if (lastDateTimeHour.Hour != DateTime.Now.Hour)
+                    {
+                        lastDateTimeHour = DateTime.Now;
+                        if (HourChanged != null)
+                            HourChanged(new Object(), new EventArgs());
+                    }
                 }
-                if (lastDateTimeHour.Hour != DateTime.Now.Hour)
-                {
-                    lastDateTimeHour = DateTime.Now;
-                    if (HourChanged != null)
-                        HourChanged(new Object(), new EventArgs());
-                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Unknown error:\n\n" + ex.StackTrace + "\n\n" + ex.Message);
             }
         }
 
