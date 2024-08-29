@@ -19,19 +19,12 @@ namespace LapisBot_Renewed.GroupCommands
 
         private void Reload(object sender, EventArgs e)
         {
-            Start();
-        }
-
-        private void HourlySave(object sender, EventArgs e)
-        {
             if (Groups.Count != 0)
-                System.IO.File.WriteAllText(Environment.CurrentDirectory + "/groups.json",
+                File.WriteAllText(Environment.CurrentDirectory + "/groups.json",
                     JsonConvert.SerializeObject(Groups));
             Console.WriteLine("Data of groups have been saved.");
             
-            System.IO.File.WriteAllText(Environment.CurrentDirectory + "/couples.json",
-                JsonConvert.SerializeObject(_couplesInGroups));
-            Console.WriteLine("Couples data have been saved.");
+            Start();
         }
 
         private void Start()
@@ -60,7 +53,6 @@ namespace LapisBot_Renewed.GroupCommands
             }
 
             Program.DateChanged += Reload;
-            Program.HourChanged += HourlySave;
             
             Start();
             if (System.IO.File.Exists(Environment.CurrentDirectory + "/couples.json"))
