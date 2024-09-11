@@ -167,10 +167,19 @@ public class PlateImageGenerator
 
         backgroundImage.Resize(75, 75);
         backgroundImage.GaussianBlur(10);
-        backgroundImage.Resize(totalHeight, totalHeight);
+        if (totalHeight > 700)
+        {
+            backgroundImage.Resize(totalHeight, totalHeight);
+            image.Composite(backgroundImage, (700 - totalHeight) / 2, 0, CompositeOperator.Blend);
+        }
+        else
+        {
+            backgroundImage.Resize(700, 700);
+            image.Composite(backgroundImage, 0, (totalHeight - 700) / 2, CompositeOperator.Blend);
+        }
 
-        image.Composite(backgroundImage, (700 - totalHeight) / 2, 0, CompositeOperator.Blend);
-        
+
+
         backgroundImage.Dispose();
         
         var mask = new MagickImage(AppContext.BaseDirectory + "resource/plate/mask.png");
