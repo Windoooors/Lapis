@@ -240,25 +240,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     userExists = false;
                 }
             }
-
-            public class ScoresDto
-            {
-                [JsonProperty("verlist")] public ScoreDto[] ScoreDtos;
-
-                public class ScoreDto
-                {
-                    [JsonProperty("achievements")] public float Achievements;
-
-                    [JsonProperty("fc")] public string Fc;
-
-                    [JsonProperty("fs")] public string Fs;
-
-                    [JsonProperty("Id")] public int Id;
-
-                    [JsonProperty("level_index")] public int LevelIndex;
-                }
-            }
-
+            
             public static GetScoreDto GetScore = new GetScoreDto();
         }
 

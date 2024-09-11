@@ -12,6 +12,24 @@ using LapisBot_Renewed.Collections;
 
 namespace LapisBot_Renewed.GroupCommands
 {
+    
+    public class ScoresDto
+    {
+        [JsonProperty("verlist")] public ScoreDto[] ScoreDtos;
+
+        public class ScoreDto
+        {
+            [JsonProperty("achievements")] public float Achievements;
+
+            [JsonProperty("fc")] public string Fc;
+
+            [JsonProperty("fs")] public string Fs;
+
+            [JsonProperty("Id")] public int Id;
+
+            [JsonProperty("level_index")] public int LevelIndex;
+        }
+    }
 
     public class ExtraSongDto
     {
@@ -193,6 +211,8 @@ namespace LapisBot_Renewed.GroupCommands
                 var songsList = new List<SongDto>();
                 foreach (var alias in aliases)
                 {
+                    if (GetSongIndexById(alias.Id) == -1)
+                        continue;
                     if (!songsList.Contains(Songs[GetSongIndexById(alias.Id)]))
                         songsList.Add(Songs[GetSongIndexById(alias.Id)]);
                 }
@@ -298,6 +318,8 @@ namespace LapisBot_Renewed.GroupCommands
                 var songsList = new List<SongDto>();
                 foreach (var alias in aliases)
                 {
+                    if (GetSongIndexById(alias.Id) == -1)
+                        continue;
                     if (!songsList.Contains(Songs[GetSongIndexById(alias.Id)]))
                         songsList.Add(Songs[GetSongIndexById(alias.Id)]);
                 }
@@ -530,6 +552,7 @@ namespace LapisBot_Renewed.GroupCommands
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
             SubCommands.Add(new GuessCommand() { MaiCommandCommand = this });
             SubCommands.Add(new AircadeCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
             
             foreach (var subMaiCommand in SubCommands)
             {
