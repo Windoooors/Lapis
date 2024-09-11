@@ -42,14 +42,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             { "輝", "maimai FiNALE" },
             { "舞", "maimai ALL" },
             { "熊", "maimai でらっくす" },
-            { "華", "maimai でらっくす PLUS" },
+            { "華", "maimai でらっくす" },
             { "爽", "maimai でらっくす Splash" },
-            { "煌", "maimai でらっくす Splash PLUS" },
+            { "煌", "maimai でらっくす Splash" },
             { "宙", "maimai でらっくす UNiVERSE" },
-            { "星", "maimai でらっくす UNiVERSE PLUS" },
+            { "星", "maimai でらっくす UNiVERSE" },
             { "祭", "maimai でらっくす FESTiVAL" },
-            { "祝", "maimai でらっくす FESTiVAL PLUS" },
-            { "双", "maimai でらっくす BUDDiES" }
+            { "祝", "maimai でらっくす FESTiVAL" }
+            //{ "双", "maimai でらっくす BUDDiES" }
         };
 
         public Dictionary<string, string> Characters = new Dictionary<string, string>()

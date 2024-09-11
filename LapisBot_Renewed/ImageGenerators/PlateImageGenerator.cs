@@ -183,9 +183,16 @@ public class PlateImageGenerator
         backgroundImage.Dispose();
         
         var mask = new MagickImage(AppContext.BaseDirectory + "resource/plate/mask.png");
-        
-        mask.Resize(totalHeight, totalHeight);
-        
+
+        if (totalHeight > 700)
+        {
+            mask.Resize(totalHeight, totalHeight);
+        }
+        else
+        {
+            mask.Resize(700, 700);
+        }
+
         image.Composite(mask, 0, 0, CompositeOperator.Atop);
         
         mask.Dispose();
@@ -273,11 +280,11 @@ public class PlateImageGenerator
             .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
             .FontPointSize(36)
             .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-            .Text(2, 59, username)
+            .Text(4, 59, username)
             .Draw(nameForm);
         
         image.Composite(nameForm, 74, 25, CompositeOperator.Atop);
-        image.Composite(head, 8, 25, CompositeOperator.Atop);
+        image.Composite(head, 12, 25, CompositeOperator.Atop);
             
         nameForm.Dispose();
         head.Dispose();
@@ -592,7 +599,7 @@ public class PlateImageGenerator
             .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
             .FontPointSize(10)
             .FillColor(textColor)
-            .Text(7.6f, 50.2f, difficulty)
+            .Text(7.6f, 50.2f, songDto.Type + " " + difficulty)
             .Draw(textLayer);
 
         var indicatorText = "";
