@@ -379,11 +379,14 @@ public class PlateImageGenerator
                         bas++;
                     else if (song.ScoreDto.Achievements >= 100 && category == PlateCommand.PlateCategories.jiang)
                         bas++;
-                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app")&& category == PlateCommand.PlateCategories.shen)
+                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app") &&
+                             category == PlateCommand.PlateCategories.shen)
                         bas++;
-                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp")&& category == PlateCommand.PlateCategories.ji)
+                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp" || song.ScoreDto.Fc == "ap" ||
+                              song.ScoreDto.Fc == "app") && category == PlateCommand.PlateCategories.ji)
                         bas++;
-                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp")&& category == PlateCommand.PlateCategories.wuwu)
+                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp") &&
+                             category == PlateCommand.PlateCategories.wuwu)
                         bas++;
                     break;
                 case 1:
@@ -392,11 +395,14 @@ public class PlateImageGenerator
                         avd++;
                     else if (song.ScoreDto.Achievements >= 100 && category == PlateCommand.PlateCategories.jiang)
                         avd++;
-                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app")&& category == PlateCommand.PlateCategories.shen)
+                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app") &&
+                             category == PlateCommand.PlateCategories.shen)
                         avd++;
-                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp")&& category == PlateCommand.PlateCategories.ji)
+                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp" || song.ScoreDto.Fc == "ap" ||
+                              song.ScoreDto.Fc == "app") && category == PlateCommand.PlateCategories.ji)
                         avd++;
-                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp")&& category == PlateCommand.PlateCategories.wuwu)
+                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp") &&
+                             category == PlateCommand.PlateCategories.wuwu)
                         avd++;
                     break;
                 case 2:
@@ -405,11 +411,14 @@ public class PlateImageGenerator
                         exp++;
                     else if (song.ScoreDto.Achievements >= 100 && category == PlateCommand.PlateCategories.jiang)
                         exp++;
-                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app")&& category == PlateCommand.PlateCategories.shen)
+                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app") &&
+                             category == PlateCommand.PlateCategories.shen)
                         exp++;
-                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp")&& category == PlateCommand.PlateCategories.ji)
+                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp" || song.ScoreDto.Fc == "ap" ||
+                              song.ScoreDto.Fc == "app") && category == PlateCommand.PlateCategories.ji)
                         exp++;
-                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp")&& category == PlateCommand.PlateCategories.wuwu)
+                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp") &&
+                             category == PlateCommand.PlateCategories.wuwu)
                         exp++;
                     break;
                 case 3:
@@ -418,11 +427,14 @@ public class PlateImageGenerator
                         mas++;
                     else if (song.ScoreDto.Achievements >= 100 && category == PlateCommand.PlateCategories.jiang)
                         mas++;
-                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app")&& category == PlateCommand.PlateCategories.shen)
+                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app") &&
+                             category == PlateCommand.PlateCategories.shen)
                         mas++;
-                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp")&& category == PlateCommand.PlateCategories.ji)
+                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp" || song.ScoreDto.Fc == "ap" ||
+                              song.ScoreDto.Fc == "app") && category == PlateCommand.PlateCategories.ji)
                         mas++;
-                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp")&& category == PlateCommand.PlateCategories.wuwu)
+                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp") &&
+                             category == PlateCommand.PlateCategories.wuwu)
                         mas++;
                     break;
                 case 4:
@@ -431,11 +443,14 @@ public class PlateImageGenerator
                         re++;
                     else if (song.ScoreDto.Achievements >= 100 && category == PlateCommand.PlateCategories.jiang)
                         re++;
-                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app")&& category == PlateCommand.PlateCategories.shen)
+                    else if ((song.ScoreDto.Fc == "ap" || song.ScoreDto.Fc == "app") &&
+                             category == PlateCommand.PlateCategories.shen)
                         re++;
-                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp")&& category == PlateCommand.PlateCategories.ji)
+                    else if ((song.ScoreDto.Fc == "fc" || song.ScoreDto.Fc == "fcp" || song.ScoreDto.Fc == "ap" ||
+                              song.ScoreDto.Fc == "app") && category == PlateCommand.PlateCategories.ji)
                         re++;
-                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp")&& category == PlateCommand.PlateCategories.wuwu)
+                    else if ((song.ScoreDto.Fs == "fsd" || song.ScoreDto.Fs == "fsdp") &&
+                             category == PlateCommand.PlateCategories.wuwu)
                         re++;
                     break;
             }
@@ -627,7 +642,7 @@ public class PlateImageGenerator
             else
                 indicatorText = scoreDto.Fc.ToUpper();
 
-        if (category == PlateCommand.PlateCategories.ji && (scoreDto.Fc == "fc" || scoreDto.Fc == "fcp"))
+        if (category == PlateCommand.PlateCategories.ji && (scoreDto.Fc == "fc" || scoreDto.Fc == "fcp" || scoreDto.Fc == "ap" || scoreDto.Fc == "app"))
             if (scoreDto.Fc.Length > 2)
                 indicatorText = scoreDto.Fc.Substring(0, scoreDto.Fc.Length - 1).ToUpper() + "+";
             else
