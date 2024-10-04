@@ -11,6 +11,7 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
+using Xamarin.Forms.Internals;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -78,10 +79,79 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             { "宴会場", "宴会场" }
         };
 
+        public int[] ExcludedSongs =
+        [
+            70, 146, 185, 189, 190, 341, 419, 451, 455, 460, 524, 687, 688, 712, 731,
+            792, 853, 10146, 11213, 11253, 11267
+        ];
+
+        public int[] IncludedRemasterSongs =
+        [
+            834,
+            22,
+            227,
+            365,
+            799,
+            803,
+            812,
+            825,
+            833,
+            61,
+            70,
+            143,
+            198,
+            204,
+            299,
+            301,
+            496,
+            589,
+            820,
+            23,
+            24,
+            255,
+            295,
+            741,
+            756,
+            777,
+            830,
+            838,
+            58,
+            62,
+            66,
+            71,
+            81,
+            100,
+            107,
+            200,
+            226,
+            247,
+            265,
+            310,
+            312,
+            759,
+            763,
+            793,
+            809,
+            816,
+            818,
+            17,
+            80,
+            145,
+            256,
+            282,
+            296,
+            414,
+            513,
+            532,
+            806,
+            65,
+            266
+        ];
+
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"plate\s");
-            DirectCommand = new Regex(@"进度|完成表");
+            HeadCommand = new Regex(@"^plate\s");
+            DirectCommand = new Regex(@"进度$|完成表$");
             DefaultSettings.SettingsName = "牌子查询";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
@@ -115,7 +185,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            if (command == "真极" || command == "")
+            if (command == "真将" || command == "")
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage()
                 {
@@ -174,11 +244,29 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         "maimai", "maimai PLUS"
                     ];
 
+                var content = "";
+                ScoresDto scores;
+                if (!(command == "霸者" || command.StartsWith("舞")))
+                {
+                    content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                        new { username = "maxscore", version });
+                    scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+                }
+                else
+                {
+                    var list = new List<ScoresDto.ScoreDto>();
+                    foreach (SongDto song in MaiCommandCommand.Songs)
+                    {
+                        if (song.Id < 1000)
+                        {
+                            for (int i = 0; i < song.Ratings.Length; i++)
+                                list.Add(new ScoresDto.ScoreDto()
+                                    { Id = song.Id, LevelIndex = i });
+                        }
+                    }
 
-                var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
-                    new { username = "maxscore", version });
-
-                ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+                    scores = new ScoresDto() { ScoreDtos = list.ToArray() };
+                }
 
                 ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(Program.apiOperator.Post(
                     "api/maimaidxprober/query/plate",
@@ -197,13 +285,25 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
                                 scoreDto = realScore;
                         }
+                        
+                        if (ExcludedSongs.Contains(song.Id))
+                            if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
+                                continue;
 
                         if (command == "霸者" || command.StartsWith("舞"))
-                            songsToBeDisplayed.Add(new SongToBeDisplayed
-                                { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                        {
+                            if (score.LevelIndex == 4 && IncludedRemasterSongs.Contains(song.Id))
+                                songsToBeDisplayed.Add(new SongToBeDisplayed
+                                    { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                            else if (score.LevelIndex != 4)
+                                songsToBeDisplayed.Add(new SongToBeDisplayed
+                                    { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                        }
                         else if (score.LevelIndex != 4)
+                        {
                             songsToBeDisplayed.Add(new SongToBeDisplayed
                                 { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                        }
                     }
                 }
 
@@ -219,9 +319,19 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             scoreDto = realScore;
                     }
 
+                    if (ExcludedSongs.Contains(song.Id))
+                        if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
+                            continue;
+                    
                     if (command == "霸者" || command.StartsWith("舞"))
-                        allSongs.Add(new SongToBeDisplayed
-                            { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                    {
+                        if (score.LevelIndex == 4 && IncludedRemasterSongs.Contains(song.Id))
+                            allSongs.Add(new SongToBeDisplayed
+                                { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                        else if (score.LevelIndex != 4)
+                            allSongs.Add(new SongToBeDisplayed
+                                { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                    }
                     else if (score.LevelIndex != 4)
                         allSongs.Add(new SongToBeDisplayed
                             { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });

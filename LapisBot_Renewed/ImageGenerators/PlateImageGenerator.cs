@@ -316,6 +316,9 @@ public class PlateImageGenerator
                     j++;
                 }
             }
+
+            if (sortedDifficulties.Values.ToArray()[k].Count % 7 == 0)
+                j--;
             /*
             var shadow = itemGroup.Clone();
             
