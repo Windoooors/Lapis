@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using ImageMagick;
-using System.Drawing;
-using System.Drawing.Text;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using LapisBot_Renewed.GroupCommands;
 
@@ -104,7 +102,7 @@ namespace LapisBot_Renewed.ImageGenerators
                         .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                         .FontPointSize(24)
                         .FillColor(new MagickColor(65535, 65535, 65535))
-                        .Text(0, y + 92,
+                        .Text(0, y + 88,
                             level.Achievement.ToString("0.0000") +
                             "% ")
                         .Draw(difficultyLayerImage);
@@ -149,9 +147,9 @@ namespace LapisBot_Renewed.ImageGenerators
                     if (image != null)
                     {
                         if (image.BaseHeight == 22 || image.BaseHeight == 23)
-                            difficultyLayerImage.Composite(image, x, y + 70, CompositeOperator.Blend);
+                            difficultyLayerImage.Composite(image, x, y + 66, CompositeOperator.Blend);
                         if (image.BaseHeight == 19 || image.BaseHeight == 20 || image.BaseHeight == 18)
-                            difficultyLayerImage.Composite(image, x, y + 73, CompositeOperator.Blend);
+                            difficultyLayerImage.Composite(image, x, y + 69, CompositeOperator.Blend);
                         image.Dispose();
                     }
 
@@ -181,7 +179,7 @@ namespace LapisBot_Renewed.ImageGenerators
                         .Font(Environment.CurrentDirectory + @"/resource/font.otf")
                         .FontPointSize(18)
                         .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                        .Text(2, y + 67, indicatorText)
+                        .Text(0, y + 63, indicatorText)
                         .Draw(difficultyLayerImage);
                 }
             }
@@ -193,12 +191,12 @@ namespace LapisBot_Renewed.ImageGenerators
             {
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(40)
+                    .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, difficultyFactorYPositions[i], song.Ratings[i].ToString("0.0"))
+                    .Text(0, difficultyFactorYPositions[i] - 24, song.Ratings[i].ToString("0.0"))
                     .Draw(difficultyLayerImage);
 
-                var sizeOfString = new SizeF();
+                /*var sizeOfString = new SizeF();
                 
                 if (!OperatingSystem.IsMacOS())
                 {
@@ -211,21 +209,21 @@ namespace LapisBot_Renewed.ImageGenerators
                     sizeOfString = graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
                     bitMap.Dispose();
                     graphics.Dispose();
-                }
+                }*/
                 //Console.WriteLine("String Width: " + sizeOfString.Width);
                 
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(24)
+                    .FontPointSize(18)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(sizeOfString.Width * 0.67f + 4, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
+                    .Text(0, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
                     .Draw(difficultyLayerImage);
                 
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
                     .FontPointSize(24)
                     .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, charterYPositions[i], song.Charts[i].Charter == "-" ? "未知作谱者" : "by " + song.Charts[i].Charter)
+                    .Text(0, charterYPositions[i] - 10, song.Charts[i].Charter == "-" ? "未知作谱者" : "by " + song.Charts[i].Charter)
                     .Draw(difficultyLayerImage);
             }
             
