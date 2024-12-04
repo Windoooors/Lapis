@@ -150,10 +150,6 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     [new CqReplyMsg(source.MessageId), new CqTextMsg("试试看吧！Lapis Bot 将在 30s 后公布答案")]);
                 
-                if (difficulty == 23)
-                    Program.Session.SendGroupMessageAsync(source.GroupId,
-                        [new CqReplyMsg(source.MessageId), new CqTextMsg("潘你妈")]);
-                
                 var path = AudioEditor.Convert(songs[songIndex].Id);
                 
                 Program.Session.SendGroupMessageAsync(source.GroupId,

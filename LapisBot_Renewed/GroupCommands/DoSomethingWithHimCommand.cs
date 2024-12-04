@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Post;
@@ -50,16 +51,15 @@ namespace LapisBot_Renewed.GroupCommands
             if (group == null)
                 return false;
             var memberList = group.Members;
-            
+
             foreach (var member in memberList)
             {
                 if (member.UserId == memberId)
                     return true;
             }
-
             return false;
         }
-
+        
         public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
             if (Groups.ContainsKey(source.GroupId.ToString()))

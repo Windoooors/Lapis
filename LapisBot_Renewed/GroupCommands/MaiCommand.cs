@@ -391,23 +391,14 @@ namespace LapisBot_Renewed.GroupCommands
             Levels.Clear();
             ExtraLevels.Clear();
 
-            try
+            if (!Program.BotSettings.IsDevelopingMode)
             {
-                if (!Program.BotSettings.IsDevelopingMode)
-                {
-                    _aliasJObject =
-                        JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
-                    ChartStatistics =
-                        JsonConvert.DeserializeObject<ChartStatisticsDto>(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
-                }
-                else if (Program.BotSettings.IsDevelopingMode)
-                    _aliasJObject = JObject.Parse(Program.apiOperator.Get("https://imgur.setchin.com/data/f_80845285.json"));
-                /*_aliasJObject = JObject.Parse("{\n    \"魔爪\": [\n      \"11260\",\n      \"11508\",\n      \"11507\"\n    ],\n    \"原神\": [\n      \"11260\"\n    ],\n    \"我草你妈\": [\n      \"11260\"\n    ],\n    \"你妈死了\": [\n      \"11507\"\n    ]\n  }");
-            */            
-            }
-            catch
-            {
-                _aliasJObject = new JObject();
+                ChartStatistics =
+                    JsonConvert.DeserializeObject<ChartStatisticsDto>(
+                        Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
+
+                _aliasJObject =
+                    JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
             }
 
             var aliasObject = new Dictionary<string, string[]>();

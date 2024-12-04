@@ -42,14 +42,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             var content = string.Empty;
             BestDto best;
-            
+
             content = Program.apiOperator.Post("api/maimaidxprober/query/player",
-                new { username = command, b50 = true });
+                new { username = command, b50 = true }, true);
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
             if (best.Charts == null)
                 content = Program.apiOperator.Post("api/maimaidxprober/query/player",
-                    new { qq = command, b50 = true });
+                    new { qq = command, b50 = true }, true);
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
             if (best.Charts == null)
@@ -153,7 +153,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             try
             {
                 var content = Program.apiOperator.Post("api/maimaidxprober/query/player",
-                    new { qq = source.Sender.UserId.ToString(), b50 = true });
+                    new { qq = source.Sender.UserId.ToString(), b50 = true }, true);
                 //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
 
                 BestDto best = JsonConvert.DeserializeObject<BestDto>(content);

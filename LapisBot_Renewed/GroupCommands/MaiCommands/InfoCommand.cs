@@ -102,7 +102,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 try
                 {
                     var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
-                        new { username = name, version = new string[] { song.BasicInfo.Version } });
+                        new { username = name, version = new string[] { song.BasicInfo.Version } }, true);
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
                     List<Level> levelList = new List<Level>();
@@ -178,7 +178,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 try
                 {
                     var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
-                        new { qq = number, version = new string[] { song.BasicInfo.Version } });
+                        new { qq = number, version = new string[] { song.BasicInfo.Version } }, true);
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
                     List<Level> levelList = new List<Level>();

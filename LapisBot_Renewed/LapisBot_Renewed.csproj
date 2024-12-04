@@ -32,10 +32,11 @@
     <None Remove="ZKWeb.System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EleCho.GoCqHttpSdk" Version="1.2.5" />
+    <PackageReference Include="EleCho.GoCqHttpSdk" Version="1.3.0" />
     <PackageReference Include="Font" Version="0.3.0.3" />
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.10.0" />
     <PackageReference Include="Magick.NET.Core" Version="13.10.0" />
+    <PackageReference Include="Mliybs.OneBot.V11" Version="0.9.97" />
     <PackageReference Include="Xabe.FFmpeg" Version="5.2.6" />
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2662" />
     <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
@@ -167,7 +168,6 @@ namespace LapisBot_Renewed.GroupCommands
                             return Task.CompletedTask;
                         }
                     }
-
                     if (UnmarriedCount(couples, memberList) != 1 || (IsMarried(source.Sender.UserId.ToString(), couples) &&
                                                                      UnmarriedCount(couples, memberList) == 1))
                     {
@@ -187,7 +187,6 @@ namespace LapisBot_Renewed.GroupCommands
                                 i = memberList.IndexOf(keyValuePair.Key);
                             }
                         }
-
                         if (IsGroupContainsMember(source.GroupId, long.Parse(memberList[i])))
                         {
                             var result =

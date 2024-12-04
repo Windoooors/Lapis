@@ -206,7 +206,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 var userName = JsonConvert.DeserializeObject<BestDto>(Program.apiOperator.Post(
                     "api/maimaidxprober/query/player",
-                    new { qq = source.Sender.UserId })).Username;
+                    new { qq = source.Sender.UserId }, true)).Username;
 
                 var versionCharacter =
                     wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, ""), ""), ""), "");
@@ -249,7 +249,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (!(command == "霸者" || command.StartsWith("舞")))
                 {
                     content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
-                        new { username = "maxscore", version });
+                        new { username = "maxscore", version }, true);
                     scores = JsonConvert.DeserializeObject<ScoresDto>(content);
                 }
                 else
@@ -270,7 +270,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(Program.apiOperator.Post(
                     "api/maimaidxprober/query/plate",
-                    new { qq = source.Sender.UserId, version }));
+                    new { qq = source.Sender.UserId, version }, true));
 
                 var songsToBeDisplayed = new List<SongToBeDisplayed>();
 

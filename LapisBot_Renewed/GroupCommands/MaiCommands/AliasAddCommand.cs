@@ -70,14 +70,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 {
                     var songs = MaiCommandCommand.GetSongs(cmds[0]);
 
-                    if(songs == null || songs.Length == 0)
+                    if (songs == null || songs.Length == 0)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
                         [
                             new CqTextMsg("添加失败！找不到歌曲！")
                         ]);
                     }
-                    else if(songs.Length > 1)
+                    else if (songs.Length > 1)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
                         [

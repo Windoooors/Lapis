@@ -94,15 +94,19 @@ namespace LapisBot_Renewed
             return builder.ToString();
         }
 
-        public string Post(string path, object content)
+        public string Post(string path, object content, bool withBaseUrl)
         {
             if (content == null)
             {
                 throw new ArgumentNullException("content");
             }
-            
-            //string postableContent = ToUriQueryString(content);
-            return PostCore(new UriBuilder(_baseUrl) { Path = path }.Uri.AbsoluteUri, JsonConvert.SerializeObject(content));
+
+            if (withBaseUrl)
+                //string postableContent = ToUriQueryString(content);
+                return PostCore(new UriBuilder(_baseUrl) { Path = path }.Uri.AbsoluteUri,
+                    JsonConvert.SerializeObject(content));
+            else
+                return PostCore(path, JsonConvert.SerializeObject(content));
         }
 
         public string ImageToBase64(string fileFullName)
