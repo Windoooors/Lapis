@@ -190,22 +190,6 @@ namespace LapisBot_Renewed.ImageGenerators
                     .FillColor(new MagickColor(65535, 65535, 65535))
                     .Text(0, difficultyFactorYPositions[i] - 24, song.Ratings[i].ToString("0.0"))
                     .Draw(difficultyLayerImage);
-
-                /*var sizeOfString = new SizeF();
-                
-                if (!OperatingSystem.IsMacOS())
-                {
-                    var privateFontCollection = new PrivateFontCollection();
-                    privateFontCollection.AddFontFile(Environment.CurrentDirectory + @"/resource/font-light.otf");
-
-                    Font font = new Font(privateFontCollection.Families[0], 40);
-                    Bitmap bitMap = new Bitmap(1400, 1280);
-                    Graphics graphics = Graphics.FromImage(bitMap);
-                    sizeOfString = graphics.MeasureString(song.Ratings[i].ToString("0.0"), font);
-                    bitMap.Dispose();
-                    graphics.Dispose();
-                }*/
-                //Console.WriteLine("String Width: " + sizeOfString.Width);
                 
                 new Drawables()
                     .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")

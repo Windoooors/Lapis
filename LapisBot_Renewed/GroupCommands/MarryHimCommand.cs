@@ -124,37 +124,27 @@ namespace LapisBot_Renewed.GroupCommands
                                 var result =
                                     Program.Session.GetGroupMemberInformation(source.GroupId, long.Parse(couple.Value));
                                 if (result == null)
-                                    return Task.CompletedTask; 
-                                
+                                    return Task.CompletedTask;
+
                                 var memberName = "";
 
                                 if (result.GroupNickname != "")
                                     memberName = result.GroupNickname;
                                 else
                                     memberName = result.Nickname;
+
+                                var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                                                           couple.Value + "&s=640");
+                                message =
+                                [
+                                    new CqReplyMsg(source.MessageId),
+                                    new CqImageMsg("base64://" + image.ToBase64()),
+                                    new CqTextMsg("您的对象是 "),
+                                    new CqTextMsg(memberName + " (" + couple.Value + ") "),
+                                    new CqTextMsg("！")
+                                ];
                                 
-                                if (!OperatingSystem.IsMacOS())
-                                {
-                                    var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
-                                        couple.Value + "&s=640").ToBase64();
-                                    message = [
-                                        new CqReplyMsg(source.MessageId),
-                                        new CqImageMsg("base64://" + image),
-                                        new CqTextMsg("您的对象是 "),
-                                        new CqTextMsg(memberName + " (" + couple.Value + ") "),
-                                        new CqTextMsg("！")
-                                    ];
-                                }
-                                else
-                                {
-                                    message =
-                                    [
-                                        new CqReplyMsg(source.MessageId),
-                                        new CqTextMsg("您的对象是 "),
-                                        new CqTextMsg(memberName + " (" + couple.Value + ") "),
-                                        new CqTextMsg("！")
-                                    ];
-                                }
+                                image.Dispose();
                             }
                             else
                             {
@@ -202,29 +192,18 @@ namespace LapisBot_Renewed.GroupCommands
                                 memberName = result.Nickname;
                             
                             var message = new CqMessage();
-                            if (!OperatingSystem.IsMacOS())
-                            {
-                                var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
-                                                                              memberList[i] + "&s=640").ToBase64();
-                                message =
-                                [
-                                    new CqReplyMsg(source.MessageId),
-                                    new CqImageMsg("base64://" + image),
-                                    new CqTextMsg("您的对象是 "),
-                                    new CqTextMsg(memberName + " (" + memberList[i] + ") "),
-                                    new CqTextMsg("！")
-                                ];
-                            }
-                            else
-                            {
-                                message =
-                                [
-                                    new CqReplyMsg(source.MessageId),
-                                    new CqTextMsg("您的对象是 "),
-                                    new CqTextMsg(memberName + " (" + memberList[i] + ") "),
-                                    new CqTextMsg("！")
-                                ];
-                            }
+                            var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                                                       memberList[i] + "&s=640");
+                            message =
+                            [
+                                new CqReplyMsg(source.MessageId),
+                                new CqImageMsg("base64://" + image.ToBase64()),
+                                new CqTextMsg("您的对象是 "),
+                                new CqTextMsg(memberName + " (" + memberList[i] + ") "),
+                                new CqTextMsg("！")
+                            ];
+                            
+                            image.Dispose();
 
                             couples.Add(new KeyValuePair<string, string>(source.Sender.UserId.ToString(), memberList[i]));
                             _couplesInGroups.Remove(source.GroupId.ToString());

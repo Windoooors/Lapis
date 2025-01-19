@@ -96,29 +96,19 @@ namespace LapisBot_Renewed.GroupCommands
                             memberName = result.Nickname;
                         
                         var message = new CqMessage();
-                        if (!OperatingSystem.IsMacOS())
-                        {
-                            var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
-                                                                          memberList[i] + "&s=640").ToBase64();
-                            message = 
-                            [
-                                new CqReplyMsg(source.MessageId),
-                                new CqImageMsg("base64://" + image),
-                                new CqTextMsg("您把 "),
-                                new CqTextMsg(memberName + " (" + memberList[i] + ") "),
-                                new CqTextMsg("狠狠地操了一顿")
-                            ];
-                        }
-                        else
-                        {
-                            message = 
-                            [
-                                new CqReplyMsg(source.MessageId),
-                                new CqTextMsg("您把 "),
-                                new CqTextMsg(memberName + " (" + memberList[i] + ") "),
-                                new CqTextMsg("狠狠地操了一顿")
-                            ];
-                        }
+
+                        var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                                                   memberList[i] + "&s=640");
+                        message =
+                        [
+                            new CqReplyMsg(source.MessageId),
+                            new CqImageMsg("base64://" + image.ToBase64()),
+                            new CqTextMsg("您把 "),
+                            new CqTextMsg(memberName + " (" + memberList[i] + ") "),
+                            new CqTextMsg("狠狠地操了一顿")
+                        ];
+                        
+                        image.Dispose();
                         
                         Program.Session.SendGroupMessageAsync(source.GroupId, message);
                     }
