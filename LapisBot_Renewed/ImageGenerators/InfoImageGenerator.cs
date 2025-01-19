@@ -18,17 +18,12 @@ namespace LapisBot_Renewed.ImageGenerators
         private MagickImage GenerateBackground(SongDto song, string title, ApiOperator apiOperator)
         {
             var image = new MagickImage(Environment.CurrentDirectory + @"/resource/random/background.png");
-            try
-            {
-                if (File.Exists(Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png"))
-                    _coverImagePath = Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png";
-                else
-                    _coverImagePath = apiOperator.ImageToPng("https://www.diving-fish.com/covers/" + GetPictureId(song.Id) + ".png", Environment.CurrentDirectory + @"/temp", "cover_temp.png");
-            }
-            catch
-            {
+
+            if (File.Exists(Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png"))
+                _coverImagePath = Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png";
+            else
                 _coverImagePath = Environment.CurrentDirectory + @"/resource/covers/1000.png";
-            }
+
             var backgroundCoverImage = new MagickImage(_coverImagePath);
             backgroundCoverImage.Resize(64, 64);
             backgroundCoverImage.GaussianBlur(20);

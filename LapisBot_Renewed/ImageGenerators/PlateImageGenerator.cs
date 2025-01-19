@@ -244,9 +244,8 @@ public class PlateImageGenerator
         
         MagickImage head;
         if (usingHead)
-            head = new MagickImage(Program.apiOperator.ImageToPng(
-                "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640", Environment.CurrentDirectory + "/temp",
-                "head.png"));
+            head = Program.apiOperator.UrlToImage(
+                "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640");
         else
         {
             head = new MagickImage(Environment.CurrentDirectory +

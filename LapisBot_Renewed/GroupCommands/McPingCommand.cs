@@ -8,7 +8,6 @@ using DNS.Protocol.ResourceRecords;
 using DNS.Client;
 using System.IO;
 using mcswlib.ServerStatus.ServerInfo;
-using System.Drawing;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
@@ -94,26 +93,9 @@ namespace LapisBot_Renewed.GroupCommands
             var messageChain = new CqMessage()
             {
                 new CqAtMsg(sender.UserId), new CqTextMsg(""),
-                new CqImageMsg("base64://" + ImgToBase64String(server.FavIcon)), plainMessage
+                //new CqImageMsg("base64://" + ImgToBase64String(server.FavIcon)), plainMessage
             };
             return messageChain;
-        }
-
-        private static string ImgToBase64String(Image bmp)
-        {
-            try
-            {
-                var ms = new MemoryStream();
-                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                var arr = new byte[ms.Length];
-                ms.Position = 0;
-                ms.Close();
-                return Convert.ToBase64String(arr);
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

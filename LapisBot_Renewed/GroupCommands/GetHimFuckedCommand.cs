@@ -98,8 +98,8 @@ namespace LapisBot_Renewed.GroupCommands
                         var message = new CqMessage();
                         if (!OperatingSystem.IsMacOS())
                         {
-                            var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
-                                                                          memberList[i] + "&s=640");
+                            var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                                                          memberList[i] + "&s=640").ToBase64();
                             message = 
                             [
                                 new CqReplyMsg(source.MessageId),

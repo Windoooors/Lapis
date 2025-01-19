@@ -5,8 +5,6 @@ using System.Text;
 using Newtonsoft.Json;
 using ImageMagick;
 using LapisBot_Renewed.Collections;
-using System.DrawingCore;
-using System.Xml.Linq;
 using System.Diagnostics;
 using System.Net.Http;
 
@@ -108,55 +106,16 @@ namespace LapisBot_Renewed
             else
                 return PostCore(path, JsonConvert.SerializeObject(content));
         }
-
-        public string ImageToBase64(string fileFullName)
-        {
-            Image image = UrlToImage(fileFullName);
-            Bitmap bitmap = new Bitmap(image);
-            MemoryStream stream = new MemoryStream();
-            bitmap.Save(stream, System.DrawingCore.Imaging.ImageFormat.Jpeg);
-            byte[] bytes = new byte[stream.Length]; stream.Position = 0;
-            stream.Read(bytes, 0, (int)stream.Length); stream.Close();
-            image.Dispose();
-            bitmap.Dispose();
-            stream.Dispose();
-            return Convert.ToBase64String(bytes);
-        }
         
-        public MemoryStream ImageToMemoryStream(string fileFullName)
-        {
-            var client = new HttpClient();
-            var bytes = client.GetByteArrayAsync(fileFullName).Result;
-            var stream = new MemoryStream(bytes);
-            return stream;
-        }
-
-        public string ImageToPng(string fileFullName, string fatherPath, string name)
-        {
-            File.Delete(fatherPath + @"/" + name);
-            var image = UrlToImage(fileFullName);
-            var bitmap = new Bitmap(image);
-            bitmap.Save(fatherPath + @"/" + name, System.DrawingCore.Imaging.ImageFormat.Png);
-            return fatherPath + @"/" + name;
-        }
-
-        public string BytesToPng(string fatherPath, string name, byte[] bytes)
-        {
-            var client = new HttpClient();
-            var stream = new MemoryStream(bytes);
-            var outputImg = Image.FromStream(stream);
-            File.Delete(fatherPath + @"/" + name);
-            var bitmap = new Bitmap(outputImg);
-            bitmap.Save(fatherPath + @"/" + name, System.DrawingCore.Imaging.ImageFormat.Png);
-            return fatherPath + @"/" + name;
-        }
-
-        private Image UrlToImage(string url)
+        public MagickImage UrlToImage(string url)
         {
             var client = new HttpClient();
             var bytes = client.GetByteArrayAsync(url).Result;
             var stream = new MemoryStream(bytes);
-            var outputImg = Image.FromStream(stream);
+            var outputImg = new MagickImage(stream)
+            {
+                Format = MagickFormat.Png
+            };
             return outputImg;
         }
 

@@ -24,7 +24,7 @@ namespace LapisBot_Renewed
                 Program.Session.SendPrivateMessage(source.Sender.UserId,
                 [
                     new CqTextMsg("若 GIF 表情无法保存，您可以访问以下链接来下载该 GIF 表情：" + ((CqImageMsg)element).Url.ToString().Replace("https", "http")),
-                    CqImageMsg.FromStream(Program.apiOperator.ImageToMemoryStream(((CqImageMsg)element).Url.ToString().Replace("https", "http")))
+                    new CqImageMsg("base64://" + Program.apiOperator.UrlToImage(((CqImageMsg)element).Url.ToString().Replace("https", "http")).ToBase64())
                 ]);
             }
             return Task.CompletedTask;

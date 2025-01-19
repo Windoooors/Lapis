@@ -135,8 +135,8 @@ namespace LapisBot_Renewed.GroupCommands
                                 
                                 if (!OperatingSystem.IsMacOS())
                                 {
-                                    var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
-                                        couple.Value + "&s=640");
+                                    var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                        couple.Value + "&s=640").ToBase64();
                                     message = [
                                         new CqReplyMsg(source.MessageId),
                                         new CqImageMsg("base64://" + image),
@@ -204,8 +204,8 @@ namespace LapisBot_Renewed.GroupCommands
                             var message = new CqMessage();
                             if (!OperatingSystem.IsMacOS())
                             {
-                                var image = Program.apiOperator.ImageToBase64("https://q.qlogo.cn/g?b=qq&nk=" +
-                                                                              memberList[i] + "&s=640");
+                                var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                                                              memberList[i] + "&s=640").ToBase64();
                                 message =
                                 [
                                     new CqReplyMsg(source.MessageId),
