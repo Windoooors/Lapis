@@ -30,8 +30,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
 
             if (File.Exists(AppContext.BaseDirectory + "local_aliases.json"))
-                LocalAlias.Singleton.AliasCollection.Aliases =
-                    JsonConvert.DeserializeObject<List<Alias>>(File.ReadAllText(AppContext.BaseDirectory + "local_aliases.json"));
+                LocalAlias.Instance.AliasCollection.Aliases =
+                    JsonConvert.DeserializeObject<List<Alias>>(
+                        File.ReadAllText(AppContext.BaseDirectory + "local_aliases.json"));
 
             return Task.CompletedTask;
         }
@@ -39,27 +40,53 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         private static void Save()
         {
             File.WriteAllText(AppContext.BaseDirectory + "local_aliases.json",
-                JsonConvert.SerializeObject(LocalAlias.Singleton.AliasCollection.Aliases)); 
+                JsonConvert.SerializeObject(LocalAlias.Instance.AliasCollection.Aliases));
             Console.WriteLine("Local aliases have been saved");
         }
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            var cmds = command.Split(" ");
-
-            if(cmds.Length > 0)
+            if (command.Split(" ").Length > 0)
             {
+                var songIndicatorString = MaiCommandCommand.GetSongIndicatorString(command);
 
-                var oname = "";
-                for(int i = 1;i < cmds.Length;i++)
+                if (songIndicatorString == null)
                 {
-                    oname+=cmds[i] + " ";
+                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [
+                        new CqTextMsg("添加失败！找不到歌曲！")
+                    ]);
+                    return Task.CompletedTask;
                 }
 
-                oname = oname.Substring(0, oname.Length - 1);
+                var matchedSongs = MaiCommandCommand.GetSongs(songIndicatorString);
+                var intendedAliasString = Regex.Replace(command, songIndicatorString, "", RegexOptions.IgnoreCase);
+                if (intendedAliasString != "")
+                    intendedAliasString = intendedAliasString.Substring(1, intendedAliasString.Length - 1);
 
+                if (matchedSongs.Length > 1)
+                {
+                    string ids = string.Empty;
+                    List<int> idsList = new List<int>();
+                    for (int i = 0; i < matchedSongs.Length; i++)
+                    {
+                        ids += "ID " + matchedSongs[i].Id + " - " + matchedSongs[i].Title + " [" + matchedSongs[i].Type + "]";
+                        if (i != matchedSongs.Length - 1)
+                            ids += "\n";
+                        idsList.Add(matchedSongs[i].Id);
+                    }
 
-                if(oname == "")
+                    Program.Session.SendGroupMessageAsync(source.GroupId, [
+                        new CqReplyMsg(source.MessageId), new CqTextMsg(
+                            " 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias add ID " + idsList[0] + " " + intendedAliasString + "\" 指令即可为歌曲 " +
+                            matchedSongs[0].Title + " [" + matchedSongs[0].Type +
+                            "] 添加别名")
+                    ]);
+                    
+                    return Task.CompletedTask;
+                }
+                
+                if (intendedAliasString == "")
                 {
                     Program.Session.SendGroupMessageAsync(source.GroupId,
                     [
@@ -68,16 +95,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 }
                 else
                 {
-                    var songs = MaiCommandCommand.GetSongs(cmds[0]);
-
-                    if (songs == null || songs.Length == 0)
+                    if (matchedSongs.Length == 0)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
                         [
                             new CqTextMsg("添加失败！找不到歌曲！")
                         ]);
                     }
-                    else if (songs.Length > 1)
+                    else if (matchedSongs.Length > 1)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
                         [
@@ -86,11 +111,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     }
                     else
                     {
-                        Action action = ()=>
+                        Action action = () =>
                         {
-                            var id = songs[0].Id;
+                            var id = matchedSongs[0].Id;
 
-                            var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(oname) && LocalAlias.Singleton.Add(id,oname);
+                            var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
+                                          LocalAlias.Instance.Add(id, intendedAliasString);
                             if (success)
                             {
                                 Program.Session.SendGroupMessageAsync(source.GroupId,
@@ -103,27 +129,31 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                 Program.Session.SendGroupMessageAsync(source.GroupId,
                                 [
                                     new CqTextMsg("已存在此别名")
-                            ]);
+                                ]);
                         };
                         TaskHandleQueue.HandlableTask task = new();
                         task.whenConfirm = action;
-                        task.whenCancel = ()=>{
-                             Program.Session.SendGroupMessageAsync(source.GroupId,
-                                [
-                                    new CqTextMsg("别名添加已取消！")
-                                ]);
+                        task.whenCancel = () =>
+                        {
+                            Program.Session.SendGroupMessageAsync(source.GroupId,
+                            [
+                                new CqTextMsg("别名添加已取消！")
+                            ]);
                         };
                         var success = TaskHandleQueue.Singleton.AddTask(task);
 
-                        if(success)Program.Session.SendGroupMessageAsync(source.GroupId,
+                        if (success)
+                            Program.Session.SendGroupMessageAsync(source.GroupId,
                             [
-                                new CqTextMsg("你正在尝试为歌曲 \"" + songs[0].Title + "\" " + "添加别名 \"" + oname + "\"" + "\n发送 \"l handle confirm\" 以确认，发送 \"l handle cancel\" 以取消")
+                                new CqTextMsg("你正在尝试为歌曲 \"" + matchedSongs[0].Title + "\" " + "添加别名 \"" + intendedAliasString + "\"" +
+                                              "\n发送 \"l handle confirm\" 以确认，发送 \"l handle cancel\" 以取消")
                             ]);
-                        else Program.Session.SendGroupMessageAsync(source.GroupId,
+                        else
+                            Program.Session.SendGroupMessageAsync(source.GroupId,
                             [
                                 new CqTextMsg("当前已有代办事项！请处理后再试！")
                             ]);
-                        
+
                     }
                 }
             }
@@ -138,7 +168,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
     }
-    
+
     public class AliasCollection()
     {
         public List<MaiCommand.Alias> Aliases = [];
@@ -180,7 +210,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             Aliases.RemoveAt(id);
         }
-            
+
         public int[] GetIds()
         {
             var ids = new List<int>();
@@ -192,7 +222,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return ids.ToArray();
         }
     }
-    
+
     public class LocalAlias
     {
         public readonly AliasCollection AliasCollection = new();
@@ -206,28 +236,31 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return true;
         }
 
-        public bool Remove(int id,string alias)
+        public bool Remove(int id, string alias)
         {
-            if(!AliasCollection.ContainsId(id))return false;
-            if(AliasCollection.GetAlias(id).Aliases.Contains(alias))
+            if (!AliasCollection.ContainsId(id)) return false;
+            if (AliasCollection.GetAlias(id).Aliases.Contains(alias))
             {
                 AliasCollection.GetAlias(id).Aliases.Remove(alias);
                 return true;
             }
+
             return false;
         }
+
         public bool RemoveAll(int id)
         {
-            if(!AliasCollection.ContainsId(id))return false;
+            if (!AliasCollection.ContainsId(id)) return false;
             else
             {
                 AliasCollection.Remove(id);
                 return true;
             }
         }
+
         public List<string> Get(int id)
         {
-            if(!AliasCollection.ContainsId(id))return null;
+            if (!AliasCollection.ContainsId(id)) return null;
             else return AliasCollection.GetAlias(id).Aliases;
         }
 
@@ -236,8 +269,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return AliasCollection.GetIds();
         }
 
-        private LocalAlias(){}
+        private LocalAlias()
+        {
+        }
 
-        public static LocalAlias Singleton{get;} = new();
+        public static LocalAlias Instance { get; } = new();
     }
 }

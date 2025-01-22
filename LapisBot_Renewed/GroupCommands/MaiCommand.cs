@@ -117,10 +117,10 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
             
-            var localAlias = LocalAlias.Singleton;
+            var localAlias = LocalAlias.Instance;
             foreach(var e1 in localAlias.GetIds())
             {
-                var a = LocalAlias.Singleton.Get(e1);
+                var a = LocalAlias.Instance.Get(e1);
                 foreach (var aliasString in a)
                 {
                     if (aliasString.ToLower() == alias)
@@ -159,7 +159,7 @@ namespace LapisBot_Renewed.GroupCommands
                 tempAlias.Aliases.Add(aliasString);
             }
             
-            var local = LocalAlias.Singleton.Get(id);
+            var local = LocalAlias.Instance.Get(id);
             if (local != null)
             {
                 foreach (var e in local)
@@ -263,10 +263,10 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
             
-            var localAlias = LocalAlias.Singleton;
+            var localAlias = LocalAlias.Instance;
             foreach(var e1 in localAlias.GetIds())
             {
-                var a = LocalAlias.Singleton.Get(e1);
+                var a = LocalAlias.Instance.Get(e1);
                 foreach (var aliasString in a)
                 {
                     if (inputString.ToLower().StartsWith(aliasString.ToLower()))
@@ -554,12 +554,12 @@ namespace LapisBot_Renewed.GroupCommands
             //除去 LocalAlias 中已存在的别名
             foreach (var alias in _songAliases)
             {
-                var localAlias = LocalAlias.Singleton;
+                var localAlias = LocalAlias.Instance;
                 foreach(var e1 in localAlias.GetIds())
                 {
                     if (e1 != alias.Id)
                         continue;
-                    var a = LocalAlias.Singleton.Get(e1);
+                    var a = LocalAlias.Instance.Get(e1);
                     foreach (var aliasString in a)
                     {
                         if (alias.Aliases.Contains(aliasString))
