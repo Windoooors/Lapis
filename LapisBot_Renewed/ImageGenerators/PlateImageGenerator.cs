@@ -10,6 +10,7 @@ using Xamarin.Forms.PlatformConfiguration.AndroidSpecific.AppCompat;
 
 namespace LapisBot_Renewed.ImageGenerators;
 using ImageMagick;
+using ImageMagick.Drawing;
 
 public class PlateImageGenerator
 {
@@ -160,7 +161,7 @@ public class PlateImageGenerator
 
         totalHeight += 104;
 
-        var image = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 700, Height = totalHeight });
+        var image = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 700, Height = (uint)totalHeight });
 
         var backgroundImage = new MagickImage(AppContext.BaseDirectory + @"resource/covers/" +
                                               sortedDifficulties.Values.ToArray()[0][0].SongDto.Id + ".png");
@@ -169,7 +170,7 @@ public class PlateImageGenerator
         backgroundImage.GaussianBlur(10);
         if (totalHeight > 700)
         {
-            backgroundImage.Resize(totalHeight, totalHeight);
+            backgroundImage.Resize((uint)totalHeight, (uint)totalHeight);
             image.Composite(backgroundImage, (700 - totalHeight) / 2, 0, CompositeOperator.Blend);
         }
         else
@@ -186,7 +187,7 @@ public class PlateImageGenerator
 
         if (totalHeight > 700)
         {
-            mask.Resize(totalHeight, totalHeight);
+            mask.Resize((uint)totalHeight, (uint)totalHeight);
         }
         else
         {
@@ -205,7 +206,7 @@ public class PlateImageGenerator
         int j = 0;
         
         var itemsInFirstGroup =
-            new MagickImage("xc:transparent", new MagickReadSettings() { Width = 700, Height = totalHeight });
+            new MagickImage("xc:transparent", new MagickReadSettings() { Width = 700, Height = (uint)totalHeight });
         
         foreach (var song in sortedDifficulties.Values.ToArray()[0])
         {
@@ -302,7 +303,7 @@ public class PlateImageGenerator
             i = 0;
             j = 0;
             var itemGroup = new MagickImage("xc:transparent",
-                new MagickReadSettings() { Width = 700, Height = totalHeight });
+                new MagickReadSettings() { Width = 700, Height = (uint)totalHeight });
             foreach (var song in sortedDifficulties.Values.ToArray()[k])
             {
                 var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);

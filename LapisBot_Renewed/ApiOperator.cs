@@ -13,28 +13,6 @@ namespace LapisBot_Renewed
     public class ApiOperator
     {
         private readonly string _baseUrl;
-        public string BaseUrl { get { return _baseUrl; } }
-
-        public static string Bash(string command)
-        {
-            var escapedArgs = command.Replace("\"", "\\\"");
-            var process = new Process()
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "/bin/bash",
-                    Arguments = $"-c \"{escapedArgs}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                }
-            };
-            process.Start();
-            string result = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            process.Dispose();
-            return result;
-        }
 
         public ApiOperator(string baseUrl)
         {
@@ -46,50 +24,11 @@ namespace LapisBot_Renewed
             _baseUrl = baseUrl;
         }
 
-        private static string ToUriQueryString(object obj)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException("obj");
-            }
-
-            return string.Join("&", obj.GetType().GetProperties().Select(prop =>
-            {
-                object value = prop.GetValue(obj, null);
-                return Uri.EscapeDataString(ToUnderScoreCase(prop.Name)) + "=" + Uri.EscapeDataString(value == null ? "null" : value.ToString());
-            }).ToArray());
-        }
-
         public string Get(string url)
         {
             /*string query = content == null ? string.Empty : ToUriQueryString(content);
             var url = new UriBuilder(_baseUrl) { Path = path, Query = query }.Uri.AbsoluteUri;*/
             return GetCore(url);
-        }
-
-        private static string ToUnderScoreCase(string str)
-        {
-            var builder = new StringBuilder();
-
-            foreach (char c in str)
-            {
-                if (char.IsUpper(c))
-                {
-                    builder.Append('_');
-                    builder.Append(char.ToLowerInvariant(c));
-                }
-                else
-                {
-                    builder.Append(c);
-                }
-            }
-
-            if (builder[0] == '_')
-            {
-                builder.Remove(0, 1);
-            }
-
-            return builder.ToString();
         }
 
         public string Post(string path, object content, bool withBaseUrl)
@@ -116,6 +55,8 @@ namespace LapisBot_Renewed
             {
                 Format = MagickFormat.Png
             };
+            stream.Dispose();
+            client.Dispose();
             return outputImg;
         }
 
@@ -129,6 +70,10 @@ namespace LapisBot_Renewed
             var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
             var result = reader.ReadToEnd();
             
+            httpClient.Dispose();
+            httpResponseMessage.Dispose();
+            reader.Dispose();
+            
             return result;
         }
 
@@ -139,6 +84,10 @@ namespace LapisBot_Renewed
 
             var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
             var result = reader.ReadToEnd();
+            
+            httpClient.Dispose();
+            httpResponseMessage.Dispose();
+            reader.Dispose();
 
             return result;
         }

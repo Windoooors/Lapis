@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using ImageMagick;
+using ImageMagick.Drawing;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 
 namespace LapisBot_Renewed.ImageGenerators
@@ -336,10 +337,10 @@ namespace LapisBot_Renewed.ImageGenerators
             var foreground = new MagickImage(Environment.CurrentDirectory + @"/resource/best50/b50_item_foreground_" +
                                              difficulty + ".png");
             MagickImage background;
-            if (System.IO.File.Exists(Environment.CurrentDirectory + @"/resource/covers/" + score.Id.ToString() +
+            if (File.Exists(Environment.CurrentDirectory + @"/resource/covers/" + score.Id+
                                       ".png"))
                 background = new MagickImage(Environment.CurrentDirectory + @"/resource/covers/" +
-                                             score.Id.ToString() + ".png");
+                                             score.Id + ".png");
             else
                 background = new MagickImage(Environment.CurrentDirectory + @"/resource/covers/1000.png");
 
@@ -538,21 +539,20 @@ namespace LapisBot_Renewed.ImageGenerators
                     .Draw(_rateBackgroundImage);
                 _image.Scale(new Percentage(80));
                 _rateShadowImage.Scale(new Percentage(80));
-                _rateBackgroundImage.Composite(_image, _rateBackgroundImage.BaseWidth - _image.Width - 10, 88 - _image.Height,
-                    CompositeOperator.DstOut);
-                _rateBackgroundImage.Composite(_rateShadowImage, _rateBackgroundImage.BaseWidth - _image.Width - 10, 88 - _image.Height,
+                _rateBackgroundImage.Composite(_image, (int)(_rateBackgroundImage.BaseWidth - _image.Width - 10), (int)(88 - _image.Height), CompositeOperator.DstOut);
+                _rateBackgroundImage.Composite(_rateShadowImage, (int)(_rateBackgroundImage.BaseWidth - _image.Width - 10), (int)(88 - _image.Height),
                     CompositeOperator.Blend);
                 for (int i = 0; i < stars; i++)
                 {
                     _rateBackgroundImage.Composite(
                         new MagickImage(Environment.CurrentDirectory + @"/resource/best50/star.png"),
-                        _rateBackgroundImage.BaseWidth - (int)(i * 11f) - 20,
+                        (int)(_rateBackgroundImage.BaseWidth - (int)(i * 11f) - 20),
                         37,
                         CompositeOperator.Atop);
                 }
 
-                image.Composite(_rateBackgroundImage, info.BaseWidth - _rateBackgroundImage.Width,
-                    info.BaseHeight - _rateBackgroundImage.Height,
+                image.Composite(_rateBackgroundImage, (int)(info.BaseWidth - _rateBackgroundImage.Width),
+                    (int)(info.BaseHeight - _rateBackgroundImage.Height),
                     CompositeOperator.Atop);
                 
                 info.Dispose();

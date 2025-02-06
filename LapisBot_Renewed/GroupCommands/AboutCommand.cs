@@ -5,6 +5,7 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Runtime.InteropServices;
 using ImageMagick;
+using ImageMagick.Drawing;
 using System.Reflection;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;

@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using ImageMagick;
+using ImageMagick.Drawing;
 
 namespace LapisBot_Renewed.ImageGenerators
 {

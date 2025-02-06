@@ -541,6 +541,7 @@ namespace LapisBot_Renewed.GroupCommands
             SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
+            SubCommands.Add(new GuessSongList() { MaiCommandCommand = this });
             SubCommands.Add(new GuessCommand() { MaiCommandCommand = this });
             SubCommands.Add(new AircadeCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });

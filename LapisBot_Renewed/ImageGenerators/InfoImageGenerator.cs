@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using ImageMagick;
+using ImageMagick.Drawing;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using LapisBot_Renewed.GroupCommands;
 

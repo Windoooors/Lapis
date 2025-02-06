@@ -7,6 +7,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using ImageMagick.Drawing;
 using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands.StickerCommands

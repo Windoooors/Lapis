@@ -75,9 +75,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (((AircadeSettings)CurrentGroupCommandSettings).LocationId == string.Empty)
                 {
                     Program.Session.SendGroupMessageAsync(source.GroupId,
-                    [
-                        new CqTextMsg("查询失败！\n未设置 Location ID，请发送 \"几爷 settings 2 [Location ID]\" 以进行设置")
-                    ]);
+                        new CqMessage
+                        {
+                            new CqTextMsg("查询失败！\n未设置 Location ID，请发送 \"几爷 settings 2 [Location ID]\" 以进行设置")
+                        });
                     return Task.CompletedTask;
                 }
                 
@@ -95,9 +96,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (queue.StatusCode != 200)
                 {
                     Program.Session.SendGroupMessageAsync(source.GroupId,
-                    [
-                        new CqTextMsg("查询失败！")
-                    ]);
+                        new CqMessage
+                        {
+                            new CqTextMsg("查询失败！")
+                        });
                     return Task.CompletedTask;
                 }
 
@@ -124,9 +126,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 text = text.Substring(0, text.Length - 1);
 
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqTextMsg(text)
-                ]);
+                    new CqMessage
+                    {
+                        new CqTextMsg(text)
+                    });
             }
             catch
             {
