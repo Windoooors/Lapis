@@ -8,6 +8,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -62,6 +63,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
 
+            SubCommands.Add(new AddCommand { MaiCommandCommand = MaiCommandCommand });
+            
+            foreach (var subAliasCommand in SubCommands)
+            {
+                subAliasCommand.Initialize();
+                subAliasCommand.ParentCommand = this;
+            }
+            
             return Task.CompletedTask;
         }
 
@@ -106,20 +115,22 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (songs == null)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("不存在该歌曲")
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("不存在该歌曲")
+                    });
                 return Task.CompletedTask;
             }
 
             if (songs.Length == 1)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg(GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg(GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
+                    });
                 return Task.CompletedTask;
             }
 
@@ -135,12 +146,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
 
             Program.Session.SendGroupMessageAsync(source.GroupId,
-            [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
-                              songs[0].Title + " [" + songs[0].Type +
-                              "] 的别称")
-            ]);
+                new CqMessage
+                {
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias ID " + idsList[0] + "\" 指令即可查询歌曲 " +
+                                  songs[0].Title + " [" + songs[0].Type +
+                                  "] 的别称")
+                });
 
             return Task.CompletedTask;
         }

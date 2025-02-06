@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using LapisBot_Renewed.GroupCommands;
@@ -11,6 +12,7 @@ using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
 {
+    
     public class BotSettings
     {
         public string Address;
@@ -139,7 +141,8 @@ namespace LapisBot_Renewed
         static void Welcome(long userId)
         { 
             Thread.Sleep(3000);
-            Session.SendPrivateMessageAsync(userId, [new CqTextMsg("感谢使用！请邀请 Lapis Bot 进入您的群聊！\n若要保存表情，请直接将表情发送给 Lapis Bot")]);
+            Session.SendPrivateMessageAsync(userId, new CqMessage
+                { new CqTextMsg("感谢使用！请邀请 Lapis Bot 进入您的群聊！\n若要保存表情，请直接将表情发送给 Lapis Bot") });
         }
 
         static void SaveDate()

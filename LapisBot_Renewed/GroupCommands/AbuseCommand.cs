@@ -46,18 +46,20 @@ namespace LapisBot_Renewed.GroupCommands
             if (source.GroupId.ToString() == "1078224429")
             {
                 var i = new Random().Next(0, _dirtyWordsStrings.Length);
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                {
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg(_dirtyWordsStrings[i])
-                ]);
+                });
             }
             else
             {
                 var i = new Random().Next(1, 5);
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                {
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg(_dirtyWordsStrings[i])
-                ]);
+                });
             }
 
             return Task.CompletedTask;

@@ -134,9 +134,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             catch
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqTextMsg("查询失败！")
-                ]);
+                    new CqMessage
+                    {
+                        new CqTextMsg("查询失败！")
+                    });
             }
             return Task.CompletedTask;
         }

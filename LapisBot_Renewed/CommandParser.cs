@@ -49,7 +49,8 @@ namespace LapisBot_Renewed
             catch(Exception ex)
             {
                 await Program.Session.SendPrivateMessageAsync(source.Sender.UserId,
-                    [new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)]);
+                    new CqMessage
+                        { new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace) });
             }
             //MessageManager.SendFriendMessageAsync(source.FriendId, "_(:_」∠)_\n感谢您对 Lapis 的支持\n在将 Lapis 拉入您的群聊后，您可以在群聊中发送 \"lps help\" 或访问 https://www.setchin.com/lapis.html 以获取帮助 \nLapis 不会占用其他 Bot 的触发指令，请使用 \"lps\" 或 \"l\" 来触发 Lapis");
         }
@@ -104,7 +105,8 @@ namespace LapisBot_Renewed
             catch(Exception ex)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                    [new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)]);
+                    new CqMessage
+                        { new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace) });
             }
         }
 
@@ -125,7 +127,10 @@ namespace LapisBot_Renewed
                 catch(Exception ex)
                 {
                     Program.Session.SendGroupMessageAsync(source.GroupId,
-                        [new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)]);
+                        new CqMessage
+                        {
+                            new CqReplyMsg(source.MessageId), new CqTextMsg("抱歉！出现了未知错误\n错误信息如下：\n" + ex.StackTrace)
+                        });
                 }
             }
         }
@@ -146,6 +151,9 @@ namespace LapisBot_Renewed
                     if (SettingsParse(source, commandString, command))
                         return true;
 
+                    if (parsed)
+                        return true;
+                    
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
                     if (command.SubCommands.Count != 0 && !parsed)
@@ -161,6 +169,9 @@ namespace LapisBot_Renewed
                     }
 
                     if (SettingsParse(source, commandString, command))
+                        return true;
+                    
+                    if (parsed)
                         return true;
 
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));

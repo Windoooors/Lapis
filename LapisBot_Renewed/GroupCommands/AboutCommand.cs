@@ -61,10 +61,11 @@ namespace LapisBot_Renewed.GroupCommands
                 .FillColor(new MagickColor(65535, 65535, 65535, 65535))
                 .Text(20.49, 325, "Version " + Assembly.GetAssembly(GetType()).GetName().Version.ToString())
                 .Draw(image);
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            {
                 new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + image.ToBase64())
-            ]);
+            });
             return Task.CompletedTask;
         }
     }

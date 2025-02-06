@@ -26,7 +26,8 @@ namespace LapisBot_Renewed
                     return Task.CompletedTask;
                 foreach (CqGroup group in result.Groups)
                     message += group.GroupId + " - " + group.GroupName + "\n";
-                Program.Session.SendPrivateMessage(source.Sender.UserId, [message.TrimEnd()]);
+                Program.Session.SendPrivateMessage(source.Sender.UserId, new CqMessage
+                    { message.TrimEnd() });
             }
             return Task.CompletedTask;
         }

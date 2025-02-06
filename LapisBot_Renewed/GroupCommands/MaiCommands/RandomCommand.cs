@@ -67,7 +67,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             int i;
             if (!MaiCommandCommand.LevelDictionary.ContainsKey(command))
-                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("不支持的等级名称")]);
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                    { new CqTextMsg("不支持的等级名称") });
             else
             {
                 MaiCommandCommand.LevelDictionary.TryGetValue(command, out i);
@@ -75,7 +76,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (songs.Length == 0)
                 {
 
-                    Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("不支持的等级名称")]);
+                    Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                        { new CqTextMsg("不支持的等级名称") });
                     return Task.CompletedTask;
                 }
 
@@ -84,18 +86,20 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 Program.settingsCommand.GetSettings(source);
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
-                        Program.settingsCommand.CurrentBotSettings.CompressedImage))
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
+                            Program.settingsCommand.CurrentBotSettings.CompressedImage))
+                    });
                 if (((RandomSettings)CurrentGroupCommandSettings).SongPreview)
                 {
                     var voice = new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(songs[j].Id));
                     Program.Session.SendGroupMessageAsync(source.GroupId,
-                    [
-                        voice
-                    ]);
+                        new CqMessage
+                        {
+                            voice
+                        });
                 }
             }
 

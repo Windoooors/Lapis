@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.IO;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Newtonsoft.Json;
 
@@ -31,7 +32,8 @@ namespace LapisBot_Renewed.GroupCommands
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [command]);
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                { command });
             return Task.CompletedTask;
         }
     }

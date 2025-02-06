@@ -54,10 +54,11 @@ namespace LapisBot_Renewed.GroupCommands
 
             if (targetWordItem == null)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                {
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("未查询到该词语")
-                ]);
+                });
                 return Task.CompletedTask;
             }
 
@@ -67,10 +68,11 @@ namespace LapisBot_Renewed.GroupCommands
                 text += translation.Type + "." + translation.Translation + "; \n";
             text.TrimEnd();
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(text)
-            ]);
+            });
             CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }

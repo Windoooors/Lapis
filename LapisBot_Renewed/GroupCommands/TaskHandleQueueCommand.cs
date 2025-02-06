@@ -27,9 +27,10 @@ namespace LapisBot_Renewed.GroupCommands
 				if(TaskHandleQueue.Singleton.IsEmpty())
 				{
 					Program.Session.SendGroupMessageAsync(source.GroupId,
-                        [
-                            new CqTextMsg("没有待处理的消息！")
-                        ]);
+						new CqMessage
+						{
+							new CqTextMsg("没有待处理的消息！")
+						});
 				}
 				else
 				{
@@ -41,9 +42,10 @@ namespace LapisBot_Renewed.GroupCommands
 				if(TaskHandleQueue.Singleton.IsEmpty())
 				{
 					Program.Session.SendGroupMessageAsync(source.GroupId,
-                        [
-                            new CqTextMsg("没有待处理的消息！")
-                        ]);
+						new CqMessage
+						{
+							new CqTextMsg("没有待处理的消息！")
+						});
 				}
 				else
 				{
@@ -53,9 +55,10 @@ namespace LapisBot_Renewed.GroupCommands
 			else
 			{
 				Program.Session.SendGroupMessageAsync(source.GroupId,
-                        [
-                            new CqTextMsg("参数错误！应为 \"confirm\" 或 \"cancel\"！")
-                        ]);
+					new CqMessage
+					{
+						new CqTextMsg("参数错误！应为 \"confirm\" 或 \"cancel\"！")
+					});
 			}
 			
             return Task.CompletedTask;

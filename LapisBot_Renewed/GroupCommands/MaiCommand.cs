@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
+using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
 
 namespace LapisBot_Renewed.GroupCommands
 {
@@ -229,7 +230,7 @@ namespace LapisBot_Renewed.GroupCommands
                     var id = int.Parse(idHeadRegex.Replace(inputString.ToLower(), string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
-                        return [Songs[index]];
+                        return new[] {Songs[index]};
                     else
                         return null;
                 }
@@ -242,7 +243,7 @@ namespace LapisBot_Renewed.GroupCommands
             var songIndex = GetSongIndexByTitle(inputString);
             if (songIndex != -1)
             {
-                return [Songs[songIndex]];
+                return new[] {Songs[songIndex]};
             }
 
             return null;
@@ -336,7 +337,7 @@ namespace LapisBot_Renewed.GroupCommands
                     var id = int.Parse(idHeadRegex.Replace(songIndicator, string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
-                        return [Songs[index]];
+                        return new[] {Songs[index]};
                     return null;
                 }
                 catch
@@ -348,22 +349,22 @@ namespace LapisBot_Renewed.GroupCommands
             var songIndex = GetSongIndexByTitle(songIndicator);
             if (songIndex != -1)
             {
-                return [Songs[songIndex]];
+                return new[] {Songs[songIndex]};
             }
 
             return null;
         }
 
         public MaiCommand MaiCommandCommand;
-        public AliasAddCommand AliasAddCommand;
+        public AddCommand AddCommand;
         public SongDto[] Songs;
         public ExtraSongDto[] ExtraSongs;
         public ChartStatisticsDto ChartStatistics;
         private JObject _aliasJObject;
-        public readonly List<List<SongDto>> Levels = [];
-        public readonly List<List<ExtraSongDto>> ExtraLevels = [];
-        public readonly Dictionary<string, int> LevelDictionary = [];
-        private readonly List<Alias> _songAliases = [];
+        public readonly List<List<SongDto>> Levels = new();
+        public readonly List<List<ExtraSongDto>> ExtraLevels = new();
+        public readonly Dictionary<string, int> LevelDictionary = new();
+        private readonly List<Alias> _songAliases = new();
 
         public class Alias
         {
@@ -380,7 +381,7 @@ namespace LapisBot_Renewed.GroupCommands
         private async void Reload(object sender, EventArgs e)
         {
             await Start();
-            await AliasAddCommand.Unload();
+            await AddCommand.Unload();
         }
 
         private Task Start()
@@ -502,9 +503,10 @@ namespace LapisBot_Renewed.GroupCommands
                     Levels[j].Add(song);
                 }
 
-                ChartStatisticsDto.ChartStatisticDto[] chartStatistics = [];
+                ChartStatisticsDto.ChartStatisticDto[] chartStatistics = Array.Empty<ChartStatisticsDto.ChartStatisticDto>();
+                
                 ChartStatistics.Charts.TryGetValue(song.Id.ToString(), out chartStatistics);
-                List<float> fitRatings = [];
+                List<float> fitRatings = new();
                 if (chartStatistics != null)
                     foreach (ChartStatisticsDto.ChartStatisticDto chartStatistic in chartStatistics)
                     {
@@ -532,16 +534,13 @@ namespace LapisBot_Renewed.GroupCommands
                     ExtraLevels[j].Add(song);
                 }
             }
-
-            AliasAddCommand = new() { MaiCommandCommand = this };
             
             SubCommands.Add(new RandomCommand() { MaiCommandCommand = this });
             SubCommands.Add(new InfoCommand() { MaiCommandCommand = this });
-            SubCommands.Add(AliasAddCommand);
             SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
             SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new GuessSongList() { MaiCommandCommand = this });
+            SubCommands.Add(new LettersCommand() { MaiCommandCommand = this });
             SubCommands.Add(new GuessCommand() { MaiCommandCommand = this });
             SubCommands.Add(new AircadeCommand() { MaiCommandCommand = this });
             SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });

@@ -79,14 +79,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             { "宴会場", "宴会场" }
         };
 
-        public int[] ExcludedSongs =
-        [
+        private readonly int[] _excludedSongs =
+        {
             70, 146, 185, 189, 190, 341, 419, 451, 455, 460, 524, 687, 688, 712, 731,
             792, 853, 10146, 11213, 11253, 11267
-        ];
+        };
 
-        public int[] IncludedRemasterSongs =
-        [
+        private readonly int[] _includedRemasterSongs =
+        {
             834,
             22,
             227,
@@ -146,7 +146,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             806,
             65,
             266
-        ];
+        };
 
         public override Task Initialize()
         {
@@ -211,16 +211,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var versionCharacter =
                     wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, ""), ""), ""), "");
 
-                var versionCharacterInJapanese = "";
-
-                Characters.TryGetValue(versionCharacter, out versionCharacterInJapanese);
+                Characters.TryGetValue(versionCharacter, out string versionCharacterInJapanese);
 
                 if (versionCharacterInJapanese != null)
                     versionCharacter = versionCharacterInJapanese;
 
-                var singleVersion = "";
-
-                PlateToVersion.TryGetValue(versionCharacter, out singleVersion);
+                PlateToVersion.TryGetValue(versionCharacter, out string singleVersion);
 
                 string[] version = { singleVersion };
 
@@ -228,26 +224,27 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 if (command == "霸者" || command.StartsWith("舞"))
                 {
-                    version =
-                    [
+                    version = new []
+                    {
                         "maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS", "maimai ORANGE",
                         "maimai ORANGE PLUS",
                         "maimai PiNK", "maimai PiNK PLUS", "maimai MURASAKi", "maimai MURASAKi PLUS", "maimai MiLK",
                         "maimai MiLK PLUS",
                         "maimai FiNALE"
-                    ];
+                    };
                     plateVersionIndex = 12;
                 }
                 else if (command.StartsWith("真"))
                     version =
-                    [
-                        "maimai", "maimai PLUS"
-                    ];
-
-                var content = "";
+                        new[]
+                        {
+                            "maimai", "maimai PLUS"
+                        };
+                
                 ScoresDto scores;
                 if (!(command == "霸者" || command.StartsWith("舞")))
                 {
+                    var content = "";
                     content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
                         new { username = "maxscore", version }, true);
                     scores = JsonConvert.DeserializeObject<ScoresDto>(content);
@@ -286,13 +283,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                                 scoreDto = realScore;
                         }
                         
-                        if (ExcludedSongs.Contains(song.Id))
+                        if (_excludedSongs.Contains(song.Id))
                             if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
                                 continue;
 
                         if (command == "霸者" || command.StartsWith("舞"))
                         {
-                            if (score.LevelIndex == 4 && IncludedRemasterSongs.Contains(song.Id))
+                            if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
                                 songsToBeDisplayed.Add(new SongToBeDisplayed
                                     { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
                             else if (score.LevelIndex != 4)
@@ -319,13 +316,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             scoreDto = realScore;
                     }
 
-                    if (ExcludedSongs.Contains(song.Id))
+                    if (_excludedSongs.Contains(song.Id))
                         if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
                             continue;
                     
                     if (command == "霸者" || command.StartsWith("舞"))
                     {
-                        if (score.LevelIndex == 4 && IncludedRemasterSongs.Contains(song.Id))
+                        if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
                             allSongs.Add(new SongToBeDisplayed
                                 { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
                         else if (score.LevelIndex != 4)
@@ -358,20 +355,22 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     Program.settingsCommand.CurrentBotSettings.CompressedImage);
 
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqImageMsg("base64://" + image)
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqImageMsg("base64://" + image)
+                    });
 
                 return Task.CompletedTask;
             }
             catch
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("未找到该姓名框")
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("未找到该姓名框")
+                    });
 
                 return Task.CompletedTask;
             }

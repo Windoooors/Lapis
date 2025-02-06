@@ -136,13 +136,14 @@ namespace LapisBot_Renewed.GroupCommands
                                 var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                            couple.Value + "&s=640");
                                 message =
-                                [
-                                    new CqReplyMsg(source.MessageId),
-                                    new CqImageMsg("base64://" + image.ToBase64()),
-                                    new CqTextMsg("您的对象是 "),
-                                    new CqTextMsg(memberName + " (" + couple.Value + ") "),
-                                    new CqTextMsg("！")
-                                ];
+                                    new CqMessage()
+                                    {
+                                        new CqReplyMsg(source.MessageId),
+                                        new CqImageMsg("base64://" + image.ToBase64()),
+                                        new CqTextMsg("您的对象是 "),
+                                        new CqTextMsg(memberName + " (" + couple.Value + ") "),
+                                        new CqTextMsg("！")
+                                    };
                                 
                                 image.Dispose();
                             }
@@ -195,13 +196,14 @@ namespace LapisBot_Renewed.GroupCommands
                             var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                        memberList[i] + "&s=640");
                             message =
-                            [
-                                new CqReplyMsg(source.MessageId),
-                                new CqImageMsg("base64://" + image.ToBase64()),
-                                new CqTextMsg("您的对象是 "),
-                                new CqTextMsg(memberName + " (" + memberList[i] + ") "),
-                                new CqTextMsg("！")
-                            ];
+                                new CqMessage()
+                                {
+                                    new CqReplyMsg(source.MessageId),
+                                    new CqImageMsg("base64://" + image.ToBase64()),
+                                    new CqTextMsg("您的对象是 "),
+                                    new CqTextMsg(memberName + " (" + memberList[i] + ") "),
+                                    new CqTextMsg("！")
+                                };
                             
                             image.Dispose();
 
@@ -221,11 +223,12 @@ namespace LapisBot_Renewed.GroupCommands
                     }
                     else
                     {
-                        CqMessage message =
-                        [
-                            new CqReplyMsg(source.MessageId),
-                            new CqTextMsg("近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
-                        ];
+                        var message =
+                            new CqMessage()
+                            {
+                                new CqReplyMsg(source.MessageId),
+                                new CqTextMsg("近期发言人数太少咯 _(:_」∠)_ Lapis 找不到你的对象")
+                            };
 
                         Program.Session.SendGroupMessageAsync(source.GroupId, message);
                     }

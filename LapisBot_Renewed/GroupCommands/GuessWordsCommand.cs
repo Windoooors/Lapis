@@ -113,11 +113,12 @@ namespace LapisBot_Renewed.GroupCommands
                 titleText += translation.Type + "." + translation.Translation + "; \n";
             titleText += "提示：\n";
             titleText += text;
-            
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(titleText)
-            ]);
+            });
             
             return Task.CompletedTask;
         }
@@ -136,14 +137,16 @@ namespace LapisBot_Renewed.GroupCommands
                 text += translation.Type + "." + translation.Translation + "; \n";
 
             if (messageId != 0)
-                Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
+                Program.Session.SendGroupMessageAsync(long.Parse(groupId), new CqMessage
+                {
                     new CqReplyMsg(messageId),
                     new CqTextMsg(text)
-                ]);
+                });
             else
-                Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
+                Program.Session.SendGroupMessageAsync(long.Parse(groupId), new CqMessage
+                {
                     new CqTextMsg(text)
-                ]);
+                });
             
             GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
 
@@ -170,10 +173,11 @@ namespace LapisBot_Renewed.GroupCommands
                                                     + " 词库开始游戏";
             text.TrimEnd();
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(text)
-            ]);
+            });
             CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
@@ -185,10 +189,11 @@ namespace LapisBot_Renewed.GroupCommands
                 if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
                 {
 
-                    Program.Session.SendGroupMessageAsync(source.GroupId, [
+                    Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                    {
                         new CqReplyMsg(source.MessageId),
                         new CqTextMsg("没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
-                    ]);
+                    });
                     CancelCoolDownTimer(source.GroupId.ToString());
                     return Task.CompletedTask;
                 }
@@ -224,10 +229,11 @@ namespace LapisBot_Renewed.GroupCommands
                         if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
                         {
 
-                            Program.Session.SendGroupMessageAsync(source.GroupId, [
+                            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                            {
                                 new CqReplyMsg(source.MessageId),
                                 new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
-                            ]);
+                            });
                             return Task.CompletedTask;
                         }
                         
@@ -244,10 +250,11 @@ namespace LapisBot_Renewed.GroupCommands
                             (word, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
 
 
-                        Program.Session.SendGroupMessageAsync(source.GroupId, [
+                        Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                        {
                             new CqReplyMsg(source.MessageId),
                             new CqTextMsg(text)
-                        ]);
+                        });
                         return Task.CompletedTask;
                     }
                 }
@@ -262,10 +269,11 @@ namespace LapisBot_Renewed.GroupCommands
         {
             if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                {
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
-                ]);
+                });
                 return Task.CompletedTask;
             }
 
@@ -283,10 +291,11 @@ namespace LapisBot_Renewed.GroupCommands
                 (word, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
 
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(text)
-            ]);
+            });
             return Task.CompletedTask;
         }
     }

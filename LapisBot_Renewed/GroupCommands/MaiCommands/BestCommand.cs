@@ -55,10 +55,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (best.Charts == null)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("未找到该玩家")
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("未找到该玩家")
+                    });
                 return Task.CompletedTask;
             }
 
@@ -140,10 +141,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
 
             Program.Session.SendGroupMessageAsync(source.GroupId,
-            [
-                new CqReplyMsg(source.MessageId),
-                new CqImageMsg("base64://" + image)
-            ]);
+                new CqMessage
+                {
+                    new CqReplyMsg(source.MessageId),
+                    new CqImageMsg("base64://" + image)
+                });
 
             return Task.CompletedTask;
         }
@@ -233,18 +235,20 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     Program.settingsCommand.CurrentBotSettings.CompressedImage);
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqImageMsg("base64://" + image)
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqImageMsg("base64://" + image)
+                    });
             }
             catch (Exception)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
-                ]);
+                    new CqMessage
+                    {
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+                    });
             }
 
             return Task.CompletedTask;

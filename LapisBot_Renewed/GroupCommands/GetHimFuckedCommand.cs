@@ -68,14 +68,16 @@ namespace LapisBot_Renewed.GroupCommands
                                 i = memberList.IndexOf(targetId);
                             else
                             {
-                                CqMessage message = [ new CqTextMsg("吓人") ];
+                                CqMessage message = new CqMessage
+                                    { new CqTextMsg("吓人") };
                                 Program.Session.SendGroupMessageAsync(source.GroupId, message);
                                 return Task.CompletedTask;
                             }
                         }
                         else
                         {
-                            CqMessage message = [ new CqTextMsg("该群友未在群聊中发过言！") ];
+                            CqMessage message = new CqMessage
+                                { new CqTextMsg("该群友未在群聊中发过言！") };
                             Program.Session.SendGroupMessageAsync(source.GroupId, message);
                             return Task.CompletedTask;
                         }
@@ -100,13 +102,14 @@ namespace LapisBot_Renewed.GroupCommands
                         var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                    memberList[i] + "&s=640");
                         message =
-                        [
-                            new CqReplyMsg(source.MessageId),
-                            new CqImageMsg("base64://" + image.ToBase64()),
-                            new CqTextMsg("您把 "),
-                            new CqTextMsg(memberName + " (" + memberList[i] + ") "),
-                            new CqTextMsg("狠狠地操了一顿")
-                        ];
+                            new CqMessage
+                            {
+                                new CqReplyMsg(source.MessageId),
+                                new CqImageMsg("base64://" + image.ToBase64()),
+                                new CqTextMsg("您把 "),
+                                new CqTextMsg(memberName + " (" + memberList[i] + ") "),
+                                new CqTextMsg("狠狠地操了一顿")
+                            };
                         
                         image.Dispose();
                         

@@ -24,12 +24,14 @@ namespace LapisBot_Renewed
 
                 var image = Program.apiOperator.UrlToImage(
                     ((CqImageMsg)element).Url.ToString().Replace("https", "http"));
-                
+
                 Program.Session.SendPrivateMessage(source.Sender.UserId,
-                [
-                    new CqTextMsg("若 GIF 表情无法保存，您可以访问以下链接来下载该 GIF 表情：" + ((CqImageMsg)element).Url.ToString().Replace("https", "http")),
-                    new CqImageMsg("base64://" + image.ToBase64())
-                ]);
+                    new CqMessage
+                    {
+                        new CqTextMsg("若 GIF 表情无法保存，您可以访问以下链接来下载该 GIF 表情：" +
+                                      ((CqImageMsg)element).Url.ToString().Replace("https", "http")),
+                        new CqImageMsg("base64://" + image.ToBase64())
+                    });
                 
                 image.Dispose();
             }

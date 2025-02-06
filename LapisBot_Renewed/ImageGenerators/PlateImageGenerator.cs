@@ -157,7 +157,8 @@ public class PlateImageGenerator
 
         var sortedDifficulties =
             difficulties.OrderByDescending(d =>
-                maiCommand.LevelDictionary.Keys.ToArray().IndexOf(d.Key)).ToDictionary();
+                maiCommand.LevelDictionary.Keys.ToArray().IndexOf(d.Key))
+                .ToDictionary(d => d.Key, d => d.Value);
 
         totalHeight += 104;
 

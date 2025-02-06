@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 
 namespace LapisBot_Renewed
@@ -32,7 +33,8 @@ namespace LapisBot_Renewed
                     }
 
                     if (settings.UpdateMessage)
-                        Program.Session.SendGroupMessageAsync(group.GroupId, [message]);
+                        Program.Session.SendGroupMessageAsync(group.GroupId, new CqMessage
+                            { message });
                 }
             }
             return Task.CompletedTask;

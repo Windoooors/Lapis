@@ -250,7 +250,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             if (songs == null)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该歌曲")]);
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                    { new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该歌曲") });
                 return Task.CompletedTask;
             }
 
@@ -268,12 +269,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     idsList.Add(songs[i].Id);
                 }
 
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                {
                     new CqReplyMsg(source.MessageId), new CqTextMsg(
                         " 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai info ID " + idsList[0] + "\" 指令即可查询歌曲 " +
                         songs[0].Title + " [" + songs[0].Type +
                         "] 的信息")
-                ]);
+                });
                 
                 return Task.CompletedTask;
             }
@@ -292,14 +294,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     catch
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该玩家")]);
+                            new CqMessage
+                                { new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该玩家") });
                         return Task.CompletedTask;
                     }
 
                     if (!GetScoreDto.GetScore.userExists)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
-                            [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该玩家")]);
+                            new CqMessage
+                                { new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该玩家") });
                         return Task.CompletedTask;
                     }
                 }
@@ -317,12 +321,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 GetScoreDto.GetScore.Levels,
                 Program.settingsCommand.CurrentBotSettings.CompressedImage));
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), image]);
+            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+                { new CqReplyMsg(source.MessageId), image });
 
             if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                    [new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(songs[0].Id))]);
+                    new CqMessage
+                        { new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(songs[0].Id)) });
             }
 
             return Task.CompletedTask;
