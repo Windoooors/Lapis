@@ -1,14 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using ImageMagick;
-using LapisBot_Renewed.Collections;
-using System.Diagnostics;
 using System.Net.Http;
+using LapisBot_Renewed.Operations.ImageOperation;
 
-namespace LapisBot_Renewed
+namespace LapisBot_Renewed.Operations.ApiOperation
 {
     public class ApiOperator
     {
@@ -45,17 +42,13 @@ namespace LapisBot_Renewed
             else
                 return PostCore(path, JsonConvert.SerializeObject(content));
         }
-        
-        public MagickImage UrlToImage(string url)
+
+        public Image UrlToImage(string url)
         {
             var client = new HttpClient();
             var bytes = client.GetByteArrayAsync(url).Result;
-            var stream = new MemoryStream(bytes);
-            var outputImg = new MagickImage(stream)
-            {
-                Format = MagickFormat.Png
-            };
-            stream.Dispose();
+            using var stream = new MemoryStream(bytes);
+            var outputImg = new Image(stream);
             client.Dispose();
             return outputImg;
         }

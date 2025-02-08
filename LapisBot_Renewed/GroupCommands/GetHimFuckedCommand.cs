@@ -10,6 +10,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace LapisBot_Renewed.GroupCommands
 {

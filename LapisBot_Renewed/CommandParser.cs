@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using SixLabors.ImageSharp.Diagnostics;
 
 namespace LapisBot_Renewed
 {
@@ -156,6 +157,9 @@ namespace LapisBot_Renewed
                     
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
+                    
+                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+                    
                     if (command.SubCommands.Count != 0 && !parsed)
                         return false;
                     return true;
@@ -176,6 +180,9 @@ namespace LapisBot_Renewed
 
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
                     taskParse.Start();
+                    
+                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+                    
                     if (command.SubCommands.Count != 0 && !parsed)
                         return false;
                     return true;
@@ -211,6 +218,7 @@ namespace LapisBot_Renewed
                         return;
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
+                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
                 }
                 else if (IsMatched(command.DirectCommand, commandString))
                 {
@@ -219,6 +227,7 @@ namespace LapisBot_Renewed
                         return;
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
                     taskParse.Start();
+                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
                 }
             }
         }

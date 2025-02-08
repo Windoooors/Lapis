@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ImageMagick;
 using System.IO;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using ImageMagick.Drawing;
 using Newtonsoft.Json;
+using LapisBot_Renewed.Operations.ImageOperation;
 
 namespace LapisBot_Renewed.GroupCommands.StickerCommands
 {
@@ -39,7 +37,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
         {
             if (command != string.Empty)
             {
-                var image = new MagickImage(Environment.CurrentDirectory + @"/resource/stickers/xibao.png");
+                var image = new Image(Environment.CurrentDirectory + @"/resource/stickers/xibao.png");
                 var fontSize = 72;
                 var top = 200;
 
@@ -79,14 +77,9 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
                         command = fontSizeCommand.Replace(command, string.Empty);
                     }
                 }
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                    //.Font(Environment.CurrentDirectory + @"/resources/emoji.ttc")
-                    .TextAlignment(TextAlignment.Center)
-                    .FontPointSize(fontSize)
-                    .FillColor(new MagickColor(65535, 0, 0, 65535))
-                    .Text(233, top, command)
-                    .Draw(image);
+
+                image.DrawText(command, Color.Red, fontSize, FontWeight.Regular, HorizontalAlignment.Center, 233, top);
+
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                     { new CqImageMsg("base64://" + image.ToBase64()) });
                 image.Dispose();

@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using LapisBot_Renewed.GroupCommands.MaiCommands;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
@@ -254,7 +255,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
     }
-
+    
     public class BestDto
     {
         [JsonProperty("username")] public string Username;

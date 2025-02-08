@@ -2,7 +2,6 @@
 using System.IO;
 using System.Resources;
 using System.Text.RegularExpressions;
-using Xamarin.Forms;
 
 namespace LapisBot_Renewed
 {

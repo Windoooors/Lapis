@@ -1,76 +1,62 @@
 ﻿using System;
 using System.IO;
-using ImageMagick;
-using ImageMagick.Drawing;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using LapisBot_Renewed.GroupCommands;
+using LapisBot_Renewed.Operations.ImageOperation;
+using HorizontalAlignment = LapisBot_Renewed.Operations.ImageOperation.HorizontalAlignment;
 
 namespace LapisBot_Renewed.ImageGenerators
 {
     public class InfoImageGenerator
     {
-        private string GetPictureId(int id)
-        {
-            return id.ToString("00000");
-        }
-
         private string _coverImagePath;
 
-        private MagickImage GenerateBackground(SongDto song, string title, ApiOperator apiOperator)
+        private Image GenerateBackground(SongDto song, string title)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resource/random/background.png");
+            var image = new Image(Path.Combine(Environment.CurrentDirectory, @"resource/random/background.png"));
 
-            if (File.Exists(Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png"))
-                _coverImagePath = Environment.CurrentDirectory + @"/resource/covers_hd/" + song.Id + ".png";
-            else
-                _coverImagePath = Environment.CurrentDirectory + @"/resource/covers/1000.png";
+            _coverImagePath = File.Exists(Path.Combine(Environment.CurrentDirectory, @"resource/covers_hd",
+                song.Id + ".png"))
+                ? Path.Combine(Environment.CurrentDirectory, @"resource/covers_hd", song.Id + ".png")
+                : Path.Combine(Environment.CurrentDirectory, @"resource/covers", "1000.png");
 
-            var backgroundCoverImage = new MagickImage(_coverImagePath);
+            var backgroundCoverImage = new Image(_coverImagePath);
+
             backgroundCoverImage.Resize(64, 64);
-            backgroundCoverImage.GaussianBlur(20);
+            backgroundCoverImage.GaussianBlur(5);
             backgroundCoverImage.Resize(1400, 1400);
-
-            backgroundCoverImage.Composite(image, 0, 0, CompositeOperator.Atop);
+            backgroundCoverImage.DrawImage(image, 0, 0);
             
             image.Dispose();
 
             image = backgroundCoverImage;
-
-            image.Crop(1400, 1280);
-
-            MagickReadSettings backgroundLayerSettings = new MagickReadSettings
-            {
-                Width = 1280,
-                Height = 1280
-            };
-            var backgroundLayer = new MagickImage("xc:transparent", backgroundLayerSettings);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .FontPointSize(400)
-                .FillColor(new MagickColor(65535, 65535, 65535, 5300))
-                .Text(0, 310, song.Title)
-                .Draw(backgroundLayer);
-            backgroundLayer.Rotate(-90);
             
-            image.Composite(backgroundLayer, 0, -150, CompositeOperator.Atop);
+            image.Crop(1400, 1280);
+            
+            var backgroundLayer = new Image(1280, 1280);
+
+            backgroundLayer.DrawText(song.Title, 
+                new Color(1f, 1f, 1f, 0.081f),
+                400,
+                FontWeight.Heavy,
+                0, 310);
+            backgroundLayer.Rotate(-90);
+
+            image.DrawImage(backgroundLayer, 0, -150);
             
             backgroundLayer.Dispose();
-            
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(48)
-                .FillColor(new MagickColor(65535, 65535, 65535, 5300))
-                .Text(13, 1200, title)
-                .Draw(image);
+
+            image.DrawText(title, new Color(1f, 1f, 1f, 0.081f), 48, FontWeight.Regular, 13, 1200);
+
             return image;
         }
 
-        private MagickImage GenerateDifficultyLayer(SongDto song, InfoCommand.GetScoreDto.Level[] levels)
+        private Image GenerateDifficultyLayer(SongDto song, InfoCommand.GetScoreDto.Level[] levels)
         {
-            var difficultyLayerImage = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 6600, Height = 1080 });
+            var difficultyLayerImage = new Image(6600, 1080, new Color(0, 0, 0, 0));
             if (levels != null)
             {
-                MagickImage image = null;
+                Image image = null;
                 foreach (InfoCommand.GetScoreDto.Level level in levels)
                 {
                     var y = 0;
@@ -94,14 +80,10 @@ namespace LapisBot_Renewed.ImageGenerators
                     }
 
                     var x = 0;
-                    new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                        .FontPointSize(24)
-                        .FillColor(new MagickColor(65535, 65535, 65535))
-                        .Text(0, y + 88,
-                            level.Achievement.ToString("0.0000") +
-                            "% ")
-                        .Draw(difficultyLayerImage);
+
+                    difficultyLayerImage.DrawText(level.Achievement.ToString("0.0000") + "% ", Color.White, 24,
+                        FontWeight.Light, 0, y + 88);
+                    
                     if (level.Achievement.ToString("0.0000").Length ==
                         8)
                         x = 130;
@@ -113,39 +95,39 @@ namespace LapisBot_Renewed.ImageGenerators
                         x = 104;
 
                     if (level.Rate == InfoCommand.Rate.Sss)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/sss.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/sss.png");
                     else if (level.Rate == InfoCommand.Rate.Sssp)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/sss_plus.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/sss_plus.png");
                     else if (level.Rate == InfoCommand.Rate.Ss)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/ss.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/ss.png");
                     else if (level.Rate == InfoCommand.Rate.Ssp)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/ss_plus.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/ss_plus.png");
                     else if (level.Rate == InfoCommand.Rate.Sp)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/s_plus.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/s_plus.png");
                     else if (level.Rate == InfoCommand.Rate.S)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/s.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/s.png");
                     else if (level.Rate == InfoCommand.Rate.Aaa)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/aaa.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/aaa.png");
                     else if (level.Rate == InfoCommand.Rate.Aa)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/aa.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/aa.png");
                     else if (level.Rate == InfoCommand.Rate.A)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/a.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/a.png");
                     else if (level.Rate == InfoCommand.Rate.Bbb)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/bbb.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/bbb.png");
                     else if (level.Rate == InfoCommand.Rate.Bb)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/bb.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/bb.png");
                     else if (level.Rate == InfoCommand.Rate.B)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/b.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/b.png");
                     else if (level.Rate == InfoCommand.Rate.C)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/c.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/c.png");
                     else if (level.Rate == InfoCommand.Rate.D)
-                        image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings/d.png");
+                        image = new Image(Environment.CurrentDirectory + @"/resource/ratings/d.png");
                     if (image != null)
                     {
-                        if (image.BaseHeight == 22 || image.BaseHeight == 23)
-                            difficultyLayerImage.Composite(image, x, y + 66, CompositeOperator.Blend);
-                        if (image.BaseHeight == 19 || image.BaseHeight == 20 || image.BaseHeight == 18)
-                            difficultyLayerImage.Composite(image, x, y + 69, CompositeOperator.Blend);
+                        if (image.Height == 22 || image.Height == 23)
+                            difficultyLayerImage.DrawImage(image, x, y + 68);
+                        if (image.Height == 19 || image.Height == 20 || image.Height == 18)
+                            difficultyLayerImage.DrawImage(image, x, y + 71);
                         image.Dispose();
                     }
 
@@ -171,12 +153,9 @@ namespace LapisBot_Renewed.ImageGenerators
 
                     if (indicatorText == string.Empty)
                         continue;
-                    new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                        .FontPointSize(18)
-                        .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                        .Text(0, y + 63, indicatorText)
-                        .Draw(difficultyLayerImage);
+
+                    difficultyLayerImage.DrawText(indicatorText, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular, 0,
+                        y + 63);
                 }
             }
 
@@ -185,116 +164,92 @@ namespace LapisBot_Renewed.ImageGenerators
 
             for (int i = 0; i < song.Ratings.Length; i++)
             {
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(24)
-                    .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, difficultyFactorYPositions[i] - 24, song.Ratings[i].ToString("0.0"))
-                    .Draw(difficultyLayerImage);
+                difficultyLayerImage.DrawText(song.Ratings[i].ToString("0.0"), Color.White, 24, FontWeight.Regular, 0,
+                    difficultyFactorYPositions[i] - 24);
+
+                difficultyLayerImage.DrawText("fit " + song.FitRatings[i].ToString("0.00"), new Color(1, 1, 1, 0.5f),
+                    18, FontWeight.Light, 0, difficultyFactorYPositions[i]);
                 
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(18)
-                    .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, difficultyFactorYPositions[i], "fit " + song.FitRatings[i].ToString("0.00"))
-                    .Draw(difficultyLayerImage);
-                
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(24)
-                    .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                    .Text(0, charterYPositions[i] - 10, song.Charts[i].Charter == "-" ? "未知作谱者" : "by " + song.Charts[i].Charter)
-                    .Draw(difficultyLayerImage);
+                difficultyLayerImage.DrawText(song.Charts[i].Charter == "-" ? "未知作谱者" : "by " + song.Charts[i].Charter, new Color(1, 1, 1, 0.5f),
+                    24, FontWeight.Light, 0, charterYPositions[i] - 10);
             }
-            
+
             if (song.Ratings.Length == 4 && song.Id.ToString().Length != 6)
-            {
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(40)
-                    .FillColor(new MagickColor(65535, 65535, 65535))
-                    .Text(0, 718, "NaN")
-                    .Draw(difficultyLayerImage);
-            }
+                difficultyLayerImage.DrawText("NaN", Color.White,
+                    40, FontWeight.Light, 0, 718);
+
             return difficultyLayerImage;
         }
 
         public string Generate(SongDto song, string title, InfoCommand.GetScoreDto.Level[] levels, bool isCompressed)
         {
-            var image = GenerateBackground(song, title, Program.apiOperator);
+            var image = GenerateBackground(song, title);
 
-            var difficultyLayer = GenerateDifficultyLayer(song, levels);
-            
-            image.Composite(difficultyLayer, 90, 305, CompositeOperator.Atop);
-            
-            difficultyLayer.Dispose();
-            
-            var coverImageShadow = new MagickImage(Environment.CurrentDirectory + @"/resource/random/coverimage.png");
-            image.Composite(coverImageShadow, 0, 0, CompositeOperator.Atop);
-            
-            coverImageShadow.Dispose();
+            using( var difficultyLayer = GenerateDifficultyLayer(song, levels))
+                image.DrawImage(difficultyLayer, 90, 305);
 
-            var coverImage = new MagickImage(_coverImagePath);
-            coverImage.Resize(1077, 1077);
-            image.Composite(coverImage, 324, 207, CompositeOperator.Atop);
-            
-            coverImage.Dispose();
-            
-            MagickImage foreImage;
-            if (song.Id.ToString().Length == 6)
-                foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground_utage.png");
-            else
-                foreImage = new MagickImage(Environment.CurrentDirectory + @"/resource/random/foreground.png");
-            image.Composite(foreImage, 0, 0, CompositeOperator.Atop);
-            
-            foreImage.Dispose();
+            using (var coverImageShadow = new Image(Environment.CurrentDirectory + @"/resource/random/coverimage.png"))
+                image.DrawImage(coverImageShadow, 0, 0);
 
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(55)
-                .FillColor(new MagickColor(65535, 65535, 65535))
-                .Text(10, 190, song.Title)
-                .Draw(image);
-
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(42)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(10, 127, song.BasicInfo.Artist)
-                .Draw(image);
-
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .FontPointSize(90)
-                .FillColor(new MagickColor(65535, 65535, 65535, 5300))
-                .TextAlignment(TextAlignment.Right)
-                .Text(1393, 87, "ID " + song.Id.ToString())
-                .Draw(image);
-
-            var songTypeLayer = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 128, Height = 128 });
-
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(36)
-                .FillColor(new MagickColor(65535, 65535, 65535, 22768))
-                .Text(0, 40, song.Type)
-                .Draw(songTypeLayer);
-
-            songTypeLayer.Rotate(-90);
-            image.Composite(songTypeLayer, 30, 214, CompositeOperator.Atop);
-            
-            songTypeLayer.Dispose();
-            
-            //image.Resize(1047, 952);
-            if (isCompressed)
+            using (var coverImage = new Image(_coverImagePath))
             {
-                image.SetCompression(CompressionMethod.JPEG);
-                image.Format = MagickFormat.Jpeg;
-                image.Quality = 90;
+                coverImage.Resize(1077, 1077);
+                image.DrawImage(coverImage, 324, 207);
             }
 
-            var result = image.ToBase64();
+            using (var foreImage = song.Id.ToString().Length == 6
+                       ? new Image(Environment.CurrentDirectory + @"/resource/random/foreground_utage.png")
+                       : new Image(Environment.CurrentDirectory + @"/resource/random/foreground.png"))
+            {
+
+                image.DrawImage(foreImage, 0, 0);
+            }
+
+            image.DrawText(
+                song.Title,
+                Color.White,
+                55,
+                FontWeight.Regular,
+                10, 190
+            );
+            
+            image.DrawText(
+                song.BasicInfo.Artist,
+                new Color(1, 1, 1, 0.5f),
+                42,
+                FontWeight.Regular,
+                10, 127
+            );
+            
+            image.DrawText(
+                "ID " + song.Id,
+                new Color(1, 1, 1, 0.081f),
+                90,
+                FontWeight.Heavy,
+                HorizontalAlignment.Right,
+                1393, 87
+            );
+
+            var songTypeLayer = new Image(128, 128);
+
+            songTypeLayer.DrawText(
+                    song.Type,
+                    new Color(1, 1, 1, 0.35f),
+                    36,
+                    FontWeight.Regular,
+                    0, 40
+                );
+                
+            songTypeLayer.Rotate(-90);
+
+            image.DrawImage(songTypeLayer, 30, 214);
+            
+            songTypeLayer.Dispose();
+
+            var result = image.ToBase64(isCompressed);
+            
             image.Dispose();
+            
             return result;
         }
     }

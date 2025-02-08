@@ -11,7 +11,6 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
-using Xamarin.Forms.Internals;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -363,13 +362,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 return Task.CompletedTask;
             }
-            catch
+            catch(Exception ex)
             {
+            
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                     {
                         new CqReplyMsg(source.MessageId),
-                        new CqTextMsg("未找到该姓名框")
+                        new CqTextMsg("未知错误\n\n" + ex.StackTrace + "\n\n" + ex.Message)
                     });
 
                 return Task.CompletedTask;

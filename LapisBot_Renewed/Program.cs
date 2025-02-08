@@ -9,6 +9,8 @@ using System.Threading;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using LapisBot_Renewed.Operations.ApiOperation;
+using SixLabors.Fonts;
 
 namespace LapisBot_Renewed
 {
@@ -38,6 +40,13 @@ namespace LapisBot_Renewed
         public static BotSettings BotSettings = new BotSettings();
 
         public static CqWsSession Session;
+        
+        public static FontFamily FontLight =
+            new FontCollection().Add(Path.Combine(Environment.CurrentDirectory, "resource/font-light.otf"));
+        public static FontFamily FontRegular = 
+            new FontCollection().Add(Path.Combine(Environment.CurrentDirectory, "resource/font.otf"));
+        public static FontFamily FontHeavy =
+            new FontCollection().Add(Path.Combine(Environment.CurrentDirectory, "resource/font-heavy.otf"));
 
         public static event EventHandler DateChanged;
         

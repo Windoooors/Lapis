@@ -9,6 +9,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace LapisBot_Renewed.GroupCommands
 {
@@ -103,6 +104,12 @@ namespace LapisBot_Renewed.GroupCommands
             return false;
         }
 
+        /// <summary>
+        /// Parses the command in the context of a group message to perform actions related to marrying someone within the group.
+        /// </summary>
+        /// <param name="command">The command string input by the user.</param>
+        /// <param name="source">The context of the group message containing details like sender, group ID, etc.</param>
+        /// <returns>A task representing the asynchronous operation of parsing and handling the marry command.</returns>
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             if (Groups.Count != 0)

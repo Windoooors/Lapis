@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-using ImageMagick;
-using ImageMagick.Drawing;
+using LapisBot_Renewed.Operations.ImageOperation;
 
 namespace LapisBot_Renewed.ImageGenerators
 {
@@ -12,87 +9,46 @@ namespace LapisBot_Renewed.ImageGenerators
     {
         public string Generate(BotSettingsCommand.Settings settings, bool isCompressed)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resource/settings/background.png");
-
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                .FontPointSize(56.26f)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(21.4, 111.69, settings.SettingsName)
-                .Draw(image);
+            var image = new Image(Path.Combine(Environment.CurrentDirectory, "resource/settings/background.png"));
+            
+            image.DrawText(settings.SettingsName, Color.White, 56.26f, FontWeight.Light, 21.4f, 111.69f);
 
             int top = 170;
             int i = 0;
             foreach (KeyValuePair<string, string> valuePair in settings.DisplayNames)
             {
-                if (settings.GetType().GetProperty(valuePair.Key).GetValue(settings) is bool)
+                var propertyValue = settings.GetType().GetProperty(valuePair.Key)?.GetValue(settings);
+                if (propertyValue is bool itemValue)
                 {
-                    var itemValue = (bool)settings.GetType().GetProperty(valuePair.Key).GetValue(settings);
-                    var _top = top + i * 69;
-                    MagickImage itemImage;
-                    if (itemValue)
-                        itemImage = new MagickImage(Environment.CurrentDirectory +
-                                                    @"/resource/settings/item_enabled.png");
-                    else
-                        itemImage = new MagickImage(Environment.CurrentDirectory +
-                                                    @"/resource/settings/item_disabled.png");
-                    new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                        .FontPointSize(34f)
-                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                        .Text(23, 48, (i + 1).ToString())
-                        .Draw(itemImage);
-                    new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                        .FontPointSize(28f)
-                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                        .Text(80, 46, valuePair.Value)
-                        .Draw(itemImage);
-                    image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
-                    itemImage.Dispose();
-                    i++;
-                }
-                else if (settings.GetType().GetProperty(valuePair.Key).GetValue(settings) is string)
-                {
-                    var itemValue = (string)settings.GetType().GetProperty(valuePair.Key).GetValue(settings);
-                    var _top = top + i * 69;
-                    MagickImage itemImage;
-                    itemImage = new MagickImage(Environment.CurrentDirectory +
-                                                @"/resource/settings/item_string.png");
-                    new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                        .FontPointSize(34f)
-                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                        .Text(23, 48, (i + 1).ToString())
-                        .Draw(itemImage);
-                    new Drawables()
-                        .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                        .FontPointSize(28f)
-                        .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                        .Text(80, 46, valuePair.Value)
-                        .Draw(itemImage);
-                    if (itemValue != "")
-                        new Drawables()
-                            .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                            .FontPointSize(28f)
-                            .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                            .TextAlignment(TextAlignment.Right)
-                            .Text(500, 46, itemValue)
-                            .Draw(itemImage);
-                    image.Composite(itemImage, 0, _top, CompositeOperator.Atop);
-                    itemImage.Dispose();
-                    i++;
-                }
+                    var itemImagePath = Path.Combine(Environment.CurrentDirectory,
+                                                     itemValue ? "resource/settings/item_enabled.png" : "resource/settings/item_disabled.png");
+                    using var itemImage = new Image(itemImagePath);
 
-                /*if (isCompressed)
+                    itemImage.DrawText((i + 1).ToString(), Color.White, 34f, FontWeight.Light, 23, 48);
+                    itemImage.DrawText(valuePair.Value, Color.White, 28f, FontWeight.Regular, 80, 46);
+
+                    image.DrawImage(itemImage, 0, top + i * 69);
+
+                    i++;
+                }
+                else if (propertyValue is string stringValue)
                 {
-                    image.SetCompression(CompressionMethod.JPEG);
-                    image.Format = MagickFormat.Jpeg;
-                    image.Quality = 90;
-                }*/
+                    using var itemImage = new Image(Path.Combine(Environment.CurrentDirectory, "resource/settings/item_string.png"));
+
+                    itemImage.DrawText((i + 1).ToString(), Color.White, 34f, FontWeight.Light, 23, 48);
+                    itemImage.DrawText(valuePair.Value, Color.White, 28f, FontWeight.Regular, 80, 46);
+                    itemImage.DrawText(stringValue, Color.White, 28f, FontWeight.Regular,HorizontalAlignment.Right , 500, 46);
+
+                    image.DrawImage(itemImage, 0, top + i * 69);
+
+                    i++;
+                }
             }
-            var result = image.ToBase64();
+
+            var result = image.ToBase64(isCompressed);
+            
             image.Dispose();
+            
             return result;
         }
     }

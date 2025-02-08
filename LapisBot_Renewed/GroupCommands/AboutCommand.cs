@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
 using System.Runtime.InteropServices;
-using ImageMagick;
-using ImageMagick.Drawing;
 using System.Reflection;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using LapisBot_Renewed.Operations.ImageOperation;
 
 namespace LapisBot_Renewed.GroupCommands
 {
@@ -36,36 +35,17 @@ namespace LapisBot_Renewed.GroupCommands
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            var image = new MagickImage(Environment.CurrentDirectory + @"/resource/about.png");
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(22f)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(128.56, 202.23, RuntimeInformation.OSDescription)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(22f)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(128.56, 231.67, RuntimeInformation.FrameworkDescription)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(22f)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(128.56, 262.48, RuntimeInformation.OSArchitecture.ToString())
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(18f)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(20.49, 325, "Version " + Assembly.GetAssembly(GetType()).GetName().Version.ToString())
-                .Draw(image);
+            var image = new Image(Environment.CurrentDirectory + @"/resource/about.png");
+            image.DrawText(RuntimeInformation.OSDescription, Color.White, 22, FontWeight.Regular, 128.56f, 202.23f);
+            image.DrawText(RuntimeInformation.FrameworkDescription, Color.White, 22, FontWeight.Regular, 128.56f, 231.67f);
+            image.DrawText(RuntimeInformation.OSArchitecture.ToString(), Color.White, 22, FontWeight.Regular, 128.56f, 262.48f);
+            image.DrawText("Version " + Assembly.GetAssembly(GetType()).GetName().Version, Color.White, 22, FontWeight.Regular, 20.49f, 325f);
             Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
             {
                 new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + image.ToBase64())
             });
+            image.Dispose();
             return Task.CompletedTask;
         }
     }

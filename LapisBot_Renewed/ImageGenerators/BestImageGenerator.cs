@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
-using ImageMagick;
-using ImageMagick.Drawing;
+using LapisBot_Renewed.Operations.ImageOperation;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 
 namespace LapisBot_Renewed.ImageGenerators
@@ -11,185 +9,109 @@ namespace LapisBot_Renewed.ImageGenerators
     {
         public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
         {
-            MagickImage head;
+            Image head;
             if (usingHead)
                 head = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640"); 
             else
             {
-                head = new MagickImage(Environment.CurrentDirectory +
+                head = new Image(Environment.CurrentDirectory +
                                        @"/resource/best50/best50_userhead_background.png");
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(0, 52428, 65535, 6553))
-                    .Text(3, 59, best.Username.Substring(0, 1))
-                    .Draw(head);
+                head.DrawText(best.Username.Substring(0, 1), new Color(0, 0.8f, 1, 0.1f), 36, FontWeight.Regular, 3,
+                    59);
             }
 
             head.Resize(65, 65);
 
             var image = GenerateBackground(best);
-            var nameForm = new MagickImage("xc:transparent", new MagickReadSettings(){Width = 500, Height = 65});
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                .FontPointSize(36)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(2, 59, best.Username)
-                .Draw(nameForm);
-            image.Composite(nameForm, 74, 25, CompositeOperator.Atop);
+            var nameForm = new Image(500, 65);
+            
+            nameForm.DrawText(best.Username, Color.White, 36, FontWeight.Light, 2, 59);
+            
+            image.DrawImage(nameForm, 74, 25);
             
             nameForm.Dispose();
             
-            MagickImage ratingBackground = null;
             if (best.Rating <= 999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_regular.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_regular.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), Color.White, 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 999 && best.Rating <= 1999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_blue.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(0, 15677, 23644))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_blue.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0, 0.24f, 0.36f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 1999 && best.Rating <= 3999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_green.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(16128, 24832, 6144))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_green.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.25f, 0.38f, 0.09f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 3999 && best.Rating <= 6999)
             {
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_yellow.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(23296, 19968, 15872))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
-
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_yellow.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.30f, 0.24f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 6999 && best.Rating <= 9999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_red.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(65535, 46848, 46848))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_red.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(1, 0.71f, 0.71f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 9999 && best.Rating <= 11999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_purple.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(48128, 36864, 65535))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_purple.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.73f, 0.56f, 1f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 11999 && best.Rating <= 12999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_bronze.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(23644, 11565, 4369))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_bronze.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.18f, 0.07f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 12999 && best.Rating <= 13999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_silver.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(5911, 5911, 5911))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_silver.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.1f, 0.1f, 0.1f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 13999 && best.Rating <= 14499)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_gold.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(23296, 19968, 15872))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_gold.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.3f, 0.24f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 14499 && best.Rating <= 14999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_platinum.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(23296, 19968, 15872))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_platinum.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.3f, 0.24f, 1), 36, FontWeight.Light, 74, 150);
             }
             else if (best.Rating > 14999)
             {
-
-                ratingBackground =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/score_background_rainbow.png");
-                image.Composite(ratingBackground, 73, 90, CompositeOperator.Atop);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                    .FontPointSize(36)
-                    .FillColor(new MagickColor(6682, 0, 24185))
-                    .Text(74, 150, best.Rating.ToString())
-                    .Draw(image);
+                using var ratingBackground =
+                    new Image(Environment.CurrentDirectory + @"/resource/best50/score_background_rainbow.png");
+                image.DrawImage(ratingBackground, 73, 90);
+                image.DrawText(best.Rating.ToString(), new Color(0.1f, 0f, 0.37f, 1), 36, FontWeight.Light, 74, 150);
             }
 
-            image.Composite(head, 8, 25, CompositeOperator.Atop);
+            image.DrawImage(head, 8, 25);
             
             head.Dispose();
-            if (ratingBackground != null)
-                ratingBackground.Dispose();
             
             for (int i = 0; i < best.Charts.SdCharts.Length; i++)
             {
@@ -239,7 +161,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
                 var item = GenerateItem(best.Charts.SdCharts[i], i + 1);
 
-                image.Composite(item, x, y, CompositeOperator.Atop);
+                image.DrawImage(item, x, y);
                 
                 item.Dispose();
             }
@@ -268,36 +190,23 @@ namespace LapisBot_Renewed.ImageGenerators
 
                 var item = GenerateItem(best.Charts.DxCharts[i], i + 1);
 
-                image.Composite(item, x, y, CompositeOperator.Atop);
+                image.DrawImage(item, x, y);
                 
                 item.Dispose();
             }
 
-            if (isCompressed)
-            {
-                image.SetCompression(CompressionMethod.JPEG);
-                image.Format = MagickFormat.Jpeg;
-                image.Quality = 90;
-            }
-            else
-            {
-                image.SetCompression(CompressionMethod.JPEG);
-                image.Format = MagickFormat.Jpeg;
-                image.Quality = 100;
-            }
-
-            var result = image.ToBase64();
+            var result = image.ToBase64(isCompressed);
             
             image.Dispose();
             
             return result;
         }
 
-        private MagickImage GenerateItem(BestDto.ScoreDto score, int rank)
+        private Image GenerateItem(BestDto.ScoreDto score, int rank)
         {
             var difficulty = string.Empty;
-            var fontColor = new MagickColor();
-            
+            var fontColor = new Color();
+
             var fcIndicatorText = string.Empty;
             var fsIndicatorText = string.Empty;
 
@@ -314,184 +223,155 @@ namespace LapisBot_Renewed.ImageGenerators
             {
                 case 0:
                     difficulty = "bas";
-                    fontColor = new MagickColor(16128, 24832, 6144);
+                    fontColor = new Color(16128 / 65535f, 24832 / 65535f, 6144 / 65535f, 1);
                     break;
                 case 1:
                     difficulty = "avd";
-                    fontColor = new MagickColor(23296, 19968, 15872);
+                    fontColor = new Color(23296 / 65535f, 19968 / 65535f, 15872 / 65535f, 1);
                     break;
                 case 2:
                     difficulty = "exp";
-                    fontColor = new MagickColor(65535, 46848, 46848);
+                    fontColor = new Color(65535 / 65535f, 46848 / 65535f, 46848 / 65535f, 1);
                     break;
                 case 3:
                     difficulty = "mas";
-                    fontColor = new MagickColor(48128, 36864, 65535);
+                    fontColor = new Color(48128 / 65535f, 36864 / 65535f, 65535 / 65535f, 1);
                     break;
                 case 4:
                     difficulty = "re";
-                    fontColor = new MagickColor(34560, 29184, 46848);
+                    fontColor = new Color(34560 / 65535f, 29184 / 65535f, 46848 / 65535f, 1);
                     break;
             }
 
-            var foreground = new MagickImage(Environment.CurrentDirectory + @"/resource/best50/b50_item_foreground_" +
-                                             difficulty + ".png");
-            MagickImage background;
-            if (File.Exists(Environment.CurrentDirectory + @"/resource/covers/" + score.Id+
-                                      ".png"))
-                background = new MagickImage(Environment.CurrentDirectory + @"/resource/covers/" +
-                                             score.Id + ".png");
+            var foreground = new Image(Environment.CurrentDirectory + @"/resource/best50/b50_item_foreground_" +
+                                       difficulty + ".png");
+            Image background;
+            if (File.Exists(Environment.CurrentDirectory + @"/resource/covers/" + score.Id +
+                            ".png"))
+                background = new Image(Environment.CurrentDirectory + @"/resource/covers/" +
+                                       score.Id + ".png");
             else
-                background = new MagickImage(Environment.CurrentDirectory + @"/resource/covers/1000.png");
+                background = new Image(Environment.CurrentDirectory + @"/resource/covers/1000.png");
 
             background.Scale(100, 100);
-            var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 350, Height = 100 });
-            image.Composite(foreground, 0, 0, CompositeOperator.Atop);
-            image.Composite(background, 0, 0, CompositeOperator.Atop);
-            
+            var image = new Image(350, 100);
+            image.DrawImage(foreground, 0, 0);
+            image.DrawImage(background, 0, 0);
+
             foreground.Dispose();
             background.Dispose();
 
-            var info = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 350, Height = 100 });
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .FontPointSize(13)
-                .FillColor(fontColor)
-                .TextAlignment(TextAlignment.Left)
-                .Text(114, 23, score.Type)
-                .Draw(info);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                .FontPointSize(16)
-                .FillColor(fontColor)
-                .TextAlignment(TextAlignment.Left)
-                .Text(135, 25, score.Title)
-                .Draw(info);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .FontPointSize(20)
-                .FillColor(fontColor)
-                .TextAlignment(TextAlignment.Left)
-                .Text(114, 48,
-                    score.Achievements.ToString("0.0000") + "%")
-                .Draw(info);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .FontPointSize(20)
-                .FillColor(fontColor)
-                .TextAlignment(TextAlignment.Left)
-                .Text(114, 68, score.DifficultyFactor.ToString("0.0") + "·" + score.Rating)
-                .Draw(info);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-                .FontPointSize(15)
-                .FillColor(fontColor)
-                .TextAlignment(TextAlignment.Left)
-                .Text(114, 88, "#" + rank.ToString() + "·ID " + score.Id.ToString())
-                .Draw(info);
-            
-            MagickImage _image = null;
-            MagickImage _rateBackgroundImage = null;
-            MagickImage _rateShadowImage = null;
+            var info = new Image(350, 100);
+
+            info.DrawText(score.Type, fontColor, 13, FontWeight.Heavy, 114, 23);
+            info.DrawText(score.Title, fontColor, 16, FontWeight.Light, 135, 25);
+            info.DrawText(score.Achievements.ToString("0.0000") + "%", fontColor, 20, FontWeight.Heavy, 114, 48);
+            info.DrawText(score.DifficultyFactor.ToString("0.0") + "·" + score.Rating, fontColor, 20, FontWeight.Heavy,
+                114, 68);
+            info.DrawText("#" + rank + "·ID " + score.Id, fontColor, 15, FontWeight.Light, 114, 88);
+
+            var imagePath = "";
+            var rateBackgroundImagePath = "";
+            var rateShadowImagePath = "";
             if (score.rate == InfoCommand.Rate.Sss)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/sss.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/sss.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_sss.png");
+                imagePath = Environment.CurrentDirectory + @"/resource/ratings_hd/sss.png";
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/sss.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_sss.png");
             }
             else if (score.rate == InfoCommand.Rate.Sssp)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/sss_plus.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/sss_plus.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_sss.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/sss_plus.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/sss_plus.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_sss.png");
             }
             else if (score.rate == InfoCommand.Rate.Ss)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/ss.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/ss.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_ss.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/ss.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/ss.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_ss.png");
             }
             else if (score.rate == InfoCommand.Rate.Ssp)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/ss_plus.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/ss_plus.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_ss.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/ss_plus.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/ss_plus.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_ss.png");
             }
             else if (score.rate == InfoCommand.Rate.Sp)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/s_plus.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/s_plus.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_s.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/s_plus.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/s_plus.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_s.png");
             }
             else if (score.rate == InfoCommand.Rate.S)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/s.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/s.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_s.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/s.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/s.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_s.png");
             }
             else if (score.rate == InfoCommand.Rate.Aaa)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/aaa.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/aaa.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/aaa.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/aaa.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.Aa)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/aa.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/aa.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/aa.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/aa.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.A)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/a.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/a.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/a.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/a.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.Bbb)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/bbb.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/bbb.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/bbb.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/bbb.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.Bb)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/bb.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/bb.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/bb.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/bb.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.B)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/b.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/b.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/b.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/b.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.C)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/c.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/c.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/c.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/c.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
             else if (score.rate == InfoCommand.Rate.D)
             {
-                _image = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/d.png");
-                _rateShadowImage = new MagickImage(Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/d.png");
-                _rateBackgroundImage =
-                    new MagickImage(Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
+                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/d.png");
+                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/d.png");
+                rateBackgroundImagePath =
+                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
             }
-            
+
             var stars = 0;
             var starRate = (float)score.DxScore / score.MaxDxScore * 100;
             if (starRate <= 100 && starRate >= 97)
@@ -506,78 +386,67 @@ namespace LapisBot_Renewed.ImageGenerators
                 stars = 1;
             if (starRate < 85)
                 stars = 0;
-            info.Composite(new MagickImage(Environment.CurrentDirectory + @"/resource/best50/gradient.png"), 0, 0,
-                Channels.Alpha);
-            image.Composite(info, 0, 0, CompositeOperator.Atop);
-            
-            if (_rateBackgroundImage != null)
-            {
-                var width = _rateBackgroundImage.BaseWidth;
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                    .FontPointSize(12)
-                    .FillColor(new MagickColor(0,0,0,13660))
-                    .TextAlignment(TextAlignment.Right)
-                    .Text(width - 10, 23, "DX 分数")
-                    .Draw(_rateBackgroundImage);
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                    .FontPointSize(12)
-                    .FillColor(new MagickColor(0,0,0,39321))
-                    .TextAlignment(TextAlignment.Right)
-                    .Text(width - 10, 36, score.DxScore+ "/" + score.MaxDxScore)
-                    .Draw(_rateBackgroundImage);
-                var indicatorText = fcIndicatorText + " " + fsIndicatorText;
-                if (indicatorText.Length != 0)
-                    indicatorText.TrimEnd();
-                new Drawables()
-                    .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                    .FontPointSize(10)
-                    .FillColor(new MagickColor(0,0,0,39321))
-                    .TextAlignment(TextAlignment.Right)
-                    .Text(width - 9, 58, indicatorText)
-                    .Draw(_rateBackgroundImage);
-                _image.Scale(new Percentage(80));
-                _rateShadowImage.Scale(new Percentage(80));
-                _rateBackgroundImage.Composite(_image, (int)(_rateBackgroundImage.BaseWidth - _image.Width - 10), (int)(88 - _image.Height), CompositeOperator.DstOut);
-                _rateBackgroundImage.Composite(_rateShadowImage, (int)(_rateBackgroundImage.BaseWidth - _image.Width - 10), (int)(88 - _image.Height),
-                    CompositeOperator.Blend);
-                for (int i = 0; i < stars; i++)
-                {
-                    _rateBackgroundImage.Composite(
-                        new MagickImage(Environment.CurrentDirectory + @"/resource/best50/star.png"),
-                        (int)(_rateBackgroundImage.BaseWidth - (int)(i * 11f) - 20),
-                        37,
-                        CompositeOperator.Atop);
-                }
 
-                image.Composite(_rateBackgroundImage, (int)(info.BaseWidth - _rateBackgroundImage.Width),
-                    (int)(info.BaseHeight - _rateBackgroundImage.Height),
-                    CompositeOperator.Atop);
-                
-                info.Dispose();
-                _image.Dispose();
-                _rateBackgroundImage.Dispose();
-                _rateShadowImage.Dispose();
+            using var gradient = new Image(Environment.CurrentDirectory + @"/resource/best50/gradient.png");
+            info.FuseAlpha(gradient);
+            image.DrawImage(info, 0, 0);
+
+            using var rateBackgroundImage = new Image(rateBackgroundImagePath);
+            using var rateShadowImage = new Image(rateShadowImagePath);
+            using var rateImage = new Image(imagePath);
+
+            var width = rateBackgroundImage.Width;
+            rateBackgroundImage.DrawText("DX 分数", new Color(0, 0, 0, 0.21f), 12, FontWeight.Heavy,
+                HorizontalAlignment.Right, width - 10, 23);
+            rateBackgroundImage.DrawText(score.DxScore + "/" + score.MaxDxScore, new Color(0, 0, 0, 0.6f), 12,
+                FontWeight.Regular, HorizontalAlignment.Right, width - 10, 36);
+            var indicatorText = fcIndicatorText + " " + fsIndicatorText;
+            if (indicatorText.Length != 0)
+                indicatorText.TrimEnd();
+            rateBackgroundImage.DrawText(indicatorText, new Color(0, 0, 0, 0.6f), 10, FontWeight.Heavy,
+                HorizontalAlignment.Right, width - 9, 58);
+            rateImage.Scale(80, 80);
+            rateShadowImage.Scale(80, 80);
+            rateBackgroundImage.DrawImage(rateImage, (int)(rateBackgroundImage.Width - rateImage.Width + 5),
+                (int)(96 - rateImage.Height), CompositeOperator.DstOut);
+            rateBackgroundImage.DrawImage(rateShadowImage, (int)(rateBackgroundImage.Width - rateImage.Width + 5),
+                (int)(96 - rateImage.Height));
+
+            using var starImage = new Image(Environment.CurrentDirectory + @"/resource/best50/star.png");
+            
+            for (int i = 0; i < stars; i++)
+            {
+                rateBackgroundImage.DrawImage(starImage,
+                    (rateBackgroundImage.Width - (int)(i * 11f) - 20),
+                    37
+                );
             }
+            
+            image.DrawImage(rateBackgroundImage, info.Width - rateBackgroundImage.Width,
+                info.Height - rateBackgroundImage.Height
+            );
+            info.Dispose();
 
             return image;
         }
 
-        private MagickImage GenerateBackground(BestDto best)
+        private Image GenerateBackground(BestDto best)
         {
-            var image = new MagickImage("xc:white", new MagickReadSettings() { Width = 1750, Height = 1440 });
-            var background =
-                new MagickImage("xc:transparent", new MagickReadSettings() { Width = 1750, Height = 1440 });
+            var image = new Image(1750, 1440, Color.White);
+            var background = new Image(1750, 1440);
             if (best.Charts.SdCharts.Length != 0)
-                background = new MagickImage(Environment.CurrentDirectory + @"/resource/covers/" +
-                                             best.Charts.SdCharts[0].Id.ToString() + ".png");
+            {
+                background.Dispose();
+                background = new Image(Environment.CurrentDirectory + @"/resource/covers/" +
+                                       best.Charts.SdCharts[0].Id.ToString() + ".png");
+            }
+
             background.Scale(75, 75);
             background.GaussianBlur(10);
             background.Resize(1750, 1750);
-            image.Composite(background, 0, 0, CompositeOperator.Atop);
-            var foreground = new MagickImage(Environment.CurrentDirectory + @"/resource/best50/best50_background.png");
-            image.Composite(foreground, 0, 0, CompositeOperator.Atop);
+            image.DrawImage(background, 0, 0);
+            var foreground = new Image(Environment.CurrentDirectory + @"/resource/best50/best50_background.png");
+            image.DrawImage(foreground, 0, 0);
             
             background.Dispose();
             foreground.Dispose();

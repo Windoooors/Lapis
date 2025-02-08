@@ -5,6 +5,8 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace LapisBot_Renewed
 {
@@ -21,20 +23,15 @@ namespace LapisBot_Renewed
             {
                 if (!(element is CqImageMsg))
                     continue;
-
-                var image = Program.apiOperator.UrlToImage(
-                    ((CqImageMsg)element).Url.ToString().Replace("https", "http"));
-
+                
                 Program.Session.SendPrivateMessage(source.Sender.UserId,
                     new CqMessage
                     {
-                        new CqTextMsg("若 GIF 表情无法保存，您可以访问以下链接来下载该 GIF 表情：" +
+                        new CqTextMsg("请访问以下链接来下载该表情的 GIF 文件：" +
                                       ((CqImageMsg)element).Url.ToString().Replace("https", "http")),
-                        new CqImageMsg("base64://" + image.ToBase64())
                     });
-                
-                image.Dispose();
             }
+            
             return Task.CompletedTask;
         }
     }

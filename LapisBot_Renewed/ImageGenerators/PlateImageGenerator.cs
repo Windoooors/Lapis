@@ -1,82 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
-using System.Xml.Schema;
 using LapisBot_Renewed.GroupCommands;
+using LapisBot_Renewed.Operations.ImageOperation;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
-using Xamarin.Forms.Internals;
-using Xamarin.Forms.PlatformConfiguration.AndroidSpecific.AppCompat;
 
 namespace LapisBot_Renewed.ImageGenerators;
-using ImageMagick;
-using ImageMagick.Drawing;
 
 public class PlateImageGenerator
 {
-    public class Color
-    {
-        public int R;
-        public int G;
-        public int B;
-    }
-    
-    public MagickColor GetDominantColor(string path)
-    {
-        var image = new MagickImage(path);
-        image.Resize(5, 5);
-        var pixels = image.GetPixels();
 
-        var colors = new List<Color>();
-        
-        foreach (var pixel in pixels)
-        {
-            var r = pixel.ToColor().R / 100;
-            var g = pixel.ToColor().G / 100;
-            var b = pixel.ToColor().B / 100;
-
-            colors.Add(new Color() { R = r, G = g, B = b });
-        }
-        
-        var fitColors = new List<List<Color>>();
-
-        var sortedColors = new List<Color>();
-        
-        foreach (var color in colors)
-        {
-            if (sortedColors.Contains(color))
-                continue;
-            
-            var colorList = new List<Color>() { color };
-            
-            foreach (var secondColor in colors)
-            {
-                if (color == secondColor || sortedColors.Contains(secondColor))
-                    continue;
-                if ((Math.Abs(secondColor.R - color.R) < 10) && (Math.Abs(secondColor.G - color.G) < 10) &&
-                    (Math.Abs(secondColor.B - color.B) < 10))
-                {
-                    sortedColors.Add(secondColor);
-                    colorList.Add(secondColor);
-                }
-            }
-
-            sortedColors.Add(color);
-            fitColors.Add(colorList);
-        }
-        
-        
-
-        var sortedFitColors = fitColors.OrderByDescending(f => f.Count).ToArray();
-
-        var magickColor = new MagickColor((ushort)(sortedFitColors[0][0].R * 100), (ushort)(sortedFitColors[0][0].G * 100),
-            (ushort)(sortedFitColors[0][0].B * 100));
-        
-        image.Dispose();
-        return magickColor;
-    }
-
-    public string Generate(List<PlateCommand.SongToBeDisplayed> songsToBeDisplayed, List<PlateCommand.SongToBeDisplayed> allSongs, string username, MaiCommand maiCommand, PlateCommand.PlateCategories category, string userId, bool usingHead, int plateVersionIndex, bool isCompressed)
+    public string Generate(List<PlateCommand.SongToBeDisplayed> songsToBeDisplayed,
+        List<PlateCommand.SongToBeDisplayed> allSongs, string username, MaiCommand maiCommand,
+        PlateCommand.PlateCategories category, string userId, bool usingHead, int plateVersionIndex, bool isCompressed)
     {
         var difficulties = new Dictionary<string, List<PlateCommand.SongToBeDisplayed>>();
         foreach (var song in songsToBeDisplayed)
@@ -93,6 +29,7 @@ public class PlateImageGenerator
                     songs.Add(song);
                 }
             }
+
             if (rating > 13.9 & rating < 14.7)
             {
                 if (!difficulties.ContainsKey("14"))
@@ -104,6 +41,7 @@ public class PlateImageGenerator
                     songs.Add(song);
                 }
             }
+
             if (rating > 14.6 & rating < 15.0)
             {
                 if (!difficulties.ContainsKey("14+"))
@@ -115,6 +53,7 @@ public class PlateImageGenerator
                     songs.Add(song);
                 }
             }
+
             if (rating > 14.9)
             {
                 if (!difficulties.ContainsKey("15"))
@@ -129,25 +68,28 @@ public class PlateImageGenerator
         }
 
         var totalHeight = 171;
-        
+
         if (difficulties.ContainsKey("15"))
         {
             List<PlateCommand.SongToBeDisplayed> songs;
             difficulties.TryGetValue("15", out songs);
             totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
         }
+
         if (difficulties.ContainsKey("14+"))
         {
             List<PlateCommand.SongToBeDisplayed> songs;
             difficulties.TryGetValue("14+", out songs);
             totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
         }
+
         if (difficulties.ContainsKey("14"))
         {
             List<PlateCommand.SongToBeDisplayed> songs;
             difficulties.TryGetValue("14", out songs);
             totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
         }
+
         if (difficulties.ContainsKey("13+"))
         {
             List<PlateCommand.SongToBeDisplayed> songs;
@@ -157,63 +99,56 @@ public class PlateImageGenerator
 
         var sortedDifficulties =
             difficulties.OrderByDescending(d =>
-                maiCommand.LevelDictionary.Keys.ToArray().IndexOf(d.Key))
-                .ToDictionary(d => d.Key, d => d.Value);
+                    Array.IndexOf(maiCommand.LevelDictionary.Keys.ToArray(), d.Key))
+                .ToDictionary();
 
         totalHeight += 104;
 
-        var image = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 700, Height = (uint)totalHeight });
+        using var image = new Image(700, totalHeight);
 
-        var backgroundImage = new MagickImage(AppContext.BaseDirectory + @"resource/covers/" +
-                                              sortedDifficulties.Values.ToArray()[0][0].SongDto.Id + ".png");
+        using var backgroundImage = new Image(AppContext.BaseDirectory + @"resource/covers/" + sortedDifficulties.Values.ToArray()[0][0].SongDto.Id + ".png");
 
         backgroundImage.Resize(75, 75);
-        backgroundImage.GaussianBlur(10);
+        
+        backgroundImage.GaussianBlur(2.5f);
+
         if (totalHeight > 700)
         {
-            backgroundImage.Resize((uint)totalHeight, (uint)totalHeight);
-            image.Composite(backgroundImage, (700 - totalHeight) / 2, 0, CompositeOperator.Blend);
+            backgroundImage.Resize(totalHeight, totalHeight);
+            image.DrawImage(backgroundImage, (700 - totalHeight) / 2, 0);
         }
         else
         {
             backgroundImage.Resize(700, 700);
-            image.Composite(backgroundImage, 0, (totalHeight - 700) / 2, CompositeOperator.Blend);
+            image.DrawImage(backgroundImage, 0, (totalHeight - 700) / 2);
         }
 
-
-
-        backgroundImage.Dispose();
-        
-        var mask = new MagickImage(AppContext.BaseDirectory + "resource/plate/mask.png");
+        using var mask = new Image(AppContext.BaseDirectory + "resource/plate/mask.png");
 
         if (totalHeight > 700)
         {
-            mask.Resize((uint)totalHeight, (uint)totalHeight);
+            mask.Resize(totalHeight, totalHeight);
         }
         else
         {
             mask.Resize(700, 700);
         }
 
-        image.Composite(mask, 0, 0, CompositeOperator.Atop);
-        
-        mask.Dispose();
-        
-        var header = new MagickImage(AppContext.BaseDirectory + @"resource/plate/header.png");
-        
-        var nameFormImage = new MagickImage(AppContext.BaseDirectory + @"resource/plate/name_form.png");
-        
+        image.DrawImage(mask, 0, 0);
+
+        using var header = new Image(AppContext.BaseDirectory + @"resource/plate/header.png");
+
+        using var nameFormImage = new Image(AppContext.BaseDirectory + @"resource/plate/name_form.png");
+
         int i = 0;
         int j = 0;
-        
-        var itemsInFirstGroup =
-            new MagickImage("xc:transparent", new MagickReadSettings() { Width = 700, Height = (uint)totalHeight });
-        
+
+        using var itemsInFirstGroup = new Image(700, totalHeight);
+
         foreach (var song in sortedDifficulties.Values.ToArray()[0])
         {
-            var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);
-            itemsInFirstGroup.Composite(item, i * 100, 171 + j * 100, CompositeOperator.Blend);
-            item.Dispose();
+            using var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);
+            itemsInFirstGroup.DrawImage(item, i * 100, 171 + j * 100);
             i++;
             if (i % 7 == 0)
             {
@@ -222,94 +157,63 @@ public class PlateImageGenerator
             }
         }
 
-        
-        /*
-        var shadowInFirstGroup = itemsInFirstGroup.Clone();
-        
-        shadowInFirstGroup.Resize(new Percentage(5));
+        var compositingLeft = (image.Width - itemsInFirstGroup.Width) / 2;
+        var compositingTop = (image.Height - itemsInFirstGroup.Height) / 2;
 
-        shadowInFirstGroup.Shadow(0, 0, 100, new Percentage(50), new MagickColor(0, 0, 0));
-        
-        shadowInFirstGroup.Resize(new Percentage(2000));
+        image.DrawImage(itemsInFirstGroup, compositingLeft, compositingTop);
 
-        shadowInFirstGroup.Composite(itemsInFirstGroup, Gravity.Center, CompositeOperator.Blend);
-        
-        image.Composite(shadowInFirstGroup, Gravity.Center, CompositeOperator.Atop);
-        
-        shadowInFirstGroup.Dispose();*/
-        
-        image.Composite(itemsInFirstGroup, Gravity.Center, CompositeOperator.Atop);
-        
-        itemsInFirstGroup.Dispose();
+        image.DrawImage(header, 0, 0);
 
-        image.Composite(header, 0, 0, CompositeOperator.Atop);
-        
-        MagickImage head;
+        Image head;
         if (usingHead)
             head = Program.apiOperator.UrlToImage(
                 "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640");
         else
         {
-            head = new MagickImage(Environment.CurrentDirectory +
-                                   @"/resource/best50/best50_userhead_background.png");
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .FontPointSize(36)
-                .FillColor(new MagickColor(0, 52428, 65535, 6553))
-                .Text(3, 59, username.Substring(0, 1))
-                .Draw(head);
+            head = new Image(Environment.CurrentDirectory +
+                              @"/resource/best50/best50_userhead_background.png");
+
+            head.DrawText(username.Substring(0, 1),
+                new Color(0f, 0.8f, 1f, 0.1f),
+                36,
+                FontWeight.Regular,
+                3, 59);
         }
 
         head.Resize(65, 65);
-        
-        var plateImage = new MagickImage(AppContext.BaseDirectory + "resource/plate_images/" + plateVersionIndex + "/" + (int)category + ".png");
+
+        using var plateImage = new Image(AppContext.BaseDirectory + "resource/plate_images/" + plateVersionIndex + "/" +
+                                    (int)category + ".png");
 
         plateImage.Resize(528, 85);
-        
-        var plateShadow = new MagickImage(AppContext.BaseDirectory + "resource/plate/plate_shadow.png");
-        
-        image.Composite(plateShadow, 0, 0, CompositeOperator.Atop);
-        image.Composite(plateImage, 2, 15, CompositeOperator.Atop);
-        image.Composite(nameFormImage, 0, 0, CompositeOperator.Atop);
-        
-        nameFormImage.Dispose();
-        plateImage.Dispose();
-        plateShadow.Dispose();
 
-        var nameForm = new MagickImage("xc:transparent", new MagickReadSettings() { Width = 500, Height = 65 });
-        new Drawables()
-            .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-            .FontPointSize(36)
-            .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-            .Text(4, 59, username)
-            .Draw(nameForm);
+        using var plateShadow = new Image(AppContext.BaseDirectory + "resource/plate/plate_shadow.png");
+
+        image.DrawImage(plateShadow, 0, 0);
+        image.DrawImage(plateImage, 2, 15);
+        image.DrawImage(nameFormImage, 0, 0);
+
+        using var nameForm = new Image(500, 65);
+
+        nameForm.DrawText(username, new Color(1, 1, 1, 1), 36, FontWeight.Light, 4, 59);
+
+        image.DrawImage(nameForm, 74, 25);
+        image.DrawImage(head, 12, 25);
         
-        image.Composite(nameForm, 74, 25, CompositeOperator.Atop);
-        image.Composite(head, 12, 25, CompositeOperator.Atop);
-            
-        nameForm.Dispose();
         head.Dispose();
-        header.Dispose();
-        
-        new Drawables()
-            .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-            .FontPointSize(20)
-            .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-            .Text(6.3f, 162.3f, sortedDifficulties.Keys.ToArray()[0])
-            .Draw(image);
+
+        image.DrawText(sortedDifficulties.Keys.ToArray()[0], new Color(1, 1, 1, 1), 20, FontWeight.Heavy, 6.3f, 162.3f);
 
         var top = (int)(171 + Math.Ceiling((float)sortedDifficulties.Values.ToArray()[0].Count / 7) * 100 + 75);
         for (int k = 1; k < sortedDifficulties.Values.ToArray().Length; k++)
         {
             i = 0;
             j = 0;
-            var itemGroup = new MagickImage("xc:transparent",
-                new MagickReadSettings() { Width = 700, Height = (uint)totalHeight });
+            var itemGroup = new Image(700, totalHeight);
             foreach (var song in sortedDifficulties.Values.ToArray()[k])
             {
-                var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);
-                itemGroup.Composite(item, i * 100, top + j * 100, CompositeOperator.Blend);
-                item.Dispose();
+                using var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);
+                itemGroup.DrawImage(item, i * 100, top + j * 100);
                 i++;
                 if (i % 7 == 0)
                 {
@@ -335,27 +239,25 @@ public class PlateImageGenerator
         
             shadow.Dispose();*/
             
-            image.Composite(itemGroup, Gravity.Center, CompositeOperator.Atop);
+            compositingLeft = (image.Width - itemGroup.Width) / 2;
+            compositingTop = (image.Height - itemGroup.Height) / 2;
+
+            image.DrawImage(itemGroup, compositingLeft, compositingTop);
         
             itemGroup.Dispose();
 
-            var banner = new MagickImage(AppContext.BaseDirectory + "resource/plate/banner.png");
-            
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .FontPointSize(20)
-                .FillColor(new MagickColor(65535, 65535, 65535, 65535))
-                .Text(6.3f, 110.3f, sortedDifficulties.Keys.ToArray()[k])
-                .Draw(banner);
+            using var banner = new Image(AppContext.BaseDirectory + "resource/plate/banner.png");
 
-            image.Composite(banner, 0, top - 75 - 44, CompositeOperator.Atop);
+            banner.DrawText(sortedDifficulties.Keys.ToArray()[k], new Color(1, 1, 1, 1), 20, FontWeight.Heavy, 6.3f, 110.3f);
+            
+            image.DrawImage(banner, 0, top - 75 - 44);
 
             top += (j + 1) * 100 + 75;
         }
 
-        var watermark = new MagickImage(AppContext.BaseDirectory + "resource/plate/watermark.png");
-        
-        image.Composite(watermark,  17, totalHeight - 150, CompositeOperator.Atop);
+        var watermark = new Image(AppContext.BaseDirectory + "resource/plate/watermark.png");
+
+        image.DrawImage(watermark, 17, totalHeight - 150);
         
         watermark.Dispose();
 
@@ -458,140 +360,43 @@ public class PlateImageGenerator
         }
 
         if (reAll != 0)
-        {
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 125, "Re:MASTER 完成度：" + re + "/" + reAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 100, "MASTER 完成度：" + mas + "/" + masAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 75, "EXPERT 完成度：" + exp + "/" + expAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 50, "ADVANCED 完成度：" + avd + "/" + avdAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 25, "BASIC 完成度：" + bas + "/" + basAll)
-                .Draw(image);
-        }
-        else
-        {
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 100, "MASTER 完成度：" + mas + "/" + masAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 75, "EXPERT 完成度：" + exp + "/" + expAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 50, "ADVANCED 完成度：" + avd + "/" + avdAll)
-                .Draw(image);
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(18)
-                .FillColor(new MagickColor(65535, 65535, 65535, 32768))
-                .Text(700 - 17f, totalHeight - 25, "BASIC 完成度：" + bas + "/" + basAll)
-                .Draw(image);
-        }
-
-        if (isCompressed)
-        {
-            image.SetCompression(CompressionMethod.JPEG);
-            image.Format = MagickFormat.Jpeg;
-            image.Quality = 90;
-        }
-
-        var base64 = image.ToBase64();
+            image.DrawText("Re:MASTER 完成度：" + re + "/" + reAll, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+                HorizontalAlignment.Right, 700 - 17f, totalHeight - 125);
         
-        image.Dispose();
+        image.DrawText("MASTER 完成度：" + mas + "/" + masAll, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+            HorizontalAlignment.Right, 700 - 17f, totalHeight - 100);
+        image.DrawText("EXPERT 完成度：" + exp + "/" + expAll, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+            HorizontalAlignment.Right, 700 - 17f, totalHeight - 75);
+        image.DrawText("ADVANCED 完成度：" + avd + "/" + avdAll, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+            HorizontalAlignment.Right, 700 - 17f, totalHeight - 50);
+        image.DrawText("BASIC 完成度：" + bas + "/" + basAll, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+            HorizontalAlignment.Right, 700 - 17f, totalHeight - 25);
 
-        return base64;
+        var result = image.ToBase64(isCompressed);    
+        return result;
     }
 
-    public bool isWhiteOnDark(MagickColor color)
+    private Image GenerateItem(SongDto songDto, int levelIndex , ScoresDto.ScoreDto scoreDto, PlateCommand.PlateCategories category)
     {
-        if (color.R * 0.3 + color.G * 0.59 + color.B * 0.11 < 39303.6)
-            return true;
-        return false;
-    }
+        var image = new Image(AppContext.BaseDirectory + "resource/covers/" + songDto.Id + ".png");
+        var gradient = new Image(AppContext.BaseDirectory + "resource/plate/gradient.png");
+        
+        var dominantColor = image.GetDominantColor();
 
-    public MagickImage GenerateItem(SongDto songDto, int levelIndex , ScoresDto.ScoreDto scoreDto, PlateCommand.PlateCategories category)
-    {
-        var image = new MagickImage(AppContext.BaseDirectory + "resource/covers/" + songDto.Id + ".png");
-        var gradient = new MagickImage(AppContext.BaseDirectory + "resource/plate/gradient.png");
+        var colorImage = new Image(gradient.Width, gradient.Height, dominantColor);
+        
+        colorImage.FuseAlpha(gradient);
 
-        var dominantColor = GetDominantColor(AppContext.BaseDirectory + "resource/covers/" + songDto.Id + ".png");
-
-        gradient.Colorize(dominantColor,
-            new Percentage(100));
-
-        image.Composite(gradient, 0, 0, CompositeOperator.Atop);
+        image.DrawImage(colorImage, 0, 0);
 
         gradient.Dispose();
+        colorImage.Dispose();
 
-        var whiteOnBlack = isWhiteOnDark(dominantColor);
-
-        var textColor = new MagickColor();
+        var whiteOnBlack = image.isWhiteOnDark();
         
-        if (whiteOnBlack)
-        {
-            textColor = new MagickColor(65535, 65535, 65535);
-        }
-        else
-        {
-            textColor = new MagickColor(0, 0, 0);
-        }
-        
-        var textLayer = new MagickImage("xc:transparent",
-            new MagickReadSettings() { Width = 100, Height = 100 });
-        new Drawables()
-            .Font(Environment.CurrentDirectory + @"/resource/font-light.otf")
-            .FontPointSize(18)
-            .FillColor(textColor)
-            .Text(7.6f, 37.2f, songDto.Title)
-            .Draw(textLayer);
-        textLayer.Composite(new MagickImage(AppContext.BaseDirectory + "resource/plate/gradient_text.png"),
-            Channels.Alpha);
+        var textColor = whiteOnBlack ? new Color(1, 1, 1, 1) : new Color(0, 0, 0, 1);
 
-        new Drawables()
-            .Font(Environment.CurrentDirectory + @"/resource/font.otf")
-            .FontPointSize(10)
-            .FillColor(new MagickColor(textColor.R, textColor.G, textColor.B, 32768))
-            .Text(7.6f, 18.2f, "ID " + songDto.Id)
-            .Draw(textLayer);
+        var textLayer = new Image(100, 100);
 
         var difficulty = "";
 
@@ -613,14 +418,7 @@ public class PlateImageGenerator
                 difficulty = "RE";
                 break;
         }
-
-        new Drawables()
-            .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-            .FontPointSize(10)
-            .FillColor(textColor)
-            .Text(7.6f, 50.2f, songDto.Type + " " + difficulty)
-            .Draw(textLayer);
-
+        
         var indicatorText = "";
         
         if (category == PlateCommand.PlateCategories.bazhe && (scoreDto.Achievements >= 80))
@@ -630,12 +428,7 @@ public class PlateImageGenerator
         }
 
         if (category == PlateCommand.PlateCategories.jiang && (scoreDto.Achievements >= 100))
-        {
-            if (scoreDto.Achievements >= 100.5)
-                indicatorText = "SSS+";
-            else
-                indicatorText = "SSS";
-        }
+            indicatorText = scoreDto.Achievements >= 100.5 ? "SSS+" : "SSS";
 
         if (category == PlateCommand.PlateCategories.shen && (scoreDto.Fc == "ap" || scoreDto.Fc == "app"))
             if (scoreDto.Fc.Length > 2)
@@ -648,23 +441,28 @@ public class PlateImageGenerator
                 indicatorText = scoreDto.Fc.Substring(0, scoreDto.Fc.Length - 1).ToUpper() + "+";
             else
                 indicatorText = scoreDto.Fc.ToUpper();
-        
+
         if (category == PlateCommand.PlateCategories.wuwu && (scoreDto.Fs == "fsd" || scoreDto.Fs == "fsdp"))
-            if (scoreDto.Fs.Length > 2)
-                indicatorText = scoreDto.Fs.Replace("p", "+").ToUpper();
-            else
-                indicatorText = scoreDto.Fs.ToUpper();
+            indicatorText = scoreDto.Fs.Length > 2 ? scoreDto.Fs.Replace("p", "+").ToUpper() : scoreDto.Fs.ToUpper();
+        
+        textLayer.DrawText(songDto.Title, textColor, 18, FontWeight.Light, 7.6f, 37.2f);
+        
+        var gradientText = new Image(AppContext.BaseDirectory + "resource/plate/gradient_text.png");
+        
+        textLayer.FuseAlpha(gradientText);
+        
+        gradientText.Dispose();
+
+        textLayer.DrawText("ID " + songDto.Id, new Color(textColor.R, textColor.G, textColor.B, textColor.A / 2), 10,
+            FontWeight.Regular, 7.6f, 18.2f);
+        textLayer.DrawText(songDto.Type + " " + difficulty, textColor, 10,
+                FontWeight.Heavy, 7.6f, 50.2f);
 
         if (indicatorText != "")
-            new Drawables()
-                .Font(Environment.CurrentDirectory + @"/resource/font-heavy.otf")
-                .TextAlignment(TextAlignment.Right)
-                .FontPointSize(10)
-                .FillColor(textColor)
-                .Text(100 - 7.6f, 18.2f, indicatorText)
-                .Draw(textLayer);
-        
-        image.Composite(textLayer, 0, 0, CompositeOperator.Atop);
+            textLayer.DrawText(indicatorText, textColor, 10,
+                FontWeight.Heavy, HorizontalAlignment.Right,100 - 7.6f, 18.2f);
+
+        image.DrawImage(textLayer, 0, 0);
         textLayer.Dispose();
 
         return image;

@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
@@ -19,15 +20,11 @@ namespace LapisBot_Renewed.GroupCommands
             DefaultSettings.SettingsName = "帮助";
                         CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
                 Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
                 
-            }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
+            settingsList = Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings")
+                                    .Select(path => JsonConvert.DeserializeObject<GroupCommandSettings>(File.ReadAllText(path)))
+                                    .ToList();
             return Task.CompletedTask;
         }
 
