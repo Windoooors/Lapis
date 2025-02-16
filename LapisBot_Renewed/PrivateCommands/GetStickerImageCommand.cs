@@ -27,7 +27,7 @@ namespace LapisBot_Renewed
                 Program.Session.SendPrivateMessage(source.Sender.UserId,
                     new CqMessage
                     {
-                        new CqTextMsg("请访问以下链接来下载该表情的 GIF 文件：" +
+                        new CqTextMsg("请访问以下链接来下载该表情：" +
                                       ((CqImageMsg)element).Url.ToString().Replace("https", "http")),
                     });
             }

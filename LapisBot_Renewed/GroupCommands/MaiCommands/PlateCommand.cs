@@ -48,8 +48,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             { "宙", "maimai でらっくす UNiVERSE" },
             { "星", "maimai でらっくす UNiVERSE" },
             { "祭", "maimai でらっくす FESTiVAL" },
-            { "祝", "maimai でらっくす FESTiVAL" }
-            //{ "双", "maimai でらっくす BUDDiES" }
+            { "祝", "maimai でらっくす FESTiVAL" },
+            { "双", "maimai でらっくす BUDDiES" }
         };
 
         public Dictionary<string, string> Characters = new Dictionary<string, string>()
@@ -362,16 +362,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 return Task.CompletedTask;
             }
-            catch(Exception ex)
+            catch
             {
-            
-                Program.Session.SendGroupMessageAsync(source.GroupId,
-                    new CqMessage
-                    {
-                        new CqReplyMsg(source.MessageId),
-                        new CqTextMsg("未知错误\n\n" + ex.StackTrace + "\n\n" + ex.Message)
-                    });
-
+                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage()
+                {
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("未找到该姓名框")
+                });
                 return Task.CompletedTask;
             }
         }

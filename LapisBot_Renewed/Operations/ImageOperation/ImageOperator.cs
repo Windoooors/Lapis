@@ -94,37 +94,58 @@ namespace LapisBot_Renewed.Operations.ImageOperation
             };
 
             _imageSharpImage.Mutate(x => x.DrawText(textOptions, text, ColorToRgba32(color)));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
 
         public void GaussianBlur(float radius)
         {
             _imageSharpImage.Mutate(x => x.GaussianBlur(radius));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
 
         public void Resize(int width, int height)
         {
             _imageSharpImage.Mutate(x => x.Resize(width, height));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
 
         public void Rotate(float angle)
         {
             _imageSharpImage.Mutate(x => x.Rotate(angle));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
         
         public void Crop(int width, int height)
         {
             _imageSharpImage.Mutate(x => x.Crop(width, height));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
 
         public void Scale(int percentageWidth, int percentageHeight)
         {
             _imageSharpImage.Mutate(x =>
                 x.Resize((int)(Width * percentageWidth / 100f), (int)(Height * percentageHeight / 100f)));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
 
         public void DrawImage(Image image, int left, int top)
         {
             _imageSharpImage.Mutate(x => x.DrawImage(image._imageSharpImage, new Point(left, top), 1f));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
         
         public void DrawImage(Image image, int left, int top, CompositeOperator compositeOperator)
@@ -136,6 +157,9 @@ namespace LapisBot_Renewed.Operations.ImageOperation
                         : PixelAlphaCompositionMode.DestOver
                 }
             ));
+            
+            Width = _imageSharpImage.Width;
+            Height = _imageSharpImage.Height;
         }
 
         public void FuseAlpha(Image image)

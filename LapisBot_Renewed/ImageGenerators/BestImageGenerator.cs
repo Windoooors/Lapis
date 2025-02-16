@@ -407,10 +407,10 @@ namespace LapisBot_Renewed.ImageGenerators
                 HorizontalAlignment.Right, width - 9, 58);
             rateImage.Scale(80, 80);
             rateShadowImage.Scale(80, 80);
-            rateBackgroundImage.DrawImage(rateImage, (int)(rateBackgroundImage.Width - rateImage.Width + 5),
-                (int)(96 - rateImage.Height), CompositeOperator.DstOut);
-            rateBackgroundImage.DrawImage(rateShadowImage, (int)(rateBackgroundImage.Width - rateImage.Width + 5),
-                (int)(96 - rateImage.Height));
+            rateBackgroundImage.DrawImage(rateImage, rateBackgroundImage.Width - rateImage.Width - 10,
+                88 - rateImage.Height, CompositeOperator.DstOut);
+            rateBackgroundImage.DrawImage(rateShadowImage, rateBackgroundImage.Width - rateImage.Width - 10,
+                88 - rateImage.Height);
 
             using var starImage = new Image(Environment.CurrentDirectory + @"/resource/best50/star.png");
             
