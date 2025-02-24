@@ -396,10 +396,10 @@ namespace LapisBot_Renewed.GroupCommands
             {
                 ChartStatistics =
                     JsonConvert.DeserializeObject<ChartStatisticsDto>(
-                        Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
+                        Program.ApiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
 
                 _aliasJObject =
-                    JObject.Parse(Program.apiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                    JObject.Parse(Program.ApiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
             }
 
             var aliasObject = new Dictionary<string, string[]>();
@@ -479,9 +479,9 @@ namespace LapisBot_Renewed.GroupCommands
             LevelDictionary.Add("14+?", 46);
             LevelDictionary.Add("15?", 47);
             if (!Program.BotSettings.IsDevelopingMode)
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.ApiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
             else if (Program.BotSettings.IsDevelopingMode)
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.apiOperator.Get("https://imgur.setchin.com/data/f_29986616.json"), typeof(SongDto[]));
+                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.ApiOperator.Get("https://imgur.setchin.com/data/f_29986616.json"), typeof(SongDto[]));
             for (int i = 0; i < 48; i++)
                 Levels.Add(new List<SongDto>());
             for (int i = 0; i < 48; i++)

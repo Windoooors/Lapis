@@ -44,12 +44,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             var content = string.Empty;
             BestDto best;
 
-            content = Program.apiOperator.Post("api/maimaidxprober/query/player",
+            content = Program.ApiOperator.Post("api/maimaidxprober/query/player",
                 new { username = command, b50 = true }, true);
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
             if (best.Charts == null)
-                content = Program.apiOperator.Post("api/maimaidxprober/query/player",
+                content = Program.ApiOperator.Post("api/maimaidxprober/query/player",
                     new { qq = command, b50 = true }, true);
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
@@ -136,9 +136,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     .Charts[score.LevelIndex].MaxDxScore;
             }
 
-            Program.settingsCommand.GetSettings(source);
+            Program.SettingsCommand.GetSettings(source);
             var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), false,
-                Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                Program.SettingsCommand.CurrentBotSettings.CompressedImage);
             //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
 
             Program.Session.SendGroupMessageAsync(source.GroupId,
@@ -155,7 +155,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             try
             {
-                var content = Program.apiOperator.Post("api/maimaidxprober/query/player",
+                var content = Program.ApiOperator.Post("api/maimaidxprober/query/player",
                     new { qq = source.Sender.UserId.ToString(), b50 = true }, true);
                 //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
 
@@ -230,10 +230,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
 
-                Program.settingsCommand.GetSettings(source);
+                Program.SettingsCommand.GetSettings(source);
 
                 var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), true,
-                    Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                    Program.SettingsCommand.CurrentBotSettings.CompressedImage);
                 //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage

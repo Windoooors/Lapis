@@ -203,7 +203,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var wuwuRegex = new Regex("舞舞$");
                 var bazheRegex = new Regex("^霸者$");
 
-                var userName = JsonConvert.DeserializeObject<BestDto>(Program.apiOperator.Post(
+                var userName = JsonConvert.DeserializeObject<BestDto>(Program.ApiOperator.Post(
                     "api/maimaidxprober/query/player",
                     new { qq = source.Sender.UserId }, true)).Username;
 
@@ -244,7 +244,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (!(command == "霸者" || command.StartsWith("舞")))
                 {
                     var content = "";
-                    content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                    content = Program.ApiOperator.Post("api/maimaidxprober/query/plate",
                         new { username = "maxscore", version }, true);
                     scores = JsonConvert.DeserializeObject<ScoresDto>(content);
                 }
@@ -264,7 +264,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     scores = new ScoresDto() { ScoreDtos = list.ToArray() };
                 }
 
-                ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(Program.apiOperator.Post(
+                ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(Program.ApiOperator.Post(
                     "api/maimaidxprober/query/plate",
                     new { qq = source.Sender.UserId, version }, true));
 
@@ -346,12 +346,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (bazheRegex.IsMatch(command))
                     category = PlateCategories.bazhe;
 
-                Program.settingsCommand.GetSettings(source);
+                Program.SettingsCommand.GetSettings(source);
 
                 var image = new PlateImageGenerator().Generate(songsToBeDisplayed, allSongs, userName,
                     MaiCommandCommand,
                     category, source.Sender.UserId.ToString(), true, plateVersionIndex,
-                    Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                    Program.SettingsCommand.CurrentBotSettings.CompressedImage);
 
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage

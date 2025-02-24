@@ -86,8 +86,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             HeadCommand = new Regex(@"^guess$");
             SubHeadCommand = new Regex(@"^guess ");
-            DirectCommand = new Regex(@"^guess songs$|^猜歌$|^guess song$");
-            SubDirectCommand  = new Regex(@"^guess songs |^猜歌 |^guess song ");
+            DirectCommand = new Regex(@"^songs$|^猜歌$|^song$");
+            SubDirectCommand  = new Regex(@"^songs |^猜歌 |^song ");
             CoolDownTime = 5;
             DefaultSettings = new GuessSettings
             {
@@ -198,7 +198,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             
             //var keyIdDateTimePair = (-1, DateTime.MinValue);
 
-            Program.settingsCommand.GetSettings(groupId);
+            Program.SettingsCommand.GetSettings(groupId);
             
             _guessingGroupsMap.Remove(groupId);
             
@@ -209,7 +209,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 text = "游戏结束啦！ 答案是：";
 
             var image = new InfoImageGenerator().Generate(MaiCommandCommand.GetSong((keyIdDateTimePair.Item1)),
-                "谜底", null, Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                "谜底", null, Program.SettingsCommand.CurrentBotSettings.CompressedImage);
 
             if (messageId == 0)
                 Program.Session.SendGroupMessageAsync(long.Parse(groupId),

@@ -87,7 +87,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
             }
             else
             {
-                Program.helpCommand.Parse(command, source);
+                Program.HelpCommand.Parse(command, source);
                 return Task.CompletedTask;
             }
         }

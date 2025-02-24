@@ -6,14 +6,15 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using SixLabors.ImageSharp.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace LapisBot_Renewed
 {
     public class CommandParser
     {
         private readonly Regex _headCommandRegex =
-            new Regex(@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
-        private readonly Regex _settingsRegex = new Regex(@"\ssettings\s[0-9]\s(true|false)$|\ssettings$|\ssettings\s[0-9]\s.*");
+            new (@"(^lps\s|^六盘水\s|^l\s|^拉\s|^老婆说\s|^Lapis\s|^lapis\s|^lsp\s)");
+        private readonly Regex _settingsRegex = new (@"\ssettings\s[0-9]\s(true|false)$|\ssettings$|\ssettings\s[0-9]\s.*");
         
         public async void Parse(CqPrivateMessagePostContext source)
         {
@@ -21,7 +22,7 @@ namespace LapisBot_Renewed
             {
                 var command = source.Message.Text;
 
-                foreach (PrivateCommand _command in Program.privateCommands)
+                foreach (PrivateCommand _command in Program.PrivateCommands)
                 {
                     await _command.ParseWithoutPreparse(command, source);
                 }
@@ -29,7 +30,7 @@ namespace LapisBot_Renewed
                 if (_headCommandRegex.IsMatch(command))
                 {
                     command = _headCommandRegex.Replace(command, string.Empty);
-                    foreach (PrivateCommand _command in Program.privateCommands)
+                    foreach (PrivateCommand _command in Program.PrivateCommands)
                     {
                         if (_command.HeadCommand != null && _command.HeadCommand.IsMatch(command))
                         {
@@ -84,23 +85,23 @@ namespace LapisBot_Renewed
                       source.Sender.UserId == 2750558108)) ||
                     !Program.BotSettings.IsDevelopingMode)
                 {
-                    Program.settingsCommand.GetSettings(source);
+                    Program.SettingsCommand.GetSettings(source);
 
                     var commandString = source.Message.Text;
 
-                    RespondWithoutParsingCommand(source, commandString, Program.groupCommands);
+                    RespondWithoutParsingCommand(source, commandString, Program.GroupCommands);
 
-                    var currentBotSettings = Program.settingsCommand.CurrentBotSettings;
+                    var currentBotSettings = Program.SettingsCommand.CurrentBotSettings;
                     if (currentBotSettings.HeadlessCommand)
-                        ParseHeadlessly(source, commandString, Program.groupCommands);
+                        ParseHeadlessly(source, commandString, Program.GroupCommands);
 
                     if (!_headCommandRegex.IsMatch(commandString))
                         return;
 
                     commandString = _headCommandRegex.Replace(commandString, string.Empty);
 
-                    if (!Parse(source, commandString, Program.groupCommands))
-                        Program.helpCommand.Parse(commandString, source);
+                    if (!Parse(source, commandString, Program.GroupCommands))
+                        Program.HelpCommand.Parse(commandString, source);
                 }
             }
             catch(Exception ex)
@@ -158,7 +159,7 @@ namespace LapisBot_Renewed
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
                     
-                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+                    Program.logger.LogDebug($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount} with the last function triggered being {command.GetType()}");
                     
                     if (command.SubCommands.Count != 0 && !parsed)
                         return false;
@@ -181,7 +182,7 @@ namespace LapisBot_Renewed
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
                     taskParse.Start();
                     
-                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+                    Program.logger.LogDebug($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount} with the last function triggered being {command.GetType()}");
                     
                     if (command.SubCommands.Count != 0 && !parsed)
                         return false;
@@ -218,7 +219,7 @@ namespace LapisBot_Renewed
                         return;
                     var taskParse = new Task(() => command.SubAbilityCheckingParse(commandString, source));
                     taskParse.Start();
-                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+                    Program.logger.LogDebug($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount} with the last function triggered being {command.GetType()}");
                 }
                 else if (IsMatched(command.DirectCommand, commandString))
                 {
@@ -227,7 +228,7 @@ namespace LapisBot_Renewed
                         return;
                     var taskParse = new Task(() => command.AbilityCheckingParse(commandString, source));
                     taskParse.Start();
-                    Console.WriteLine($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+                    Program.logger.LogDebug($"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount} with the last function triggered being {command.GetType()}");
                 }
             }
         }

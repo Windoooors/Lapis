@@ -96,13 +96,13 @@ namespace LapisBot_Renewed
 
         public override Task SettingsParse(string command, CqGroupMessagePostContext source)
         {
-            Program.helpCommand.Parse(command, source);
+            Program.HelpCommand.Parse(command, source);
             return Task.CompletedTask;
         }
 
         public override Task SubSettingsParse(string command, CqGroupMessagePostContext source)
         {
-            Program.helpCommand.Parse(command, source);
+            Program.HelpCommand.Parse(command, source);
             return Task.CompletedTask;
         }
 

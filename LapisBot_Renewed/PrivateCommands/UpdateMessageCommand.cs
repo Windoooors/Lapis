@@ -25,8 +25,8 @@ namespace LapisBot_Renewed
                     return Task.CompletedTask;
                 foreach (CqGroup group in result.Groups)
                 {
-                    BotSettingsCommand.BotSettings settings = Program.settingsCommand.botDefaultSettings;
-                    foreach(BotSettingsCommand.BotSettings _settings in Program.settingsCommand.botSettingsList)
+                    BotSettingsCommand.BotSettings settings = Program.SettingsCommand.botDefaultSettings;
+                    foreach(BotSettingsCommand.BotSettings _settings in Program.SettingsCommand.botSettingsList)
                     {
                         if (_settings.GroupId == group.GroupId.ToString())
                             settings = _settings;

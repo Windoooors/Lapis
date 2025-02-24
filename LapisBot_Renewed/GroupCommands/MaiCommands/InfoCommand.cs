@@ -101,7 +101,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 try
                 {
-                    var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                    var content = Program.ApiOperator.Post("api/maimaidxprober/query/plate",
                         new { username = name, version = new string[] { song.BasicInfo.Version } }, true);
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
@@ -177,7 +177,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 try
                 {
-                    var content = Program.apiOperator.Post("api/maimaidxprober/query/plate",
+                    var content = Program.ApiOperator.Post("api/maimaidxprober/query/plate",
                         new { qq = number, version = new string[] { song.BasicInfo.Version } }, true);
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
@@ -316,10 +316,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             var generator = new InfoImageGenerator();
             
-            Program.settingsCommand.GetSettings(source);
+            Program.SettingsCommand.GetSettings(source);
             var image = new CqImageMsg("base64://" + generator.Generate(songs[0], "歌曲信息",
                 GetScoreDto.GetScore.Levels,
-                Program.settingsCommand.CurrentBotSettings.CompressedImage));
+                Program.SettingsCommand.CurrentBotSettings.CompressedImage));
 
             Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                 { new CqReplyMsg(source.MessageId), image });

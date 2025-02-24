@@ -100,7 +100,7 @@ namespace LapisBot_Renewed.GroupCommands
                         
                         var message = new CqMessage();
 
-                        var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                        var image = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                    memberList[i] + "&s=640");
                         message =
                             new CqMessage

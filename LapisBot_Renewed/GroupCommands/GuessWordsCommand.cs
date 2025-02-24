@@ -20,10 +20,10 @@ namespace LapisBot_Renewed.GroupCommands
         
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^guess word|^guess words|^猜词");
-            SubHeadCommand = new Regex(@"^guess word\s|^guess words\s|^猜词\s");
-            DirectCommand = new Regex(@"^guess word|^guess words|^猜词");
-            SubDirectCommand = new Regex(@"^guess word\s|^guess words\s|^猜词\s");
+            HeadCommand = new Regex(@"^word|^words|^猜词");
+            SubHeadCommand = new Regex(@"^word\s|^words\s|^猜词\s");
+            DirectCommand = new Regex(@"^word|^words|^猜词");
+            SubDirectCommand = new Regex(@"^word\s|^words\s|^猜词\s");
             DefaultSettings.SettingsName = "猜单词";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
@@ -165,7 +165,7 @@ namespace LapisBot_Renewed.GroupCommands
                 text += i + "." + Path.GetFileName(file).Replace(Path.GetExtension(file), string.Empty) + "\n";
             }
 
-            text += "请发送指令 \"l guess words 1\" 来用 " + Path.GetFileName(
+            text += "请发送指令 \"l word 1\" 来用 " + Path.GetFileName(
                                                         Directory.GetFileSystemEntries(AppContext.BaseDirectory +
                                                             "resource/vocabulary/")[0]).Replace(Path.GetExtension(
                                                         Directory.GetFileSystemEntries(AppContext.BaseDirectory +
@@ -192,7 +192,7 @@ namespace LapisBot_Renewed.GroupCommands
                     Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                     {
                         new CqReplyMsg(source.MessageId),
-                        new CqTextMsg("没有游戏正在进行喔！发送指令 \"l guess words 1\" 即可开启新一轮的游戏")
+                        new CqTextMsg("没有游戏正在进行喔！发送指令 \"l word 1\" 即可开启新一轮的游戏")
                     });
                     CancelCoolDownTimer(source.GroupId.ToString());
                     return Task.CompletedTask;
@@ -232,7 +232,7 @@ namespace LapisBot_Renewed.GroupCommands
                             Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                             {
                                 new CqReplyMsg(source.MessageId),
-                                new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                                new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps word answer\"")
                             });
                             return Task.CompletedTask;
                         }
@@ -260,7 +260,7 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
 
-            Program.helpCommand.Parse(command, source);
+            Program.HelpCommand.Parse(command, source);
             CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
@@ -272,7 +272,7 @@ namespace LapisBot_Renewed.GroupCommands
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                 {
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps guess words answer\"")
+                    new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps word answer\"")
                 });
                 return Task.CompletedTask;
             }

@@ -10,7 +10,9 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Operations.ApiOperation;
+using Microsoft.Extensions.Logging;
 using SixLabors.Fonts;
+using NLog.Extensions.Logging;
 
 namespace LapisBot_Renewed
 {
@@ -23,19 +25,20 @@ namespace LapisBot_Renewed
     
     public class Program
     {
-        public static List<GroupCommand> groupCommands = new List<GroupCommand>();
-
-        public static List<PrivateCommand> privateCommands = new List<PrivateCommand>();
-
-        public static HelpCommand helpCommand;
-
-        public static BotSettingsCommand settingsCommand;
-
-        private static DateTime lastDateTime;
         
-        private static DateTime lastDateTimeHour;
+        public static readonly List<GroupCommand> GroupCommands = new List<GroupCommand>();
 
-        public static ApiOperator apiOperator = new ApiOperator(@"https://www.diving-fish.com");
+        public static readonly List<PrivateCommand> PrivateCommands = new List<PrivateCommand>();
+
+        public static HelpCommand HelpCommand;
+
+        public static BotSettingsCommand SettingsCommand;
+
+        private static DateTime _lastDateTime;
+        
+        private static DateTime _lastDateTimeHour;
+
+        public static ApiOperator ApiOperator = new ApiOperator(@"https://www.diving-fish.com");
 
         public static BotSettings BotSettings = new BotSettings();
 
@@ -54,8 +57,13 @@ namespace LapisBot_Renewed
 
         public static event EventHandler TimeChanged;
 
+        public static ILogger<Program> logger; 
+
         public static async Task Main()
         {
+            logger = LoggerFactory.Create(builder => builder.AddNLog()).CreateLogger<Program>();
+            logger.LogInformation("Program has started.");
+            
             if (System.IO.File.Exists(AppContext.BaseDirectory + "config.json"))
                 BotSettings =
                     JsonConvert.DeserializeObject<BotSettings>(
@@ -73,38 +81,38 @@ namespace LapisBot_Renewed
                 BaseUri = new Uri("ws://" + BotSettings.Address),  // WebSocket 地址
             });
             
-            Session.Start();
+            await Session.StartAsync();
             
             Console.CancelKeyPress += Console_CancelKeyPress;
 
             var _helpCommand = new HelpCommand();
             var _botSettingsCommand = new BotSettingsCommand();
 
-            groupCommands.Add(new TaskHandleQueueCommand());
-            groupCommands.Add(new RepeatCommand());
-            groupCommands.Add(new AbuseCommand());
-            groupCommands.Add(new VocabularyCommand());
-            groupCommands.Add(new McPingCommand());
-            groupCommands.Add(_helpCommand);
-            groupCommands.Add(_botSettingsCommand);
-            groupCommands.Add(new StickerCommand());
-            groupCommands.Add(new AboutCommand());
-            groupCommands.Add(new BangCommand());
-            groupCommands.Add(new DoSomethingWithHimCommand());
-            groupCommands.Add(new TaskHandleQueueCommand());
-            groupCommands.Add(new MaiCommand());
+            GroupCommands.Add(new TaskHandleQueueCommand());
+            GroupCommands.Add(new RepeatCommand());
+            GroupCommands.Add(new AbuseCommand());
+            GroupCommands.Add(new VocabularyCommand());
+            GroupCommands.Add(new McPingCommand());
+            GroupCommands.Add(_helpCommand);
+            GroupCommands.Add(_botSettingsCommand);
+            GroupCommands.Add(new StickerCommand());
+            GroupCommands.Add(new AboutCommand());
+            GroupCommands.Add(new BangCommand());
+            GroupCommands.Add(new DoSomethingWithHimCommand());
+            GroupCommands.Add(new TaskHandleQueueCommand());
+            GroupCommands.Add(new MaiCommand());
 
-            helpCommand = _helpCommand;
-            settingsCommand = _botSettingsCommand;
+            HelpCommand = _helpCommand;
+            SettingsCommand = _botSettingsCommand;
 
-            privateCommands.Add(new GetStickerImageCommand());
-            privateCommands.Add(new GetGroupsCommand());
-            privateCommands.Add(new UpdateMessageCommand());
+            PrivateCommands.Add(new GetStickerImageCommand());
+            PrivateCommands.Add(new GetGroupsCommand());
+            PrivateCommands.Add(new UpdateMessageCommand());
 
-            foreach (GroupCommand command in groupCommands)
+            foreach (GroupCommand command in GroupCommands)
                 new Task(() => command.Initialize()).Start();
 
-            foreach (PrivateCommand command in privateCommands)
+            foreach (PrivateCommand command in PrivateCommands)
                 new Task(() => command.Initialize()).Start();
 
             var commandParser = new CommandParser();
@@ -139,7 +147,7 @@ namespace LapisBot_Renewed
 
             if (System.IO.File.Exists(Environment.CurrentDirectory + "/date.json"))
             {
-                lastDateTime = JsonConvert.DeserializeObject<DateTime>(System.IO.File.ReadAllText(Environment.CurrentDirectory + "/date.json"));
+                _lastDateTime = JsonConvert.DeserializeObject<DateTime>(System.IO.File.ReadAllText(Environment.CurrentDirectory + "/date.json"));
             }
             Thread thread = new Thread(Reload);
             thread.Start();
@@ -156,7 +164,7 @@ namespace LapisBot_Renewed
 
         static void SaveDate()
         {
-            System.IO.File.WriteAllText(Environment.CurrentDirectory + "/date.json", JsonConvert.SerializeObject(lastDateTime));
+            System.IO.File.WriteAllText(Environment.CurrentDirectory + "/date.json", JsonConvert.SerializeObject(_lastDateTime));
             Console.WriteLine("Date data has been saved.");
         }
 
@@ -170,17 +178,17 @@ namespace LapisBot_Renewed
                     if (TimeChanged != null)
                         TimeChanged(new Object(), new EventArgs());
                     //Console.WriteLine(DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second);
-                    if (lastDateTime.Date != DateTime.Now.Date)
+                    if (_lastDateTime.Date != DateTime.Now.Date)
                     {
-                        lastDateTime = DateTime.Now;
+                        _lastDateTime = DateTime.Now;
                         SaveDate();
                         if (DateChanged != null)
                             DateChanged(new Object(), new EventArgs());
                     }
 
-                    if (lastDateTimeHour.Hour != DateTime.Now.Hour)
+                    if (_lastDateTimeHour.Hour != DateTime.Now.Hour)
                     {
-                        lastDateTimeHour = DateTime.Now;
+                        _lastDateTimeHour = DateTime.Now;
                         if (HourChanged != null)
                             HourChanged(new Object(), new EventArgs());
                     }
@@ -194,11 +202,11 @@ namespace LapisBot_Renewed
 
         private static async void Console_CancelKeyPress(object sender, EventArgs e)
         {
-            foreach (GroupCommand _command in groupCommands)
+            foreach (GroupCommand _command in GroupCommands)
             {
                 await _command.Unload();
             }
-            foreach (PrivateCommand _command in privateCommands)
+            foreach (PrivateCommand _command in PrivateCommands)
             {
                 await _command.Unload();
             }

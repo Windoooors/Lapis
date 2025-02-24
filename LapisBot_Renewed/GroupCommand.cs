@@ -10,6 +10,7 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
+using Microsoft.Extensions.Logging;
 
 namespace LapisBot_Renewed
 {
@@ -32,6 +33,8 @@ namespace LapisBot_Renewed
         public Dictionary<string, DateTime> GroupsMap = new Dictionary<string, DateTime>();
 
         public int CoolDownTime = 5;
+        
+
         
         public virtual Task Initialize()
         {
@@ -112,11 +115,11 @@ namespace LapisBot_Renewed
                     {
                         var dateTime = new DateTime();
                         GroupsMap.TryGetValue(source.GroupId.ToString(), out dateTime);
-                        Program.helpCommand.CoolDownParse(command, source, dateTime);
+                        Program.HelpCommand.CoolDownParse(command, source, dateTime);
                     }
                 }
                 else
-                    Program.helpCommand.Parse(command, source);
+                    Program.HelpCommand.Parse(command, source);
             }
 
             return Task.CompletedTask;
@@ -147,11 +150,11 @@ namespace LapisBot_Renewed
                     {
                         var dateTime = new DateTime();
                         GroupsMap.TryGetValue(source.GroupId.ToString(), out dateTime);
-                        Program.helpCommand.CoolDownParse(command, source, dateTime);
+                        Program.HelpCommand.CoolDownParse(command, source, dateTime);
                     }
                 }
                 else
-                    Program.helpCommand.Parse(command, source);
+                    Program.HelpCommand.Parse(command, source);
             }
 
             return Task.CompletedTask;
@@ -312,9 +315,9 @@ namespace LapisBot_Renewed
                     CurrentGroupCommandSettings.GroupId + ".json",
                     JsonConvert.SerializeObject(CurrentGroupCommandSettings));
             }
-            Program.settingsCommand.GetSettings(source);
+            Program.SettingsCommand.GetSettings(source);
             var image = new BotSettingsImageGenerator().Generate(CurrentGroupCommandSettings,
-                Program.settingsCommand.CurrentBotSettings.CompressedImage);
+                Program.SettingsCommand.CurrentBotSettings.CompressedImage);
             Program.Session.SendGroupMessageAsync(source.GroupId,
                 new CqMessage() { new CqReplyMsg(source.MessageId), new CqImageMsg("base64://" + image) });
             return Task.CompletedTask;

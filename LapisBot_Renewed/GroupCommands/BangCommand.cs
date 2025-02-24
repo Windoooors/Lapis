@@ -9,6 +9,7 @@ namespace LapisBot_Renewed.GroupCommands
 {
     public class BangCommand : GroupCommand
     {
+        
         public override Task Initialize()
         {
             HeadCommand = new Regex(@"^bang$");

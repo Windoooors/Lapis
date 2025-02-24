@@ -90,7 +90,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (indexRegex.IsMatch(_originalCommand))
                     machineIndex = Int32.Parse(numberRegex.Matches(_originalCommand)[0].ToString()) - 1;
                 var url = "https://api.arcade-link.top/queue?locationId=" + ((AircadeSettings)CurrentGroupCommandSettings).LocationId + "&deviceId=" + machineIndex;
-                var content = Program.apiOperator.Get(url);
+                var content = Program.ApiOperator.Get(url);
                 var queue = JsonConvert.DeserializeObject<QueueDto>(content);
 
                 if (queue.StatusCode != 200)

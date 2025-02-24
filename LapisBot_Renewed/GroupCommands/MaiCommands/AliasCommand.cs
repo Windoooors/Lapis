@@ -17,7 +17,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public InfoCommand FindInfoCommand()
         {
             MaiCommand MaiCommandCommand;
-            foreach (GroupCommand command in Program.groupCommands)
+            foreach (GroupCommand command in Program.GroupCommands)
             {
                 if (command is MaiCommand)
                 {

@@ -11,7 +11,7 @@ namespace LapisBot_Renewed.ImageGenerators
         {
             Image head;
             if (usingHead)
-                head = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640"); 
+                head = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640"); 
             else
             {
                 head = new Image(Environment.CurrentDirectory +

@@ -174,7 +174,7 @@ public class LettersCommand : MaiCommand
             {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(
-                    "本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess songlist answer\"\n" +
+                    "本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai letters answer\"\n" +
                     "要开字母 a，请发送指令 \"开 a\"\n" +
                     "要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"")
             });

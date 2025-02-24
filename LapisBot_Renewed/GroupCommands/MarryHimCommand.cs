@@ -140,7 +140,7 @@ namespace LapisBot_Renewed.GroupCommands
                                 else
                                     memberName = result.Nickname;
 
-                                var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                var image = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                            couple.Value + "&s=640");
                                 message =
                                     new CqMessage()
@@ -200,7 +200,7 @@ namespace LapisBot_Renewed.GroupCommands
                                 memberName = result.Nickname;
                             
                             var message = new CqMessage();
-                            var image = Program.apiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                            var image = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                        memberList[i] + "&s=640");
                             message =
                                 new CqMessage()

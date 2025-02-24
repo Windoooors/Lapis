@@ -166,7 +166,7 @@ public class PlateImageGenerator
 
         Image head;
         if (usingHead)
-            head = Program.apiOperator.UrlToImage(
+            head = Program.ApiOperator.UrlToImage(
                 "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640");
         else
         {

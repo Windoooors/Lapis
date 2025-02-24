@@ -84,13 +84,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Random random = new Random();
                 int j = random.Next(0, songs.Length);
 
-                Program.settingsCommand.GetSettings(source);
+                Program.SettingsCommand.GetSettings(source);
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                     {
                         new CqReplyMsg(source.MessageId),
                         new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
-                            Program.settingsCommand.CurrentBotSettings.CompressedImage))
+                            Program.SettingsCommand.CurrentBotSettings.CompressedImage))
                     });
                 if (((RandomSettings)CurrentGroupCommandSettings).SongPreview)
                 {
