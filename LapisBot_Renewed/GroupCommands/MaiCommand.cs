@@ -8,7 +8,6 @@ using LapisBot_Renewed.GroupCommands.MaiCommands;
 using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.Collections;
 using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -94,6 +93,11 @@ namespace LapisBot_Renewed.GroupCommands
         {
             [JsonProperty("fit_diff")] public float FitRating;
         }
+    }
+
+    public class AliasDto
+    {
+        [JsonProperty("content")] public MaiCommand.Alias[] Content;
     }
 
     public class MaiCommand : GroupCommand
@@ -360,22 +364,15 @@ namespace LapisBot_Renewed.GroupCommands
         public SongDto[] Songs;
         public ExtraSongDto[] ExtraSongs;
         public ChartStatisticsDto ChartStatistics;
-        private JObject _aliasJObject;
         public readonly List<List<SongDto>> Levels = new();
         public readonly List<List<ExtraSongDto>> ExtraLevels = new();
         public readonly Dictionary<string, int> LevelDictionary = new();
-        private readonly List<Alias> _songAliases = new();
+        private List<Alias> _songAliases = new();
 
         public class Alias
         {
-            public List<string> Aliases;
-            public int Id;
-
-            public class AliasStringItem
-            {
-                public string AliasString;
-                public bool IsAliasFromLapis;
-            }
+            [JsonProperty("Alias")] public List<string> Aliases;
+            [JsonProperty("SongID")] public int Id;
         }
 
         private async void Reload(object sender, EventArgs e)
@@ -398,36 +395,27 @@ namespace LapisBot_Renewed.GroupCommands
                     JsonConvert.DeserializeObject<ChartStatisticsDto>(
                         Program.ApiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
 
-                _aliasJObject =
-                    JObject.Parse(Program.ApiOperator.Get("https://download.fanyu.site/maimai/alias.json"));
+                var aliasDto =
+                    JsonConvert.DeserializeObject<AliasDto>(Program.ApiOperator.Get("https://api.yuzuchan.moe/maimaidx/maimaidxalias"));
+
+                _songAliases = aliasDto.Content.ToList();
             }
 
-            var aliasObject = new Dictionary<string, string[]>();
-
-            try
+            foreach (Alias alias in _songAliases)
             {
-                aliasObject = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(_aliasJObject.ToString());
-            }
-            catch
-            {
-                aliasObject = new Dictionary<string, string[]>();
-            }
-
-            foreach (KeyValuePair<string, string[]> obj in aliasObject)
-            {
-                var idString = obj.Key;
-                var id = int.Parse(idString);
-                
-                if (id == 11422)
+                if (alias.Id == 11422)
                 {
-                    var aliasesList = new List<string>();
-                    foreach (string alias in obj.Value)
-                        if (!(alias == "\u200e\u200e" || alias == "ㅤ" || alias == String.Empty))
-                            aliasesList.Add(alias);
-                    _songAliases.Add(new Alias() { Aliases = aliasesList, Id = id });
+                    var invalidAliasStrings = new List<string>();
+                    
+                    foreach (string aliasString in alias.Aliases)
+                        if (aliasString == "\u200e\u200e" || aliasString == "　" || aliasString == "\u3000" || aliasString == String.Empty)
+                            invalidAliasStrings.Add(aliasString);
+
+                    foreach (var invalidAlias in invalidAliasStrings)
+                    {
+                        alias.Aliases.Remove(invalidAlias);
+                    }
                 }
-                else
-                    _songAliases.Add(new Alias() { Aliases = Enumerates.ToList(obj.Value), Id = id });
             }
 
             LevelDictionary.Add("1", 0);
