@@ -46,7 +46,7 @@ namespace LapisBot_Renewed.ImageGenerators
             
             backgroundLayer.Dispose();
 
-            image.DrawText(title, new Color(1f, 1f, 1f, 0.081f), 48, FontWeight.Regular, 13, 1200);
+            image.DrawText(title, new Color(1f, 1f, 1f, 0.081f), 42, FontWeight.Regular, 16, 1200);
 
             return image;
         }

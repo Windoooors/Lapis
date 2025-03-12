@@ -408,7 +408,7 @@ namespace LapisBot_Renewed.GroupCommands
                     var invalidAliasStrings = new List<string>();
                     
                     foreach (string aliasString in alias.Aliases)
-                        if (aliasString == "\u200e\u200e" || aliasString == "　" || aliasString == "\u3000" || aliasString == String.Empty)
+                        if (aliasString == "\u200e\u200e" || aliasString == "　" || aliasString == "\u3000" || aliasString == String.Empty || aliasString == "\n")
                             invalidAliasStrings.Add(aliasString);
 
                     foreach (var invalidAlias in invalidAliasStrings)

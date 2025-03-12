@@ -50,30 +50,52 @@ public class LettersCommand : MaiCommand
         return Task.CompletedTask;
     }
 
-    private SongDto GetRandomSong(bool containChinese)
+    private enum SpecialCharactersToBeIncluded
     {
-        Regex pattern = new Regex(@"[\u4e00-\u9fa5]|[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]");
+       Chinese,
+       Japanese,
+       Both,
+       Neither
+    };
+
+    private SongDto GetRandomSong(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
+    {
+        Regex pattern  = new Regex("");
+        switch (specialCharactersToBeIncluded)
+        {
+            case SpecialCharactersToBeIncluded.Chinese:
+                pattern = new Regex(@"[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]");
+                break;
+            case SpecialCharactersToBeIncluded.Japanese:
+                pattern = new Regex(@"[\u4e00-\u9fa5]");
+                break;
+            case SpecialCharactersToBeIncluded.Neither:
+                pattern = new Regex(@"[\u4e00-\u9fa5]|[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]");
+                break;
+        }
 
         var random = new Random();
         var index = random.Next(0, MaiCommandCommand.Songs.Length);
 
-        if (containChinese)
+        if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both)
+        {
             return MaiCommandCommand.Songs[index];
+        }
         
         while (pattern.IsMatch(MaiCommandCommand.Songs[index].Title))
             index = random.Next(0, MaiCommandCommand.Songs.Length);
         return MaiCommandCommand.Songs[index];
     }
 
-    private SongList GenerateSongList(bool containChinese)
+    private SongList GenerateSongList(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
     {
         var songs = new List<SongDto>();
 
-        songs.Add(GetRandomSong(containChinese));
+        songs.Add(GetRandomSong(specialCharactersToBeIncluded));
 
-        while (songs.Count < 20)
+        while (songs.Count < 15)
         {
-            var song = GetRandomSong(containChinese);
+            var song = GetRandomSong(specialCharactersToBeIncluded);
             if (!songs.Contains(song))
                 songs.Add(song);
         }
@@ -114,27 +136,47 @@ public class LettersCommand : MaiCommand
             else
             {
                 var songDisplay = string.Empty;
+
+                var hiddenLetterCount = 0;
             
                 foreach (char songNameCharacter in song.Title)
                 {
-                    var blankMarkChar = new char[] { ' ', '\u3000' }.Contains(songNameCharacter) ? songNameCharacter : '*';
+                    var blankMarkChar = new char[] { ' ', '\u3000', '\u200e'  }.Contains(songNameCharacter) ? songNameCharacter : '*';
+                    
                     foreach (char character in songs.GuessedLetters)
                     {
                         if (char.ToLower(character) == char.ToLower(songNameCharacter))
                             blankMarkChar = songNameCharacter;
                     }
+                    
+                    if (blankMarkChar == '*')
+                        hiddenLetterCount++;
 
                     songDisplay += blankMarkChar;
                 }
-
+                
                 songDisplay.TrimEnd();
+                
+                var isSongGuessed = false;
                 
                 foreach (var guessedSong in songs.GuessedSongs)
                     if (song == guessedSong)
                     {
                         songDisplay = guessedSong.Title;
+                        isSongGuessed = true;
                         break;
                     }
+
+                if (hiddenLetterCount == 0 && !isSongGuessed)
+                {
+                    songs.GuessedSongs.Add(song);
+
+                    if (songs.GuessedSongs.Count == songs.AllSongs.Length)
+                    {
+                        AnnounceAnswer(songs, groupId, messageId, true);
+                        return Task.CompletedTask;
+                    }
+                }
 
                 songNames += $"{index}.{songDisplay}\n";
             }
@@ -166,7 +208,7 @@ public class LettersCommand : MaiCommand
         return Task.CompletedTask;
     }
 
-    private Task StartGuessing(CqGroupMessagePostContext source, bool containChinese)
+    private Task StartGuessing(CqGroupMessagePostContext source, SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
     {
         if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
@@ -181,13 +223,29 @@ public class LettersCommand : MaiCommand
             CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
-        
-        var title = "Lapis 将在 20mins 后公布答案！";
+
+        var excludedCharacterInformation = "";
+        if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Japanese)
+        {
+            excludedCharacterInformation = "本次开字母游戏中的谜底均不包含中文字符\n";
+        }
+        else if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Chinese)
+        {
+            excludedCharacterInformation = "本次开字母游戏中的谜底均不包含日文字符\n";
+        }
+        else if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Neither)
+        {
+            excludedCharacterInformation = "本次开字母游戏中的谜底均不包含中、日文字符\n";
+        }
+
+        var title = excludedCharacterInformation + "Lapis 将在 20mins 后公布答案！\n" + 
+                    "要开字母 a，请发送指令 \"开 a\"\n" +
+                    "要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"";
         
         var songNames = "";
         int index = 1;
 
-        var songs = GenerateSongList(containChinese);
+        var songs = GenerateSongList(specialCharactersToBeIncluded);
 
         foreach (var song in songs.AllSongs)
         {
@@ -221,26 +279,36 @@ public class LettersCommand : MaiCommand
     
     public override Task Parse(string command, CqGroupMessagePostContext source)
     {
-        StartGuessing(source, true);
+        StartGuessing(source, SpecialCharactersToBeIncluded.Both);
         
         return Task.CompletedTask;
     }
 
     public override Task SubParse(string command, CqGroupMessagePostContext source)
     {
-        var containChinese = false;
+        var specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
 
-        if (command.StartsWith("true"))
+        if (command.ToLower().StartsWith("both"))
         {
-            containChinese = true;
+            specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
             CancelCoolDownTimer(source.GroupId.ToString());
         }
-        else if (command.StartsWith("false"))
+        else if (command.ToLower().StartsWith("neither"))
         {
-            containChinese = false;
+            specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Neither;
             CancelCoolDownTimer(source.GroupId.ToString());
         }
-        else if (command == "answer")
+        else if (command.ToLower().StartsWith("chinese"))
+        {
+            specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Chinese;
+            CancelCoolDownTimer(source.GroupId.ToString());
+        }
+        else if (command.ToLower().StartsWith("japanese"))
+        {
+            specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Japanese;
+            CancelCoolDownTimer(source.GroupId.ToString());
+        }
+        else if (command.ToLower() == "answer")
         {
             (SongList, DateTime) keyWordDateTimePair;
             _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out keyWordDateTimePair);
@@ -265,7 +333,7 @@ public class LettersCommand : MaiCommand
             return Task.CompletedTask;
         }
         
-        StartGuessing(source, containChinese);
+        StartGuessing(source, specialCharactersToBeIncluded);
         return Task.CompletedTask;
     }
 
@@ -300,7 +368,7 @@ public class LettersCommand : MaiCommand
         if (indexPattern.IsMatch(command))
         {
             var index = int.Parse(new Regex("^[1-9][0-9]|^[1-9]").Match(command).ToString());
-            if (index > 20 || index < 1)
+            if (index > 15 || index < 1)
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                     { new CqReplyMsg(source.MessageId), "不支持的参数类型" });
