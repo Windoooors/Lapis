@@ -396,6 +396,16 @@ public class LettersCommand : MaiCommand
             {
                 if (keyValuePair.Item1.AllSongs[index - 1] == song)
                 {
+                    if (keyValuePair.Item1.GuessedSongs.Contains(song))
+                    {
+                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                            new CqMessage
+                            {
+                                new CqReplyMsg(source.MessageId), "该歌曲已经被开出"
+                            });
+                        return Task.CompletedTask;
+                    }
+                    
                     keyValuePair.Item1.GuessedSongs.Add(song);
 
                     if (keyValuePair.Item1.GuessedSongs.Count == keyValuePair.Item1.AllSongs.Length)
