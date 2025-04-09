@@ -80,10 +80,10 @@ namespace LapisBot_Renewed
         {
             try
             {
-                if ((Program.BotSettings.IsDevelopingMode &&
+                if ((BotSettings.Instance.IsDevelopingMode &&
                      (source.Sender.UserId == 2794813909 || source.Sender.UserId == 361851827 ||
                       source.Sender.UserId == 2750558108)) ||
-                    !Program.BotSettings.IsDevelopingMode)
+                    !BotSettings.Instance.IsDevelopingMode)
                 {
                     Program.SettingsCommand.GetSettings(source);
 

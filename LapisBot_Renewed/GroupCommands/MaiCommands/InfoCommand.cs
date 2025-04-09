@@ -10,6 +10,7 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using static LapisBot_Renewed.GroupCommand;
 using LapisBot_Renewed.ImageGenerators;
+using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -101,8 +102,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 try
                 {
-                    var content = Program.ApiOperator.Post("api/maimaidxprober/query/plate",
-                        new { username = name, version = new string[] { song.BasicInfo.Version } }, true);
+                    var content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,"api/maimaidxprober/query/plate",
+                        new { username = name, version = new string[] { song.BasicInfo.Version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
                     List<Level> levelList = new List<Level>();
@@ -177,8 +178,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 try
                 {
-                    var content = Program.ApiOperator.Post("api/maimaidxprober/query/plate",
-                        new { qq = number, version = new string[] { song.BasicInfo.Version } }, true);
+                    var content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/plate",
+                        new { qq = number, version = new string[] { song.BasicInfo.Version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
                     List<Level> levelList = new List<Level>();
@@ -246,7 +248,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            var songs = MaiCommandCommand.GetSongsUsingStartsWith(command);
+            var songs = Instance.GetSongsUsingStartsWith(command);
 
             if (songs == null)
             {
@@ -255,7 +257,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 return Task.CompletedTask;
             }
 
-            var indicatorString = MaiCommandCommand.GetSongIndicatorString(command);
+            var indicatorString = Instance.GetSongIndicatorString(command);
 
             if (songs.Length != 1)
             {

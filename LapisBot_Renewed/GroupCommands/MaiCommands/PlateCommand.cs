@@ -11,6 +11,7 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
+using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -203,9 +204,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var wuwuRegex = new Regex("舞舞$");
                 var bazheRegex = new Regex("^霸者$");
 
-                var userName = JsonConvert.DeserializeObject<BestDto>(Program.ApiOperator.Post(
+                var userName = JsonConvert.DeserializeObject<BestDto>(ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
-                    new { qq = source.Sender.UserId }, true)).Username;
+                    new { qq = source.Sender.UserId })).Username;
 
                 var versionCharacter =
                     wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, ""), ""), ""), "");
@@ -244,14 +245,15 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (!(command == "霸者" || command.StartsWith("舞")))
                 {
                     var content = "";
-                    content = Program.ApiOperator.Post("api/maimaidxprober/query/plate",
-                        new { username = "maxscore", version }, true);
+                    content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/plate",
+                        new { username = "maxscore", version });
                     scores = JsonConvert.DeserializeObject<ScoresDto>(content);
                 }
                 else
                 {
                     var list = new List<ScoresDto.ScoreDto>();
-                    foreach (SongDto song in MaiCommandCommand.Songs)
+                    foreach (SongDto song in Instance.Songs)
                     {
                         if (song.Id < 1000)
                         {
@@ -264,15 +266,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     scores = new ScoresDto() { ScoreDtos = list.ToArray() };
                 }
 
-                ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(Program.ApiOperator.Post(
+                ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                    BotSettings.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/plate",
-                    new { qq = source.Sender.UserId, version }, true));
+                    new { qq = source.Sender.UserId, version }));
 
                 var songsToBeDisplayed = new List<SongToBeDisplayed>();
 
                 foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
                 {
-                    var song = MaiCommandCommand.GetSong(score.Id);
+                    var song = Instance.GetSong(score.Id);
                     if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.6f)
                     {
                         var scoreDto = new ScoresDto.ScoreDto();
@@ -307,7 +310,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
                 {
-                    var song = MaiCommandCommand.GetSong(score.Id);
+                    var song = Instance.GetSong(score.Id);
                     var scoreDto = new ScoresDto.ScoreDto();
                     foreach (var realScore in scoresInRealilty.ScoreDtos)
                     {
@@ -349,7 +352,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.SettingsCommand.GetSettings(source);
 
                 var image = new PlateImageGenerator().Generate(songsToBeDisplayed, allSongs, userName,
-                    MaiCommandCommand,
+                    Instance,
                     category, source.Sender.UserId.ToString(), true, plateVersionIndex,
                     Program.SettingsCommand.CurrentBotSettings.CompressedImage);
 

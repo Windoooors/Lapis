@@ -9,10 +9,11 @@ using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
+using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.GroupCommands
 {
-    
+
     public class ScoresDto
     {
         [JsonProperty("verlist")] public ScoreDto[] ScoreDtos;
@@ -73,7 +74,7 @@ namespace LapisBot_Renewed.GroupCommands
             [JsonProperty("charter")] public string Charter;
 
             [JsonProperty("notes")] public int[] Notes;
-            
+
             public int MaxDxScore;
         }
 
@@ -84,11 +85,11 @@ namespace LapisBot_Renewed.GroupCommands
             [JsonProperty("from")] public string Version;
         }
     }
-    
+
     public class ChartStatisticsDto
     {
-        [JsonProperty("charts")]
-        public Dictionary<string, ChartStatisticDto[]> Charts;
+        [JsonProperty("charts")] public Dictionary<string, ChartStatisticDto[]> Charts;
+
         public class ChartStatisticDto
         {
             [JsonProperty("fit_diff")] public float FitRating;
@@ -102,6 +103,8 @@ namespace LapisBot_Renewed.GroupCommands
 
     public class MaiCommand : GroupCommand
     {
+        public static MaiCommand Instance;
+
         public override Task Unload()
         {
             foreach (var subMaiCommand in SubCommands)
@@ -121,23 +124,23 @@ namespace LapisBot_Renewed.GroupCommands
                         aliases.Add(valueAlias);
                 }
             }
-            
+
             var localAlias = LocalAlias.Instance;
-            foreach(var e1 in localAlias.GetIds())
+            foreach (var e1 in localAlias.GetIds())
             {
                 var a = LocalAlias.Instance.Get(e1);
                 foreach (var aliasString in a)
                 {
                     if (aliasString.ToLower() == alias)
                     {
-                        var temp = new Alias(){Aliases = new List<string>()};
+                        var temp = new Alias() { Aliases = new List<string>() };
                         temp.Id = e1;
-                    
+
                         foreach (var e2 in a)
                         {
                             temp.Aliases.Add(e2);
                         }
-                    
+
                         aliases.Add(temp);
                     }
                 }
@@ -157,13 +160,13 @@ namespace LapisBot_Renewed.GroupCommands
                     break;
                 }
             }
-            
+
             var tempAlias = new Alias() { Id = id, Aliases = new List<string>() };
             foreach (var aliasString in valueAlias.Aliases)
             {
                 tempAlias.Aliases.Add(aliasString);
             }
-            
+
             var local = LocalAlias.Instance.Get(id);
             if (local != null)
             {
@@ -234,7 +237,7 @@ namespace LapisBot_Renewed.GroupCommands
                     var id = int.Parse(idHeadRegex.Replace(inputString.ToLower(), string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
-                        return new[] {Songs[index]};
+                        return new[] { Songs[index] };
                     else
                         return null;
                 }
@@ -247,7 +250,7 @@ namespace LapisBot_Renewed.GroupCommands
             var songIndex = GetSongIndexByTitle(inputString);
             if (songIndex != -1)
             {
-                return new[] {Songs[songIndex]};
+                return new[] { Songs[songIndex] };
             }
 
             return null;
@@ -258,7 +261,7 @@ namespace LapisBot_Renewed.GroupCommands
             var tempAlias = new List<string>();
             var tempIds = new List<string>();
             var tempTitles = new List<string>();
-            
+
             foreach (var alias in _songAliases)
             {
                 foreach (var aliasString in alias.Aliases)
@@ -267,9 +270,9 @@ namespace LapisBot_Renewed.GroupCommands
                         tempAlias.Add(aliasString.ToLower());
                 }
             }
-            
+
             var localAlias = LocalAlias.Instance;
-            foreach(var e1 in localAlias.GetIds())
+            foreach (var e1 in localAlias.GetIds())
             {
                 var a = LocalAlias.Instance.Get(e1);
                 foreach (var aliasString in a)
@@ -286,7 +289,7 @@ namespace LapisBot_Renewed.GroupCommands
 
                 if (inputString.ToLower().StartsWith(("id" + song.Id).ToLower()))
                     tempIds.Add(("id" + song.Id).ToLower());
-                
+
                 if (inputString.ToLower().StartsWith(("id " + song.Id).ToLower()))
                     tempIds.Add(("id " + song.Id).ToLower());
             }
@@ -294,7 +297,7 @@ namespace LapisBot_Renewed.GroupCommands
             var sortedTempAlias = tempAlias.OrderByDescending(t => t.Length);
             var sortedTempIds = tempIds.OrderByDescending(t => t.Length);
             var sortedTempTitles = tempTitles.OrderByDescending(t => t.Length);
-            
+
             foreach (string alias in sortedTempAlias)
                 if (inputString.ToLower().StartsWith(alias + " ") || inputString.ToLower() == alias)
                     return alias;
@@ -315,9 +318,9 @@ namespace LapisBot_Renewed.GroupCommands
 
             if (songIndicator == null)
                 return null;
-            
+
             var aliases = GetAliasByAliasString(songIndicator);
-            
+
             if (aliases.Length != 0)
             {
                 var songsList = new List<SongDto>();
@@ -329,7 +332,7 @@ namespace LapisBot_Renewed.GroupCommands
                         songsList.Add(Songs[GetSongIndexById(alias.Id)]);
                 }
 
-                return songsList.ToArray();
+                return songsList.Count == 0 ? null : songsList.ToArray();
             }
 
             var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
@@ -341,7 +344,7 @@ namespace LapisBot_Renewed.GroupCommands
                     var id = int.Parse(idHeadRegex.Replace(songIndicator, string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
-                        return new[] {Songs[index]};
+                        return new[] { Songs[index] };
                     return null;
                 }
                 catch
@@ -353,13 +356,12 @@ namespace LapisBot_Renewed.GroupCommands
             var songIndex = GetSongIndexByTitle(songIndicator);
             if (songIndex != -1)
             {
-                return new[] {Songs[songIndex]};
+                return new[] { Songs[songIndex] };
             }
 
             return null;
         }
 
-        public MaiCommand MaiCommandCommand;
         public AddCommand AddCommand;
         public SongDto[] Songs;
         public ExtraSongDto[] ExtraSongs;
@@ -383,20 +385,22 @@ namespace LapisBot_Renewed.GroupCommands
 
         private Task Start()
         {
+            Instance = this;
+
             _songAliases.Clear();
             LevelDictionary.Clear();
             SubCommands.Clear();
             Levels.Clear();
             ExtraLevels.Clear();
 
-            if (!Program.BotSettings.IsDevelopingMode)
+            if (!BotSettings.Instance.IsDevelopingMode)
             {
                 ChartStatistics =
                     JsonConvert.DeserializeObject<ChartStatisticsDto>(
-                        Program.ApiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/chart_stats"));
+                        ApiOperator.Instance.Get(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/chart_stats"));
 
                 var aliasDto =
-                    JsonConvert.DeserializeObject<AliasDto>(Program.ApiOperator.Get("https://api.yuzuchan.moe/maimaidx/maimaidxalias"));
+                    JsonConvert.DeserializeObject<AliasDto>(ApiOperator.Instance.Get(BotSettings.Instance.AliasUrl));
 
                 _songAliases = aliasDto.Content.ToList();
             }
@@ -406,9 +410,10 @@ namespace LapisBot_Renewed.GroupCommands
                 if (alias.Id == 11422)
                 {
                     var invalidAliasStrings = new List<string>();
-                    
+
                     foreach (string aliasString in alias.Aliases)
-                        if (aliasString == "\u200e\u200e" || aliasString == "　" || aliasString == "\u3000" || aliasString == String.Empty || aliasString == "\n")
+                        if (aliasString == "\u200e\u200e" || aliasString == "　" || aliasString == "\u3000" ||
+                            aliasString == String.Empty || aliasString == "\n")
                             invalidAliasStrings.Add(aliasString);
 
                     foreach (var invalidAlias in invalidAliasStrings)
@@ -466,10 +471,9 @@ namespace LapisBot_Renewed.GroupCommands
             LevelDictionary.Add("14?", 45);
             LevelDictionary.Add("14+?", 46);
             LevelDictionary.Add("15?", 47);
-            if (!Program.BotSettings.IsDevelopingMode)
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.ApiOperator.Get("https://www.diving-fish.com/api/maimaidxprober/music_data"), typeof(SongDto[]));
-            else if (Program.BotSettings.IsDevelopingMode)
-                Songs = (SongDto[])JsonConvert.DeserializeObject(Program.ApiOperator.Get("https://imgur.setchin.com/data/f_29986616.json"), typeof(SongDto[]));
+            Songs = (SongDto[])JsonConvert.DeserializeObject(
+                ApiOperator.Instance.Get(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/music_data"),
+                typeof(SongDto[]));
             for (int i = 0; i < 48; i++)
                 Levels.Add(new List<SongDto>());
             for (int i = 0; i < 48; i++)
@@ -484,6 +488,7 @@ namespace LapisBot_Renewed.GroupCommands
                         chart.MaxDxScore += notes * 3;
                     }
                 }
+
                 foreach (string level in song.Levels)
                 {
                     int j;
@@ -491,8 +496,9 @@ namespace LapisBot_Renewed.GroupCommands
                     Levels[j].Add(song);
                 }
 
-                ChartStatisticsDto.ChartStatisticDto[] chartStatistics = Array.Empty<ChartStatisticsDto.ChartStatisticDto>();
-                
+                ChartStatisticsDto.ChartStatisticDto[] chartStatistics =
+                    Array.Empty<ChartStatisticsDto.ChartStatisticDto>();
+
                 ChartStatistics.Charts.TryGetValue(song.Id.ToString(), out chartStatistics);
                 List<float> fitRatings = new();
                 if (chartStatistics != null)
@@ -522,17 +528,19 @@ namespace LapisBot_Renewed.GroupCommands
                     ExtraLevels[j].Add(song);
                 }
             }
-            
-            SubCommands.Add(new RandomCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new InfoCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new AliasCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new BestCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new LettersCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new GuessCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new AircadeCommand() { MaiCommandCommand = this });
-            SubCommands.Add(new PlateCommand() { MaiCommandCommand = this });
-            
+
+            SubCommands.Add(new RandomCommand());
+            SubCommands.Add(new InfoCommand());
+            SubCommands.Add(new AliasCommand());
+            SubCommands.Add(new BestCommand());
+            SubCommands.Add(new PlateCommand());
+            SubCommands.Add(new LettersCommand());
+            SubCommands.Add(new GuessCommand());
+            SubCommands.Add(new AircadeCommand());
+            SubCommands.Add(new PlateCommand());
+            SubCommands.Add(new BindCommand());
+            SubCommands.Add(new UpdateCommand());
+
             foreach (var subMaiCommand in SubCommands)
             {
                 subMaiCommand.Initialize();
@@ -543,7 +551,7 @@ namespace LapisBot_Renewed.GroupCommands
             foreach (var alias in _songAliases)
             {
                 var localAlias = LocalAlias.Instance;
-                foreach(var e1 in localAlias.GetIds())
+                foreach (var e1 in localAlias.GetIds())
                 {
                     if (e1 != alias.Id)
                         continue;
@@ -555,7 +563,7 @@ namespace LapisBot_Renewed.GroupCommands
                     }
                 }
             }
-            
+
             Console.WriteLine("MaiCommand Initialized");
             return Task.CompletedTask;
         }
@@ -568,14 +576,18 @@ namespace LapisBot_Renewed.GroupCommands
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-                
+                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
+                                          " Settings");
+
             }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
+
+            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
+                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
                 var settingsString = File.ReadAllText(path);
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
+
             Start();
             return Task.CompletedTask;
         }

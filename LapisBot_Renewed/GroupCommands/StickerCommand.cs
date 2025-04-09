@@ -31,6 +31,8 @@ namespace LapisBot_Renewed.GroupCommands
 
             //MessageManager.SendGroupMessageAsync(source.GroupId, "傻逼");
             SubCommands.Add(new FortuneCommand());
+            SubCommands.Add(new ObituaryCommand());
+
 
             foreach (StickerCommand stickerCommand in SubCommands)
             {

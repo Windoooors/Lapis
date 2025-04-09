@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
@@ -10,13 +10,13 @@ using LapisBot_Renewed.Operations.ImageOperation;
 
 namespace LapisBot_Renewed.GroupCommands.StickerCommands
 {
-    public class FortuneCommand : StickerCommand
+    public class ObituaryCommand : StickerCommand
     {
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^喜报\s");
-            DirectCommand = new Regex(@"^喜报\s");
-            DefaultSettings.SettingsName = "喜报";
+            HeadCommand = new Regex(@"^悲报\s");
+            DirectCommand = new Regex(@"^悲报\s");
+            DefaultSettings.SettingsName = "悲报";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
             {
@@ -37,7 +37,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
         {
             if (command != string.Empty)
             {
-                var image = new Image(Environment.CurrentDirectory + @"/resource/stickers/xibao.png");
+                var image = new Image(Environment.CurrentDirectory + @"/resource/stickers/beibao.png");
                 var fontSize = 36;
                 var top = 200;
 
@@ -78,7 +78,7 @@ namespace LapisBot_Renewed.GroupCommands.StickerCommands
                     }
                 }
 
-                image.DrawText(command, new Color(0.6f, 0, 0, 1), fontSize, FontWeight.Regular,
+                image.DrawText(command, new Color(0.3f, 0.3f, 0.3f, 1), fontSize, FontWeight.Regular,
                     HorizontalAlignment.Center, 233, top);
 
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage

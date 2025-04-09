@@ -16,13 +16,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
     {
         public InfoCommand FindInfoCommand()
         {
-            MaiCommand MaiCommandCommand;
+            MaiCommand Instance;
             foreach (GroupCommand command in Program.GroupCommands)
             {
                 if (command is MaiCommand)
                 {
-                    MaiCommandCommand = (MaiCommand)command;
-                    foreach (MaiCommand _command in MaiCommandCommand.SubCommands)
+                    Instance = (MaiCommand)command;
+                    foreach (MaiCommand _command in Instance.SubCommands)
                     {
                         if (_command is InfoCommand)
                         {
@@ -35,7 +35,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return null;
         }
 
-        //public MaiCommand MaiCommandCommand;
+        //public MaiCommand Instance;
 
         public override Task Unload()
         {
@@ -63,7 +63,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
             }
 
-            SubCommands.Add(new AddCommand { MaiCommandCommand = MaiCommandCommand });
+            SubCommands.Add(new AddCommand());
             
             foreach (var subAliasCommand in SubCommands)
             {
@@ -77,7 +77,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public string GetAliasesInString(Alias alias)
         {
             var result = string.Empty;
-            var song = MaiCommandCommand.GetSong(alias.Id);
+            var song = Instance.GetSong(alias.Id);
             if (alias.Aliases.Count != 0)
             {
                 result = "歌曲 " + song.Title + " [" +
@@ -110,7 +110,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
-            var songs = MaiCommandCommand.GetSongs(command);
+            var songs = Instance.GetSongs(command);
 
             if (songs == null)
             {
@@ -129,7 +129,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     new CqMessage
                     {
                         new CqReplyMsg(source.MessageId),
-                        new CqTextMsg(GetAliasesInString(MaiCommandCommand.GetAliasById(songs[0].Id)))
+                        new CqTextMsg(GetAliasesInString(Instance.GetAliasById(songs[0].Id)))
                     });
                 return Task.CompletedTask;
             }

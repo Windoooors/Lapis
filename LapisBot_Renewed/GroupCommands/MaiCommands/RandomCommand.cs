@@ -66,13 +66,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public override Task Parse(string command, CqGroupMessagePostContext source)
         {
             int i;
-            if (!MaiCommandCommand.LevelDictionary.ContainsKey(command))
+            if (!Instance.LevelDictionary.ContainsKey(command))
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                     { new CqTextMsg("不支持的等级名称") });
             else
             {
-                MaiCommandCommand.LevelDictionary.TryGetValue(command, out i);
-                SongDto[] songs = MaiCommandCommand.Levels[i].ToArray();
+                Instance.LevelDictionary.TryGetValue(command, out i);
+                SongDto[] songs = Instance.Levels[i].ToArray();
                 if (songs.Length == 0)
                 {
 

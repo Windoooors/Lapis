@@ -9,6 +9,8 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
+using LapisBot_Renewed.Operations.ApiOperation;
+using Microsoft.Extensions.Logging;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -44,13 +46,14 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             var content = string.Empty;
             BestDto best;
 
-            content = Program.ApiOperator.Post("api/maimaidxprober/query/player",
-                new { username = command, b50 = true }, true);
+            content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
+                new { username = command, b50 = true });
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
             if (best.Charts == null)
-                content = Program.ApiOperator.Post("api/maimaidxprober/query/player",
-                    new { qq = command, b50 = true }, true);
+                content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/player",
+                    new { qq = command, b50 = true });
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
             if (best.Charts == null)
@@ -97,7 +100,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     score.rate = InfoCommand.Rate.C;
                 else if (50 > achievement)
                     score.rate = InfoCommand.Rate.D;
-                score.MaxDxScore = MaiCommandCommand.GetSong(score.Id)
+                score.MaxDxScore = Instance.GetSong(score.Id)
                     .Charts[score.LevelIndex].MaxDxScore;
             }
 
@@ -132,7 +135,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     score.rate = InfoCommand.Rate.C;
                 else if (50 > achievement)
                     score.rate = InfoCommand.Rate.D;
-                score.MaxDxScore = MaiCommandCommand.GetSong(score.Id)
+                score.MaxDxScore = Instance.GetSong(score.Id)
                     .Charts[score.LevelIndex].MaxDxScore;
             }
 
@@ -155,8 +158,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         {
             try
             {
-                var content = Program.ApiOperator.Post("api/maimaidxprober/query/player",
-                    new { qq = source.Sender.UserId.ToString(), b50 = true }, true);
+                var content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
+                    new { qq = source.Sender.UserId.ToString(), b50 = true });
                 //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
 
                 BestDto best = JsonConvert.DeserializeObject<BestDto>(content);
@@ -191,7 +194,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = MaiCommandCommand.GetSong(score.Id)
+                    score.MaxDxScore = Instance.GetSong(score.Id)
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
 
@@ -226,7 +229,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         score.rate = InfoCommand.Rate.C;
                     else if (50 > achievement)
                         score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = MaiCommandCommand.GetSong(score.Id)
+                    score.MaxDxScore = Instance.GetSong(score.Id)
                         .Charts[score.LevelIndex].MaxDxScore;
                 }
 
@@ -242,8 +245,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         new CqImageMsg("base64://" + image)
                     });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Program.logger.LogError(ex.Source + "\n" + ex.Message + "\n" + ex.StackTrace);
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                     {

@@ -2,6 +2,7 @@
 using System.IO;
 using LapisBot_Renewed.Operations.ImageOperation;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
+using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.ImageGenerators
 {
@@ -11,7 +12,7 @@ namespace LapisBot_Renewed.ImageGenerators
         {
             Image head;
             if (usingHead)
-                head = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640"); 
+                head = ApiOperator.Instance.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640"); 
             else
             {
                 head = new Image(Environment.CurrentDirectory +
@@ -245,6 +246,7 @@ namespace LapisBot_Renewed.ImageGenerators
 
             var foreground = new Image(Environment.CurrentDirectory + @"/resource/best50/b50_item_foreground_" +
                                        difficulty + ".png");
+            
             Image background;
             if (File.Exists(Environment.CurrentDirectory + @"/resource/covers/" + score.Id +
                             ".png"))
@@ -253,125 +255,97 @@ namespace LapisBot_Renewed.ImageGenerators
             else
                 background = new Image(Environment.CurrentDirectory + @"/resource/covers/1000.png");
 
+            var foregroundColor = background.GetDominantColor();
+
+            var foregroundColorImage = new Image(321, 100, foregroundColor);
+            
+            foregroundColorImage.DrawImage(foreground, 0, 0);
+            
+            foreground.Dispose();
+
+            foreground = foregroundColorImage;
+
+            using (var mask = new Image(Environment.CurrentDirectory +
+                                        @"/resource/best50/b50_item_foreground_mask.png"))
+            {
+                foreground.FuseAlpha(mask);
+            }
+
             background.Scale(100, 100);
             var image = new Image(350, 100);
-            image.DrawImage(foreground, 0, 0);
             image.DrawImage(background, 0, 0);
-
+            image.DrawImage(foreground, 29, 0);
+            
             foreground.Dispose();
-            background.Dispose();
 
             var info = new Image(350, 100);
 
-            info.DrawText(score.Type, fontColor, 13, FontWeight.Heavy, 114, 23);
-            info.DrawText(score.Title, fontColor, 16, FontWeight.Light, 135, 25);
-            info.DrawText(score.Achievements.ToString("0.0000") + "%", fontColor, 20, FontWeight.Heavy, 114, 48);
+            info.DrawText(score.Type, fontColor, 13, FontWeight.Heavy, 100, 26);
+
+            var isWhiteOnDark = background.isWhiteOnDark();
+            
+            fontColor = isWhiteOnDark ? Color.White : Color.Black;
+            
+            background.Dispose();
+            
+            info.DrawText(score.Title, fontColor, 16, FontWeight.Regular, 126, 28);
+            info.DrawText(score.Achievements.ToString("0.0000") + "%", fontColor, 20, FontWeight.Heavy, 102, 50);
             info.DrawText(score.DifficultyFactor.ToString("0.0") + "·" + score.Rating, fontColor, 20, FontWeight.Heavy,
-                114, 68);
-            info.DrawText("#" + rank + "·ID " + score.Id, fontColor, 15, FontWeight.Light, 114, 88);
+                102, 69);
+            info.DrawText("#" + rank + "·ID " + score.Id, new Color(fontColor.R, fontColor.G, fontColor.B, 0.6f), 15,
+                FontWeight.Regular, 102, 87);
+
+            using var scoreLayerMask = new Image(Environment.CurrentDirectory + "/resource/best50/b50_item_score_layer_mask.png");
+            
+            info.FuseAlpha(scoreLayerMask);
 
             var imagePath = "";
-            var rateBackgroundImagePath = "";
-            var rateShadowImagePath = "";
-            if (score.rate == InfoCommand.Rate.Sss)
+            switch (score.rate)
             {
-                imagePath = Environment.CurrentDirectory + @"/resource/ratings_hd/sss.png";
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/sss.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_sss.png");
+                case InfoCommand.Rate.Sss:
+                    imagePath = Environment.CurrentDirectory + @"/resource/ratings_hd/sss.png";
+                    break;
+                case InfoCommand.Rate.Sssp:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/sss_plus.png");
+                    break;
+                case InfoCommand.Rate.Ss:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/ss.png");
+                    break;
+                case InfoCommand.Rate.Ssp:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/ss_plus.png");
+                    break;
+                case InfoCommand.Rate.S:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/s.png");
+                    break;
+                case InfoCommand.Rate.Sp:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/s_plus.png");
+                    break;
+                case InfoCommand.Rate.Aaa:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/aaa.png");
+                    break;
+                case InfoCommand.Rate.Aa:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/aa.png");
+                    break;
+                case InfoCommand.Rate.A:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/a.png");
+                    break;
+                case InfoCommand.Rate.Bbb:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/bbb.png");
+                    break;
+                case InfoCommand.Rate.Bb:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/bb.png");
+                    break;
+                case InfoCommand.Rate.B:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/b.png");
+                    break;
+                case InfoCommand.Rate.C:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/c.png");
+                    break;
+                case InfoCommand.Rate.D:
+                    imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/d.png");
+                    break;
             }
-            else if (score.rate == InfoCommand.Rate.Sssp)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/sss_plus.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/sss_plus.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_sss.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Ss)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/ss.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/ss.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_ss.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Ssp)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/ss_plus.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/ss_plus.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_ss.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Sp)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/s_plus.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/s_plus.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_s.png");
-            }
-            else if (score.rate == InfoCommand.Rate.S)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/s.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/s.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_s.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Aaa)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/aaa.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/aaa.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Aa)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/aa.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/aa.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.A)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/a.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/a.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Bbb)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/bbb.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/bbb.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.Bb)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/bb.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/bb.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.B)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/b.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/b.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.C)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/c.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/c.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-            else if (score.rate == InfoCommand.Rate.D)
-            {
-                imagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/d.png");
-                rateShadowImagePath = (Environment.CurrentDirectory + @"/resource/ratings_hd/shadows/d.png");
-                rateBackgroundImagePath =
-                    (Environment.CurrentDirectory + @"/resource/best50/item_rate_background_a.png");
-            }
-
+            
             var stars = 0;
             var starRate = (float)score.DxScore / score.MaxDxScore * 100;
             if (starRate <= 100 && starRate >= 97)
@@ -391,39 +365,37 @@ namespace LapisBot_Renewed.ImageGenerators
             info.FuseAlpha(gradient);
             image.DrawImage(info, 0, 0);
 
-            using var rateBackgroundImage = new Image(rateBackgroundImagePath);
-            using var rateShadowImage = new Image(rateShadowImagePath);
+            using var rateLayer = new Image(110, 100);
             using var rateImage = new Image(imagePath);
 
-            var width = rateBackgroundImage.Width;
-            rateBackgroundImage.DrawText("DX 分数", new Color(0, 0, 0, 0.21f), 12, FontWeight.Heavy,
-                HorizontalAlignment.Right, width - 10, 23);
-            rateBackgroundImage.DrawText(score.DxScore + "/" + score.MaxDxScore, new Color(0, 0, 0, 0.6f), 12,
-                FontWeight.Regular, HorizontalAlignment.Right, width - 10, 36);
+            var width = rateLayer.Width;
+            rateLayer.DrawText("DX 分数", new Color(fontColor.R, fontColor.G, fontColor.B, 0.60f), 12, FontWeight.Heavy,
+                HorizontalAlignment.Right, width - 10, 26);
+            rateLayer.DrawText(score.DxScore + "/" + score.MaxDxScore, fontColor, 12,
+                FontWeight.Regular, HorizontalAlignment.Right, width - 10, 39);
             var indicatorText = fcIndicatorText + " " + fsIndicatorText;
             if (indicatorText.Length != 0)
                 indicatorText.TrimEnd();
-            rateBackgroundImage.DrawText(indicatorText, new Color(0, 0, 0, 0.6f), 10, FontWeight.Heavy,
-                HorizontalAlignment.Right, width - 9, 58);
+            rateLayer.DrawText(indicatorText, fontColor, 10, FontWeight.Heavy,
+                HorizontalAlignment.Right, width - 10, 51);
             rateImage.Scale(80, 80);
-            rateShadowImage.Scale(80, 80);
-            rateBackgroundImage.DrawImage(rateImage, rateBackgroundImage.Width - rateImage.Width - 10,
-                88 - rateImage.Height, CompositeOperator.DstOut);
-            rateBackgroundImage.DrawImage(rateShadowImage, rateBackgroundImage.Width - rateImage.Width - 10,
+            rateLayer.DrawImage(rateImage, rateLayer.Width - rateImage.Width - 10,
                 88 - rateImage.Height);
 
-            using var starImage = new Image(Environment.CurrentDirectory + @"/resource/best50/star.png");
+            using var starImage = isWhiteOnDark
+                ? new Image(Environment.CurrentDirectory + @"/resource/best50/star_white.png")
+                : new Image(Environment.CurrentDirectory + @"/resource/best50/star.png");
             
             for (int i = 0; i < stars; i++)
             {
-                rateBackgroundImage.DrawImage(starImage,
-                    (rateBackgroundImage.Width - (int)(i * 11f) - 20),
-                    37
+                rateLayer.DrawImage(starImage,
+                    (rateLayer.Width - (int)(i * 11f) - 18),
+                    51
                 );
             }
             
-            image.DrawImage(rateBackgroundImage, info.Width - rateBackgroundImage.Width,
-                info.Height - rateBackgroundImage.Height
+            image.DrawImage(rateLayer, info.Width - rateLayer.Width,
+                info.Height - rateLayer.Height
             );
             info.Dispose();
 

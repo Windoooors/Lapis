@@ -4,6 +4,7 @@ using System.Linq;
 using LapisBot_Renewed.GroupCommands;
 using LapisBot_Renewed.Operations.ImageOperation;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
+using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.ImageGenerators;
 
@@ -166,7 +167,7 @@ public class PlateImageGenerator
 
         Image head;
         if (usingHead)
-            head = Program.ApiOperator.UrlToImage(
+            head = ApiOperator.Instance.UrlToImage(
                 "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640");
         else
         {
@@ -445,7 +446,7 @@ public class PlateImageGenerator
         if (category == PlateCommand.PlateCategories.wuwu && (scoreDto.Fs == "fsd" || scoreDto.Fs == "fsdp"))
             indicatorText = scoreDto.Fs.Length > 2 ? scoreDto.Fs.Replace("p", "+").ToUpper() : scoreDto.Fs.ToUpper();
         
-        textLayer.DrawText(songDto.Title, textColor, 18, FontWeight.Light, 7.6f, 37.2f);
+        textLayer.DrawText(songDto.Title, textColor, 18, FontWeight.Regular, 7.6f, 37.2f);
         
         var gradientText = new Image(AppContext.BaseDirectory + "resource/plate/gradient_text.png");
         

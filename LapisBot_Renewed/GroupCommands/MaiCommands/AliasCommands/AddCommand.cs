@@ -20,7 +20,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
             DefaultSettings.SettingsName = "添加别名";
             CurrentGroupCommandSettings = DefaultSettings.Clone();
 
-            MaiCommandCommand.AddCommand = this;
+            Instance.AddCommand = this;
             
             if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
                 Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
@@ -51,7 +51,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
         {
             if (command.Split(" ").Length > 0)
             {
-                var songIndicatorString = MaiCommandCommand.GetSongIndicatorString(command);
+                var songIndicatorString = Instance.GetSongIndicatorString(command);
 
                 if (songIndicatorString == null)
                 {
@@ -63,7 +63,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
                     return Task.CompletedTask;
                 }
 
-                var matchedSongs = MaiCommandCommand.GetSongs(songIndicatorString);
+                var matchedSongs = Instance.GetSongs(songIndicatorString);
                 var intendedAliasString = Regex.Replace(command, songIndicatorString, "", RegexOptions.IgnoreCase);
                 if (intendedAliasString != "")
                     intendedAliasString = intendedAliasString.Substring(1, intendedAliasString.Length - 1);
@@ -124,7 +124,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
                         {
                             var id = matchedSongs[0].Id;
 
-                            var success = !MaiCommandCommand.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
+                            var success = !Instance.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
                                           LocalAlias.Instance.Add(id, intendedAliasString);
                             if (success)
                             {

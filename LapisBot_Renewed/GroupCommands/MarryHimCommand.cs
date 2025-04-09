@@ -9,6 +9,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using LapisBot_Renewed.Operations.ApiOperation;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -140,7 +141,7 @@ namespace LapisBot_Renewed.GroupCommands
                                 else
                                     memberName = result.Nickname;
 
-                                var image = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                                var image = ApiOperator.Instance.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                            couple.Value + "&s=640");
                                 message =
                                     new CqMessage()
@@ -200,7 +201,7 @@ namespace LapisBot_Renewed.GroupCommands
                                 memberName = result.Nickname;
                             
                             var message = new CqMessage();
-                            var image = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                            var image = ApiOperator.Instance.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                        memberList[i] + "&s=640");
                             message =
                                 new CqMessage()

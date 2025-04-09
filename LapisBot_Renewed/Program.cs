@@ -19,8 +19,15 @@ namespace LapisBot_Renewed
     
     public class BotSettings
     {
+        public static BotSettings Instance;
+        
         public string Address;
         public bool IsDevelopingMode = false;
+
+        public string AliasUrl;
+        public string DivingFishUrl;
+        public string WahlapConnectiveKitsUrl;
+        public string AircadeUrl;
     }
     
     public class Program
@@ -38,9 +45,9 @@ namespace LapisBot_Renewed
         
         private static DateTime _lastDateTimeHour;
 
-        public static ApiOperator ApiOperator = new ApiOperator(@"https://www.diving-fish.com");
+        private static ApiOperator _apiOperator = new ApiOperator();
 
-        public static BotSettings BotSettings = new BotSettings();
+        private static BotSettings _botSettings = new BotSettings();
 
         public static CqWsSession Session;
         
@@ -65,20 +72,20 @@ namespace LapisBot_Renewed
             logger.LogInformation("Program has started.");
             
             if (System.IO.File.Exists(AppContext.BaseDirectory + "config.json"))
-                BotSettings =
+                _botSettings =
                     JsonConvert.DeserializeObject<BotSettings>(
                         System.IO.File.ReadAllText(AppContext.BaseDirectory + "config.json"));
             else
             {
                 System.IO.File.WriteAllText(AppContext.BaseDirectory + "config.json",
-                    JsonConvert.SerializeObject(BotSettings));
+                    JsonConvert.SerializeObject(_botSettings));
                 Console.WriteLine("Please set up the Lapis Bot via editing \"" + AppContext.BaseDirectory + "config.json\"");
                 return;
             }
             
             Session = new CqWsSession(new CqWsSessionOptions()
             {
-                BaseUri = new Uri("ws://" + BotSettings.Address),  // WebSocket 地址
+                BaseUri = new Uri("ws://" + _botSettings.Address),  // WebSocket 地址
             });
             
             await Session.StartAsync();
@@ -89,7 +96,6 @@ namespace LapisBot_Renewed
             var _botSettingsCommand = new BotSettingsCommand();
 
             GroupCommands.Add(new TaskHandleQueueCommand());
-            GroupCommands.Add(new RepeatCommand());
             GroupCommands.Add(new AbuseCommand());
             GroupCommands.Add(new VocabularyCommand());
             GroupCommands.Add(new McPingCommand());
@@ -101,6 +107,7 @@ namespace LapisBot_Renewed
             GroupCommands.Add(new DoSomethingWithHimCommand());
             GroupCommands.Add(new TaskHandleQueueCommand());
             GroupCommands.Add(new MaiCommand());
+            GroupCommands.Add(new RepeatCommand());
 
             HelpCommand = _helpCommand;
             SettingsCommand = _botSettingsCommand;
@@ -151,6 +158,9 @@ namespace LapisBot_Renewed
             }
             Thread thread = new Thread(Reload);
             thread.Start();
+            
+            BotSettings.Instance = _botSettings;
+            Operations.ApiOperation.ApiOperator.Instance = _apiOperator;
 
             Console.ReadLine();
         }

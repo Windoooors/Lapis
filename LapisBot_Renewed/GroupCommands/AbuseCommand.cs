@@ -54,7 +54,7 @@ namespace LapisBot_Renewed.GroupCommands
             }
             else
             {
-                var i = new Random().Next(1, 5);
+                var i = new Random().Next(0, 5);
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                 {
                     new CqReplyMsg(source.MessageId),

@@ -75,16 +75,16 @@ public class LettersCommand : MaiCommand
         }
 
         var random = new Random();
-        var index = random.Next(0, MaiCommandCommand.Songs.Length);
+        var index = random.Next(0, Instance.Songs.Length);
 
         if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both)
         {
-            return MaiCommandCommand.Songs[index];
+            return Instance.Songs[index];
         }
         
-        while (pattern.IsMatch(MaiCommandCommand.Songs[index].Title))
-            index = random.Next(0, MaiCommandCommand.Songs.Length);
-        return MaiCommandCommand.Songs[index];
+        while (pattern.IsMatch(Instance.Songs[index].Title))
+            index = random.Next(0, Instance.Songs.Length);
+        return Instance.Songs[index];
     }
 
     private SongList GenerateSongList(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
@@ -183,6 +183,8 @@ public class LettersCommand : MaiCommand
 
             index++;
         }
+        
+        songNames.Remove(songNames.Length - 1);
 
         var text = "";
         if (gameOver)
@@ -383,7 +385,7 @@ public class LettersCommand : MaiCommand
                 return Task.CompletedTask;
             }
 
-            var songs = MaiCommandCommand.GetSongs(songIndicator);
+            var songs = Instance.GetSongs(songIndicator);
 
             if (songs == null)
             {

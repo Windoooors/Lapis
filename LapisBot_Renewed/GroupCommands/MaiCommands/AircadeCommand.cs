@@ -10,6 +10,7 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
+using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
@@ -89,8 +90,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     machineIndex = 1;
                 if (indexRegex.IsMatch(_originalCommand))
                     machineIndex = Int32.Parse(numberRegex.Matches(_originalCommand)[0].ToString()) - 1;
-                var url = "https://api.arcade-link.top/queue?locationId=" + ((AircadeSettings)CurrentGroupCommandSettings).LocationId + "&deviceId=" + machineIndex;
-                var content = Program.ApiOperator.Get(url);
+
+                var content = ApiOperator.Instance.Get(BotSettings.Instance.AircadeUrl, "queue?locationId=" + ((AircadeSettings)CurrentGroupCommandSettings).LocationId + "&deviceId=" + machineIndex);
                 var queue = JsonConvert.DeserializeObject<QueueDto>(content);
 
                 if (queue.StatusCode != 200)

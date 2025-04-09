@@ -10,6 +10,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using LapisBot_Renewed.Operations.ApiOperation;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace LapisBot_Renewed.GroupCommands
@@ -19,9 +20,9 @@ namespace LapisBot_Renewed.GroupCommands
         public override Task Initialize()
         {
             HeadCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
-            SubHeadCommand = new Regex(@"^日\s");
+            SubHeadCommand = new Regex(@"^透群友\s|^透\s|^日\s|^操\s|^干\s|^日批\s");
             DirectCommand = new Regex(@"^透群友$|^透$|^日$|^操$|^干$|^日批$");
-            SubDirectCommand = new Regex(@"^日\s");
+            SubDirectCommand = new Regex(@"^透群友\s|^透\s|^日\s|^操\s|^干\s|^日批\s");
             DefaultSettings.SettingsName = "透群友";
             CoolDownTime = 15;
             CurrentGroupCommandSettings = DefaultSettings.Clone();
@@ -63,6 +64,14 @@ namespace LapisBot_Renewed.GroupCommands
 
                     if (targetId != null)
                     {
+                        if (targetId == "3064967438")
+                        {
+                            CqMessage message = new CqMessage
+                                { new CqReplyMsg(source.MessageId), new CqTextMsg("🥺") };
+                            Program.Session.SendGroupMessageAsync(source.GroupId, message);
+                            return Task.CompletedTask;
+                        }
+                        
                         if (memberList.Contains(targetId))
                         {
                             if (source.Sender.UserId.ToString() != targetId)
@@ -70,7 +79,7 @@ namespace LapisBot_Renewed.GroupCommands
                             else
                             {
                                 CqMessage message = new CqMessage
-                                    { new CqTextMsg("吓人") };
+                                    { new CqReplyMsg(source.MessageId), new CqTextMsg("哇 还有水仙") };
                                 Program.Session.SendGroupMessageAsync(source.GroupId, message);
                                 return Task.CompletedTask;
                             }
@@ -78,7 +87,7 @@ namespace LapisBot_Renewed.GroupCommands
                         else
                         {
                             CqMessage message = new CqMessage
-                                { new CqTextMsg("该群友未在群聊中发过言！") };
+                                { new CqReplyMsg(source.MessageId), new CqTextMsg("该群友未在群聊中发过言！") };
                             Program.Session.SendGroupMessageAsync(source.GroupId, message);
                             return Task.CompletedTask;
                         }
@@ -100,7 +109,7 @@ namespace LapisBot_Renewed.GroupCommands
                         
                         var message = new CqMessage();
 
-                        var image = Program.ApiOperator.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
+                        var image = ApiOperator.Instance.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" +
                                                                    memberList[i] + "&s=640");
                         message =
                             new CqMessage
