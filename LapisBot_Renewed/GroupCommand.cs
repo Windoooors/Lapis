@@ -34,8 +34,6 @@ namespace LapisBot_Renewed
 
         public int CoolDownTime = 5;
         
-
-        
         public virtual Task Initialize()
         {
             return Task.CompletedTask;

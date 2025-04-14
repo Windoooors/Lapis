@@ -66,7 +66,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessage(source.GroupId, [
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("出现未处理的错误：\n" + exception.Message + "\n" + exception.StackTrace)
+                    new CqTextMsg("出现未处理的错误")
                 ]);
                 return Task.CompletedTask;
             }
@@ -132,6 +132,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     continue;
                 }
 
+                if (rawData.Id >= 100000)
+                    rawData.Level -= 10;
+
                 var musicData = new MusicData()
                 {
                     Achievements = (float)rawData.Achievement / 10000,
@@ -174,7 +177,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessage(source.GroupId, [
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("出现未处理的错误：\n" + exception.Message + "\n" + exception.StackTrace)
+                    new CqTextMsg("出现未处理的错误")
                 ]);
                 return Task.CompletedTask;
             }

@@ -91,7 +91,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 Program.Session.SendGroupMessage(source.GroupId, [
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("出现未处理的错误：\n" + exception.Message + "\n" + exception.StackTrace)
+                    new CqTextMsg("出现未处理的错误")
                 ]);
                 
                 return Task.CompletedTask;
