@@ -1,62 +1,47 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using LapisBot_Renewed.GroupCommands;
 using System.Threading;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
-using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Operations.ApiOperation;
 using Microsoft.Extensions.Logging;
-using SixLabors.Fonts;
 using NLog.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace LapisBot_Renewed
 {
     
-    public class BotSettings
+    public class BotConfiguration
     {
-        public static BotSettings Instance;
+        public static BotConfiguration Instance;
         
         public string Address;
-        public bool IsDevelopingMode = false;
 
         public string AliasUrl;
         public string DivingFishUrl;
         public string WahlapConnectiveKitsUrl;
         public string AircadeUrl;
+        
+        public long BotQqNumber;
+        public long AdministratorQqNumber;
     }
     
     public class Program
     {
-        
-        public static readonly List<GroupCommand> GroupCommands = new List<GroupCommand>();
-
-        public static readonly List<PrivateCommand> PrivateCommands = new List<PrivateCommand>();
-
-        public static HelpCommand HelpCommand;
-
-        public static BotSettingsCommand SettingsCommand;
+        public static readonly List<GroupCommand> GroupCommands = [];
 
         private static DateTime _lastDateTime;
         
         private static DateTime _lastDateTimeHour;
 
-        private static ApiOperator _apiOperator = new ApiOperator();
+        private static readonly ApiOperator ApiOperator = new ();
 
-        private static BotSettings _botSettings = new BotSettings();
+        private static BotConfiguration _botConfiguration = new ();
 
         public static CqWsSession Session;
-        
-        public static FontFamily FontLight =
-            new FontCollection().Add(Path.Combine(Environment.CurrentDirectory, "resource/font-light.otf"));
-        public static FontFamily FontRegular = 
-            new FontCollection().Add(Path.Combine(Environment.CurrentDirectory, "resource/font.otf"));
-        public static FontFamily FontHeavy =
-            new FontCollection().Add(Path.Combine(Environment.CurrentDirectory, "resource/font-heavy.otf"));
 
         public static event EventHandler DateChanged;
         
@@ -64,69 +49,63 @@ namespace LapisBot_Renewed
 
         public static event EventHandler TimeChanged;
 
-        public static ILogger<Program> logger; 
+        public static ILogger<Program> Logger; 
+        
+        private static readonly List<Task> InitializationTasks = new List<Task>();
 
-        public static async Task Main()
+        public static Task Main()
         {
-            logger = LoggerFactory.Create(builder => builder.AddNLog()).CreateLogger<Program>();
-            logger.LogInformation("Program has started.");
+            Logger = LoggerFactory.Create(builder => builder.AddNLog()).CreateLogger<Program>();
+            Logger.LogInformation("Program has started.");
             
-            if (System.IO.File.Exists(AppContext.BaseDirectory + "config.json"))
-                _botSettings =
-                    JsonConvert.DeserializeObject<BotSettings>(
-                        System.IO.File.ReadAllText(AppContext.BaseDirectory + "config.json"));
+            if (File.Exists(AppContext.BaseDirectory + "config.json"))
+                _botConfiguration =
+                    JsonConvert.DeserializeObject<BotConfiguration>(
+                        File.ReadAllTextAsync(AppContext.BaseDirectory + "config.json").Result);
             else
             {
-                System.IO.File.WriteAllText(AppContext.BaseDirectory + "config.json",
-                    JsonConvert.SerializeObject(_botSettings));
-                Console.WriteLine("Please set up the Lapis Bot via editing \"" + AppContext.BaseDirectory + "config.json\"");
-                return;
+                File.WriteAllTextAsync(AppContext.BaseDirectory + "config.json",
+                    JsonConvert.SerializeObject(_botConfiguration));
+                Console.WriteLine(
+                    $"Please set up the Lapis Bot via editing \" {AppContext.BaseDirectory} config.json\"");
+                return Task.CompletedTask;
             }
+            
+            BotConfiguration.Instance = _botConfiguration;
+            ApiOperator.Instance = ApiOperator;
             
             Session = new CqWsSession(new CqWsSessionOptions()
             {
-                BaseUri = new Uri("ws://" + _botSettings.Address),  // WebSocket 地址
+                BaseUri = new Uri("ws://" + _botConfiguration.Address),  // WebSocket 地址
             });
             
-            await Session.StartAsync();
+            Session.StartAsync();
             
             Console.CancelKeyPress += Console_CancelKeyPress;
-
-            var _helpCommand = new HelpCommand();
-            var _botSettingsCommand = new BotSettingsCommand();
 
             GroupCommands.Add(new TaskHandleQueueCommand());
             GroupCommands.Add(new AbuseCommand());
             GroupCommands.Add(new VocabularyCommand());
-            GroupCommands.Add(new McPingCommand());
-            GroupCommands.Add(_helpCommand);
-            GroupCommands.Add(_botSettingsCommand);
+            GroupCommands.Add(new HelpCommand());
             GroupCommands.Add(new StickerCommand());
             GroupCommands.Add(new AboutCommand());
-            GroupCommands.Add(new BangCommand());
-            GroupCommands.Add(new DoSomethingWithHimCommand());
             GroupCommands.Add(new TaskHandleQueueCommand());
             GroupCommands.Add(new MaiCommand());
             GroupCommands.Add(new RepeatCommand());
-
-            HelpCommand = _helpCommand;
-            SettingsCommand = _botSettingsCommand;
-
-            PrivateCommands.Add(new GetStickerImageCommand());
-            PrivateCommands.Add(new GetGroupsCommand());
-            PrivateCommands.Add(new UpdateMessageCommand());
+            GroupCommands.Add(new SettingsCommand());
 
             foreach (GroupCommand command in GroupCommands)
-                new Task(() => command.Initialize()).Start();
-
-            foreach (PrivateCommand command in PrivateCommands)
-                new Task(() => command.Initialize()).Start();
-
+            {
+                var task = new Task(() => command.Initialize());
+                InitializationTasks.Add(task);
+                task.Start();
+            }
+            
             var commandParser = new CommandParser();
             
             Session.UseGroupMessage(async (context, next) =>
             {
-                commandParser.MainParse(context);
+                commandParser.StartParsing(context);
                 await next.Invoke();
             });
 
@@ -143,26 +122,17 @@ namespace LapisBot_Renewed
                 await Session.ApproveGroupRequestAsync(context.Flag, context.GroupRequestType);
                 await next.Invoke();
             });
-            
-            Session.UsePrivateMessage(async (context, next) =>
-            {
-                commandParser.Parse(context);
-                await next.Invoke();
-            });
 
-            //bot.MessageReceived.OfType<FriendMessageReceiver>().Subscribe(commandParser.Parse);
-
-            if (System.IO.File.Exists(Environment.CurrentDirectory + "/date.json"))
+            if (File.Exists(Environment.CurrentDirectory + "/date.json"))
             {
-                _lastDateTime = JsonConvert.DeserializeObject<DateTime>(System.IO.File.ReadAllText(Environment.CurrentDirectory + "/date.json"));
+                _lastDateTime = JsonConvert.DeserializeObject<DateTime>(File.ReadAllTextAsync(Environment.CurrentDirectory + "/date.json").Result);
             }
             Thread thread = new Thread(Reload);
             thread.Start();
             
-            BotSettings.Instance = _botSettings;
-            Operations.ApiOperation.ApiOperator.Instance = _apiOperator;
-
             Console.ReadLine();
+            
+            return Task.CompletedTask;
         }
 
         static void Welcome(long userId)
@@ -174,8 +144,8 @@ namespace LapisBot_Renewed
 
         static void SaveDate()
         {
-            System.IO.File.WriteAllText(Environment.CurrentDirectory + "/date.json", JsonConvert.SerializeObject(_lastDateTime));
-            Console.WriteLine("Date data has been saved.");
+            File.WriteAllText(Environment.CurrentDirectory + "/date.json", JsonConvert.SerializeObject(_lastDateTime));
+            Logger.LogInformation("Date data has been saved.");
         }
 
         static void Reload()
@@ -185,15 +155,31 @@ namespace LapisBot_Renewed
                 while (true)
                 {
                     Thread.Sleep(1000);
+
+                    var completed = true;
+                    
+                    foreach (var task in InitializationTasks)
+                    {
+                        if (!task.IsCompleted)
+                        {
+                            completed = false;
+                            break;
+                        }
+                    }
+                    
+                    if (!completed)
+                        continue;
+                    
                     if (TimeChanged != null)
-                        TimeChanged(new Object(), new EventArgs());
-                    //Console.WriteLine(DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second);
+                        TimeChanged(new Object(), EventArgs.Empty);
+
                     if (_lastDateTime.Date != DateTime.Now.Date)
                     {
                         _lastDateTime = DateTime.Now;
+                        Logger.LogInformation("Date change detected, reinitializing.");
                         SaveDate();
                         if (DateChanged != null)
-                            DateChanged(new Object(), new EventArgs());
+                            DateChanged(new Object(),EventArgs.Empty);
                     }
 
                     if (_lastDateTimeHour.Hour != DateTime.Now.Hour)
@@ -206,25 +192,16 @@ namespace LapisBot_Renewed
             }
             catch(Exception ex)
             {
-                Console.WriteLine("Unknown error:\n\n" + ex.StackTrace + "\n\n" + ex.Message);
+                Logger.LogError("Unknown error:\n\n" + ex.StackTrace + "\n\n" + ex.Message);
             }
         }
 
-        private static async void Console_CancelKeyPress(object sender, EventArgs e)
+        private static void Console_CancelKeyPress(object sender, EventArgs e)
         {
-            foreach (GroupCommand _command in GroupCommands)
-            {
-                await _command.Unload();
-            }
-            foreach (PrivateCommand _command in PrivateCommands)
-            {
-                await _command.Unload();
-            }
+            foreach (GroupCommand command in GroupCommands)
+                command.Unload();
+            
             SaveDate();
-        }
-
-        private static void FriendRequested(object sender, EventArgs e)
-        {
         }
     }
 }

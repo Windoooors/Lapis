@@ -1,74 +1,60 @@
 ﻿using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.IO;
-using System;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
-    public class AliasCommand : MaiCommand
+    public abstract class AliasCommandBase : MaiCommandBase
     {
-        public InfoCommand FindInfoCommand()
-        {
-            MaiCommand Instance;
-            foreach (GroupCommand command in Program.GroupCommands)
-            {
-                if (command is MaiCommand)
-                {
-                    Instance = (MaiCommand)command;
-                    foreach (MaiCommand _command in Instance.SubCommands)
-                    {
-                        if (_command is InfoCommand)
-                        {
-                            return (InfoCommand)_command;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        //public MaiCommand Instance;
-
+        public static AliasCommand AliasCommandInstance;
+    }
+    
+    public class AliasCommand : AliasCommandBase
+    {
         public override Task Unload()
         {
-            foreach (AliasCommand aliasCommand in SubCommands)
+            foreach (var aliasCommand in SubCommands)
                 aliasCommand.Unload();
+            return Task.CompletedTask;
+        }
+
+        public AliasCommand()
+        {
+            AliasCommandInstance = this;
+            CommandHead = new Regex("^alias");
+            DirectCommandHead = new Regex("^alias|^别名|^查看别名");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("alias", "1");
+        }
+
+
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+        {
+            if (!SettingsCommand.Instance.GetValue(new("litecommand", "1"), source.GroupId))
+                return Task.CompletedTask;
+
+            if (command.EndsWith(" 有什么别名"))
+                command = command.Replace(" 有什么别名", "");
+            else if (command.EndsWith("有什么别名"))
+                command = command.Replace("有什么别名", "");
+            else
+                return Task.CompletedTask;
+            
+            ParseWithArgument(command, source);
             return Task.CompletedTask;
         }
 
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^alias\s");
-            DirectCommand = new Regex(@"^alias\s|^别名\s|有什么别名$|\s有什么别名$");
-            DefaultSettings.SettingsName = "别名";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-            }
-
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
             SubCommands.Add(new AddCommand());
             
             foreach (var subAliasCommand in SubCommands)
             {
                 subAliasCommand.Initialize();
-                subAliasCommand.ParentCommand = this;
             }
             
             return Task.CompletedTask;
@@ -77,7 +63,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         public string GetAliasesInString(Alias alias)
         {
             var result = string.Empty;
-            var song = Instance.GetSong(alias.Id);
+            var song = MaiCommandInstance.GetSong(alias.Id);
             if (alias.Aliases.Count != 0)
             {
                 result = "歌曲 " + song.Title + " [" +
@@ -106,11 +92,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return result;
         }
 
-
-
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
-            var songs = Instance.GetSongs(command);
+            var songs = MaiCommandInstance.GetSongs(command);
 
             if (songs == null)
             {
@@ -129,7 +113,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     new CqMessage
                     {
                         new CqReplyMsg(source.MessageId),
-                        new CqTextMsg(GetAliasesInString(Instance.GetAliasById(songs[0].Id)))
+                        new CqTextMsg(GetAliasesInString(MaiCommandInstance.GetAliasById(songs[0].Id)))
                     });
                 return Task.CompletedTask;
             }

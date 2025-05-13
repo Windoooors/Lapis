@@ -1,12 +1,8 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using Newtonsoft.Json;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands
 {
@@ -14,30 +10,14 @@ namespace LapisBot_Renewed.GroupCommands
     
     public class DictionaryCommand : VocabularyCommand
     {
-        public override Task Initialize()
+        public DictionaryCommand()
         {
-            HeadCommand = new Regex(@"^dictionary\s|^dict\s|^查词\s|^词典\s|^inquiry\s");
-            DirectCommand = new Regex(@"^dictionary\s|^dict\s|^查词\s|^词典\s|^inquiry\s");
-            DefaultSettings.SettingsName = "词典";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-
-            }
-
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
-            return Task.CompletedTask;
+            CommandHead = new ("^dictionary|^dict|^查词|^词典|^inquiry");
+            DirectCommandHead = new ("^dictionary|^dict|^查词|^词典|^inquiry");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("dictionary", "1");
         }
         
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             WordDto targetWordItem = null;
             foreach (Vocabulary vocabulary in Vocabularies)
@@ -73,7 +53,7 @@ namespace LapisBot_Renewed.GroupCommands
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(text)
             });
-            CancelCoolDownTimer(source.GroupId.ToString());
+
             return Task.CompletedTask;
         }
     }

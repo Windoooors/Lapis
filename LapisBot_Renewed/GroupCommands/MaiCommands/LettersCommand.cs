@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using Newtonsoft.Json;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands;
 
-public class LettersCommand : MaiCommand
+public class LettersCommand : MaiCommandBase
 {
     
     private class SongList
@@ -26,28 +25,16 @@ public class LettersCommand : MaiCommand
     
     public override Task Initialize()
     {
-        HeadCommand = new Regex(@"^letters$");
-        DirectCommand = new Regex(@"^letters$|^开字母$");
-        SubHeadCommand = new Regex(@"^letters\s");
-        SubDirectCommand = new Regex(@"^letters\s|^开字母\s");
-        DefaultSettings.SettingsName = "舞萌开字母";
-        CurrentGroupCommandSettings = DefaultSettings.Clone();
-        if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-        {
-            Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                      " Settings");
-        }
-
-        foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                   CurrentGroupCommandSettings.SettingsName + " Settings"))
-        {
-            var settingsString = File.ReadAllText(path);
-            settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-        }
-
         Program.TimeChanged += TimeChanged;
         
         return Task.CompletedTask;
+    }
+
+    public LettersCommand()
+    {
+        CommandHead = new Regex("^letters");
+        DirectCommandHead = new Regex("^letters|^开字母");
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("letter", "1");
     }
 
     private enum SpecialCharactersToBeIncluded
@@ -75,16 +62,16 @@ public class LettersCommand : MaiCommand
         }
 
         var random = new Random();
-        var index = random.Next(0, Instance.Songs.Length);
+        var index = random.Next(0, MaiCommandInstance.Songs.Length);
 
         if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both)
         {
-            return Instance.Songs[index];
+            return MaiCommandInstance.Songs[index];
         }
         
-        while (pattern.IsMatch(Instance.Songs[index].Title))
-            index = random.Next(0, Instance.Songs.Length);
-        return Instance.Songs[index];
+        while (pattern.IsMatch(MaiCommandInstance.Songs[index].Title))
+            index = random.Next(0, MaiCommandInstance.Songs.Length);
+        return MaiCommandInstance.Songs[index];
     }
 
     private SongList GenerateSongList(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
@@ -204,9 +191,6 @@ public class LettersCommand : MaiCommand
                 new CqTextMsg(text)
             });
 
-        if (gameOver)
-            GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
-
         return Task.CompletedTask;
     }
 
@@ -222,7 +206,6 @@ public class LettersCommand : MaiCommand
                     "要开字母 a，请发送指令 \"开 a\"\n" +
                     "要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"")
             });
-            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
 
@@ -274,41 +257,35 @@ public class LettersCommand : MaiCommand
         _guessingGroupsMap.Add(source.GroupId.ToString(),
             (songs, DateTime.Now.Add(new TimeSpan(0, 0, 20, 0))));
         
-        CancelCoolDownTimer(source.GroupId.ToString());
-        
         return Task.CompletedTask;
     }
     
-    public override Task Parse(string command, CqGroupMessagePostContext source)
+    public override Task Parse(CqGroupMessagePostContext source)
     {
         StartGuessing(source, SpecialCharactersToBeIncluded.Both);
         
         return Task.CompletedTask;
     }
 
-    public override Task SubParse(string command, CqGroupMessagePostContext source)
+    public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
     {
         var specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
 
         if (command.ToLower().StartsWith("both"))
         {
             specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
-            CancelCoolDownTimer(source.GroupId.ToString());
         }
         else if (command.ToLower().StartsWith("neither"))
         {
             specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Neither;
-            CancelCoolDownTimer(source.GroupId.ToString());
         }
         else if (command.ToLower().StartsWith("chinese"))
         {
             specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Chinese;
-            CancelCoolDownTimer(source.GroupId.ToString());
         }
         else if (command.ToLower().StartsWith("japanese"))
         {
             specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Japanese;
-            CancelCoolDownTimer(source.GroupId.ToString());
         }
         else if (command.ToLower() == "answer")
         {
@@ -319,19 +296,16 @@ public class LettersCommand : MaiCommand
             {
                 Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                     { new CqReplyMsg(source.MessageId), "现在没有正在进行的舞萌开字母游戏！" });
-                CancelCoolDownTimer(source.GroupId.ToString());
                 return Task.CompletedTask;
             }
             
             AnnounceAnswer(keyWordDateTimePair.Item1, source.GroupId.ToString(), source.MessageId, true);
-            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
         else
         {
             Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                 { new CqReplyMsg(source.MessageId), "不支持的参数类型" });
-            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
         
@@ -385,7 +359,7 @@ public class LettersCommand : MaiCommand
                 return Task.CompletedTask;
             }
 
-            var songs = Instance.GetSongs(songIndicator);
+            var songs = MaiCommandInstance.GetSongs(songIndicator);
 
             if (songs == null)
             {

@@ -1,160 +1,40 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
-using System.Linq;
-using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
-using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.ImageGenerators;
-using Microsoft.Extensions.Logging;
+using LapisBot_Renewed.GroupCommands;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed
 {
     public class GroupCommand
     {
-        public Regex HeadCommand;
+        public Regex CommandHead;
+        public Regex DirectCommandHead;
 
-        public Regex SubHeadCommand;
+        public readonly List<GroupCommand> SubCommands = [];
 
-        public Regex SubDirectCommand;
-
-        public Regex DirectCommand;
-
-        public GroupCommand ParentCommand;
-
-        public GroupCommandSettings CurrentGroupCommandSettings;
-
-        public readonly List<GroupCommand> SubCommands = new List<GroupCommand>();
-        
-        public Dictionary<string, DateTime> GroupsMap = new Dictionary<string, DateTime>();
-
-        public int CoolDownTime = 5;
+        public SettingsIdentifierPair ActivationSettingsSettingsIdentifier = new();
         
         public virtual Task Initialize()
         {
             return Task.CompletedTask;
         }
 
-        public void GetCurrentGroupCommandSettings(CqGroupMessagePostContext source)
+        public virtual Task Parse(CqGroupMessagePostContext source)
         {
-            GetDefaultSettings();
-            foreach (GroupCommandSettings groupCommandSettings in settingsList)
-            {
-                if (groupCommandSettings.GroupId == source.GroupId.ToString())
-                    CurrentGroupCommandSettings = groupCommandSettings;
-            }
+            HelpCommand.Instance.Parse(source);
+            return Task.CompletedTask;
+        }
+
+        public virtual Task ParseWithArgument(string command, CqGroupMessagePostContext source)
+        {
+            HelpCommand.Instance.Parse(source);
+            return Task.CompletedTask;
         }
         
-        private void TimeChanged(object obj, EventArgs e)
-        {
-            if (GroupsMap.Count == 0)
-                return;
-            var groupIds = new List<string>();
-            for (int i = 0; i < GroupsMap.Count; i++)
-            {
-                //Console.WriteLine(_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks + " " + DateTime.Now.Ticks);
-                if (GroupsMap.Values.ToArray()[i].Ticks > DateTime.Now.Ticks)
-                    continue;
-                var groupId = GroupsMap.Keys.ToArray()[i];
-                groupIds.Add(groupId);
-            }
-
-            foreach (string groupId in groupIds)
-                GroupsMap.Remove(groupId);
-        }
-
-        public virtual Task Parse(string command, CqGroupMessagePostContext source)
-        {
-            return Task.CompletedTask;
-        }
-
-        public virtual Task SubParse(string command, CqGroupMessagePostContext source)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task CancelCoolDownTimer(string groupId)
-        {
-            GroupsMap.Remove(groupId);
-            return Task.CompletedTask;
-        }
-
         public virtual Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
-            return Task.CompletedTask;
-        }
-
-        public Task AbilityCheckingParse(string command, CqGroupMessagePostContext source)
-        {
-            var currentParentGroupCommandSettings = DefaultSettings;
-            if (ParentCommand != null)
-            {
-                ParentCommand.GetCurrentGroupCommandSettings(source);
-                currentParentGroupCommandSettings = ParentCommand.CurrentGroupCommandSettings;
-            }
-
-            if (currentParentGroupCommandSettings.Enabled)
-            {
-                GetCurrentGroupCommandSettings(source);
-
-                if (CurrentGroupCommandSettings != null)
-                {
-                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId.ToString()))
-                    {
-                        Program.TimeChanged += TimeChanged;
-                        GroupsMap.Add(source.GroupId.ToString(), DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
-                        Parse(command, source);
-                    }
-                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId.ToString()))
-                    {
-                        var dateTime = new DateTime();
-                        GroupsMap.TryGetValue(source.GroupId.ToString(), out dateTime);
-                        Program.HelpCommand.CoolDownParse(command, source, dateTime);
-                    }
-                }
-                else
-                    Program.HelpCommand.Parse(command, source);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task SubAbilityCheckingParse(string command, CqGroupMessagePostContext source)
-        {
-            var currentParentGroupCommandSettings = DefaultSettings;
-            if (ParentCommand != null)
-            {
-                ParentCommand.GetCurrentGroupCommandSettings(source);
-                currentParentGroupCommandSettings = ParentCommand.CurrentGroupCommandSettings;
-            }
-
-            if (currentParentGroupCommandSettings.Enabled == true)
-            {
-                GetCurrentGroupCommandSettings(source);
-
-                if (CurrentGroupCommandSettings != null)
-                {
-                    if (CurrentGroupCommandSettings.Enabled && !GroupsMap.ContainsKey(source.GroupId.ToString()))
-                    {
-                        Program.TimeChanged += TimeChanged;
-                        GroupsMap.Add(source.GroupId.ToString(), DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
-                        SubParse(command, source);
-                    }
-                    else if (CurrentGroupCommandSettings.Enabled && GroupsMap.ContainsKey(source.GroupId.ToString()))
-                    {
-                        var dateTime = new DateTime();
-                        GroupsMap.TryGetValue(source.GroupId.ToString(), out dateTime);
-                        Program.HelpCommand.CoolDownParse(command, source, dateTime);
-                    }
-                }
-                else
-                    Program.HelpCommand.Parse(command, source);
-            }
-
             return Task.CompletedTask;
         }
 
@@ -162,177 +42,6 @@ namespace LapisBot_Renewed
         {
             return Task.CompletedTask;
         }
-
-        public virtual Task GetDefaultSettings()
-        {
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            return Task.CompletedTask;
-        }
-
-        public virtual Task SubSettingsParse(string command, CqGroupMessagePostContext source)
-        {
-            if (source.Sender.Role == CqRole.Admin ||
-                source.Sender.Role == CqRole.Owner || source.Sender.UserId == 2794813909)
-            {
-                var regexBool = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s((true)|(false))$");
-                var regexString = new Regex(@"[1-" + DefaultSettings.DisplayNames.Count + @"]\s.*");
-                var regex = new Regex(@"settings\s[1-" + DefaultSettings.DisplayNames.Count + @"]\s");
-                CurrentGroupCommandSettings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
-                GetDefaultSettings();
-                //var settings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
-                for (int i = 0; i < settingsList.Count; i++)
-                {
-                    if (settingsList[i].GroupId == source.GroupId.ToString())
-                        CurrentGroupCommandSettings = settingsList[i];
-                }
-
-                if (CurrentGroupCommandSettings.GroupId == null)
-                {
-                    CurrentGroupCommandSettings.GroupId = source.GroupId.ToString();
-                    settingsList.Add(CurrentGroupCommandSettings);
-                    if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings"))
-                        Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                                  " Settings");
-                    File.WriteAllText(
-                        AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
-                        CurrentGroupCommandSettings.GroupId + ".json",
-                        JsonConvert.SerializeObject(CurrentGroupCommandSettings));
-                }
-
-                if (regexBool.IsMatch(command) && CurrentGroupCommandSettings.GetType().GetProperty(CurrentGroupCommandSettings.DisplayNames
-                            .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
-                        .GetValue(CurrentGroupCommandSettings) is bool)
-                {
-                    if (command.Contains("true"))
-                    {
-                        CurrentGroupCommandSettings.GetType()
-                            .GetProperty(CurrentGroupCommandSettings.DisplayNames
-                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
-                            .SetValue(CurrentGroupCommandSettings, true);
-                    }
-
-                    if (command.Contains("false"))
-                    {
-                        CurrentGroupCommandSettings.GetType()
-                            .GetProperty(CurrentGroupCommandSettings.DisplayNames
-                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
-                            .SetValue(CurrentGroupCommandSettings, false);
-                    }
-
-                    File.Delete(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
-                                source.GroupId + ".json");
-                    File.WriteAllText(
-                        AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
-                        source.GroupId +
-                        ".json", JsonConvert.SerializeObject(CurrentGroupCommandSettings));
-                    //settings = CurrentGroupCommandSettings;
-                    Program.Session.SendGroupMessageAsync(source.GroupId,
-                        new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("设置已生效") });
-                }
-                else if (regexString.IsMatch(command) && CurrentGroupCommandSettings.GetType().GetProperty(
-                                 CurrentGroupCommandSettings.DisplayNames
-                                     .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
-                             .GetValue(CurrentGroupCommandSettings) is string)
-                {
-                    if (regexString.Replace(command, "") != String.Empty)
-                    {
-                        CurrentGroupCommandSettings.GetType()
-                            .GetProperty(CurrentGroupCommandSettings.DisplayNames
-                                .ElementAt(Int32.Parse(new Regex("[1-9]").Match(command).ToString()) - 1).Key)
-                            .SetValue(CurrentGroupCommandSettings, regex.Replace(command, ""));
-                    }
-
-                    File.Delete(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
-                                source.GroupId + ".json");
-                    File.WriteAllText(
-                        AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
-                        source.GroupId +
-                        ".json", JsonConvert.SerializeObject(CurrentGroupCommandSettings));
-                    //settings = CurrentGroupCommandSettings;
-                    Program.Session.SendGroupMessageAsync(source.GroupId,
-                        new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("设置已生效") });
-                }
-                else
-                {
-                    Program.Session.SendGroupMessageAsync(source.GroupId,
-                        new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("输入格式有误") });
-                }
-
-                return Task.CompletedTask;
-            }
-            else
-            {
-                Program.Session.SendGroupMessageAsync(source.GroupId,
-                    new CqMessage() { new CqReplyMsg(source.MessageId), new CqTextMsg("您无权执行该命令") });
-                return Task.CompletedTask;
-            }
-        }
-
-        public List<GroupCommandSettings> settingsList = new List<GroupCommandSettings>();
-
-
-        private static TOut TransReflection<TIn, TOut>(TIn tIn)
-        {
-            TOut tOut = Activator.CreateInstance<TOut>();
-            var tInType = tIn.GetType();
-            foreach (var itemOut in tOut.GetType().GetProperties())
-            {
-                var itemIn = tInType.GetProperty(itemOut.Name);
-                ;
-                if (itemIn != null)
-                {
-                    itemOut.SetValue(tOut, itemIn.GetValue(tIn));
-                }
-            }
-
-            return tOut;
-        }
-
-        public virtual Task SettingsParse(string command, CqGroupMessagePostContext source)
-        {
-            CurrentGroupCommandSettings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
-            GetDefaultSettings();
-            //var settings = (GroupCommandSettings)Activator.CreateInstance(DefaultSettings.GetType());
-            for (int i = 0; i < settingsList.Count; i++)
-            {
-                if (settingsList[i].GroupId == source.GroupId.ToString())
-                    CurrentGroupCommandSettings = settingsList[i];
-            }
-
-            if (CurrentGroupCommandSettings.GroupId == null)
-            {
-                CurrentGroupCommandSettings.GroupId = source.GroupId.ToString();
-                settingsList.Add(CurrentGroupCommandSettings);
-                if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                      " Settings"))
-                    Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                              " Settings");
-                File.WriteAllText(
-                    AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings/" +
-                    CurrentGroupCommandSettings.GroupId + ".json",
-                    JsonConvert.SerializeObject(CurrentGroupCommandSettings));
-            }
-            Program.SettingsCommand.GetSettings(source);
-            var image = new BotSettingsImageGenerator().Generate(CurrentGroupCommandSettings,
-                Program.SettingsCommand.CurrentBotSettings.CompressedImage);
-            Program.Session.SendGroupMessageAsync(source.GroupId,
-                new CqMessage() { new CqReplyMsg(source.MessageId), new CqImageMsg("base64://" + image) });
-            return Task.CompletedTask;
-        }
-
-        public class GroupCommandSettings : BotSettingsCommand.Settings
-        {
-            public bool Enabled { get; set; }
-
-            public GroupCommandSettings Clone()
-            {
-                return JsonConvert.DeserializeObject<GroupCommandSettings>(JsonConvert.SerializeObject(this));
-            }
-        }
-
-        public GroupCommandSettings DefaultSettings = new GroupCommandSettings()
-            { Enabled = true, DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" } } };
     }
 }
 

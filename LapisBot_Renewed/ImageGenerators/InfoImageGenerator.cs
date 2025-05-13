@@ -94,33 +94,33 @@ namespace LapisBot_Renewed.ImageGenerators
                         6)
                         x = 104;
 
-                    if (level.Rate == InfoCommand.Rate.Sss)
+                    if (level.Rate == MaiCommandBase.Rate.Sss)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/sss.png");
-                    else if (level.Rate == InfoCommand.Rate.Sssp)
+                    else if (level.Rate == MaiCommandBase.Rate.Sssp)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/sss_plus.png");
-                    else if (level.Rate == InfoCommand.Rate.Ss)
+                    else if (level.Rate == MaiCommandBase.Rate.Ss)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/ss.png");
-                    else if (level.Rate == InfoCommand.Rate.Ssp)
+                    else if (level.Rate == MaiCommandBase.Rate.Ssp)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/ss_plus.png");
-                    else if (level.Rate == InfoCommand.Rate.Sp)
+                    else if (level.Rate == MaiCommandBase.Rate.Sp)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/s_plus.png");
-                    else if (level.Rate == InfoCommand.Rate.S)
+                    else if (level.Rate == MaiCommandBase.Rate.S)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/s.png");
-                    else if (level.Rate == InfoCommand.Rate.Aaa)
+                    else if (level.Rate == MaiCommandBase.Rate.Aaa)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/aaa.png");
-                    else if (level.Rate == InfoCommand.Rate.Aa)
+                    else if (level.Rate == MaiCommandBase.Rate.Aa)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/aa.png");
-                    else if (level.Rate == InfoCommand.Rate.A)
+                    else if (level.Rate == MaiCommandBase.Rate.A)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/a.png");
-                    else if (level.Rate == InfoCommand.Rate.Bbb)
+                    else if (level.Rate == MaiCommandBase.Rate.Bbb)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/bbb.png");
-                    else if (level.Rate == InfoCommand.Rate.Bb)
+                    else if (level.Rate == MaiCommandBase.Rate.Bb)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/bb.png");
-                    else if (level.Rate == InfoCommand.Rate.B)
+                    else if (level.Rate == MaiCommandBase.Rate.B)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/b.png");
-                    else if (level.Rate == InfoCommand.Rate.C)
+                    else if (level.Rate == MaiCommandBase.Rate.C)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/c.png");
-                    else if (level.Rate == InfoCommand.Rate.D)
+                    else if (level.Rate == MaiCommandBase.Rate.D)
                         image = new Image(Environment.CurrentDirectory + @"/resource/ratings/d.png");
                     if (image != null)
                     {

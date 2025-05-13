@@ -1,36 +1,22 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.IO;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using Newtonsoft.Json;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands
 {
     public class RepeatCommand : GroupCommand
     {
-        public override Task Initialize()
+        public RepeatCommand()
         {
-            HeadCommand = new Regex(@"^repeat\s");
-            DirectCommand = new Regex(@"^repeat\s");
-            DefaultSettings.SettingsName = "重复";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-            }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-            return Task.CompletedTask;
+            CommandHead = new Regex("^repeat");
+            DirectCommandHead = new Regex("^repeat");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("repeat", "1");
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                 { command });

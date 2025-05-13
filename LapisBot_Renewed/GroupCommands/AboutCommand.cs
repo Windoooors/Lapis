@@ -1,39 +1,26 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.IO;
-using Newtonsoft.Json;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Operations.ImageOperation;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands
 {
     public class AboutCommand : GroupCommand
     {
-        public override Task Initialize()
+        public AboutCommand()
         {
-            HeadCommand = new Regex(@"^about$|^关于$");
-            DirectCommand = new Regex(@"^about$|^关于$");
-            DefaultSettings.SettingsName = "关于";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings");
-            }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-            return Task.CompletedTask;
+            CommandHead = new Regex("^about|^关于");
+            DirectCommandHead = new Regex("^about|^关于");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("about", "1");
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task Parse(CqGroupMessagePostContext source)
         {
             var image = new Image(Environment.CurrentDirectory + @"/resource/about.png");
             image.DrawText(RuntimeInformation.OSDescription, Color.White, 22, FontWeight.Regular, 128.56f, 202.23f);

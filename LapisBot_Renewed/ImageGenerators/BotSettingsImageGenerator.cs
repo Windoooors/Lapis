@@ -1,55 +1,83 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
+using LapisBot_Renewed.GroupCommands;
 using LapisBot_Renewed.Operations.ImageOperation;
+using LapisBot_Renewed.Settings;
 
-namespace LapisBot_Renewed.ImageGenerators
+namespace LapisBot_Renewed.ImageGenerators;
+
+public class BotSettingsImageGenerator
 {
-    public class BotSettingsImageGenerator
+    public string Generate(long groupId, bool isCompressed)
     {
-        public string Generate(BotSettingsCommand.Settings settings, bool isCompressed)
+        using var image = new Image(512, 768);
+
+        int top = 0;
+        
+        var tempTop = top;
+        foreach (var category in SettingsItems.Categories)
         {
-            var image = new Image(Path.Combine(Environment.CurrentDirectory, "resource/settings/background.png"));
-            
-            image.DrawText(settings.SettingsName, Color.White, 56.26f, FontWeight.Light, 21.4f, 111.69f);
-
-            int top = 170;
-            int i = 0;
-            foreach (KeyValuePair<string, string> valuePair in settings.DisplayNames)
+            tempTop += 100;
+            foreach (var commandItem in category.Items)
             {
-                var propertyValue = settings.GetType().GetProperty(valuePair.Key)?.GetValue(settings);
-                if (propertyValue is bool itemValue)
+                tempTop += 69;
+                foreach (var item in commandItem.Items)
                 {
-                    var itemImagePath = Path.Combine(Environment.CurrentDirectory,
-                                                     itemValue ? "resource/settings/item_enabled.png" : "resource/settings/item_disabled.png");
-                    using var itemImage = new Image(itemImagePath);
-
-                    itemImage.DrawText((i + 1).ToString(), Color.White, 34f, FontWeight.Light, 23, 48);
-                    itemImage.DrawText(valuePair.Value, Color.White, 28f, FontWeight.Regular, 80, 46);
-
-                    image.DrawImage(itemImage, 0, top + i * 69);
-
-                    i++;
-                }
-                else if (propertyValue is string stringValue)
-                {
-                    using var itemImage = new Image(Path.Combine(Environment.CurrentDirectory, "resource/settings/item_string.png"));
-
-                    itemImage.DrawText((i + 1).ToString(), Color.White, 34f, FontWeight.Light, 23, 48);
-                    itemImage.DrawText(valuePair.Value, Color.White, 28f, FontWeight.Regular, 80, 46);
-                    itemImage.DrawText(stringValue, Color.White, 28f, FontWeight.Regular,HorizontalAlignment.Right , 500, 46);
-
-                    image.DrawImage(itemImage, 0, top + i * 69);
-
-                    i++;
+                    tempTop += 69;
                 }
             }
-
-            var result = image.ToBase64(isCompressed);
-            
-            image.Dispose();
-            
-            return result;
         }
+
+        if (tempTop > 768)
+            image.Resize(512, tempTop + 100);
+
+        foreach (var category in SettingsItems.Categories)
+        {
+            top += 100;
+            image.DrawText(category.DisplayName, Color.White, 48, FontWeight.Light, 14.8f, top - 20);
+            
+            foreach (var commandItem in category.Items)
+            {
+                using var commandNameBackground = new Image(Path.Combine(Environment.CurrentDirectory,
+                    "resource/settings/command_background.png"));
+                
+                commandNameBackground.DrawText(commandItem.Identifier, Color.White,28f, FontWeight.Regular, HorizontalAlignment.Center, 93, 46);
+                commandNameBackground.DrawText(commandItem.DisplayName, Color.White, 28f, FontWeight.Light, HorizontalAlignment.Left, 196, 46);
+                
+                image.DrawImage(commandNameBackground, 0, top);
+
+                top += 69;
+
+                foreach (var item in commandItem.Items)
+                {
+                    var itemValue =
+                        SettingsCommand.Instance.GetValue(
+                            new SettingsIdentifierPair(commandItem.Identifier, item.Identifier), groupId);
+                    
+                    var itemImagePath = Path.Combine(Environment.CurrentDirectory,
+                        itemValue ? "resource/settings/item_enabled.png" : "resource/settings/item_disabled.png");
+                    using var itemImage = new Image(itemImagePath);
+
+                    itemImage.DrawText(item.Identifier, Color.White, 34f, FontWeight.Light, 23, 46);
+                    itemImage.DrawText(item.DisplayName, Color.White, 28f, FontWeight.Regular, 80, 46);
+                    
+                    image.DrawImage(itemImage, 0, top);
+                    
+                    top += 69;
+                }
+            }
+        }
+
+        using var background = new Image(Path.Combine(Environment.CurrentDirectory,
+            "resource/settings/background.png"));
+
+        background.Resize(image.Width, image.Height);
+
+        background.DrawImage(image, 0, 0);
+
+        var result = background.ToBase64(isCompressed);
+
+        return result;
     }
 }
+

@@ -2,45 +2,27 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.IO;
 using System;
 using System.Linq;
-using System.Net.Http;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.Collections;
-using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
 using LapisBot_Renewed.Operations.ApiOperation;
+using LapisBot_Renewed.Settings;
+using Microsoft.Extensions.Logging;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
-    public class UpdateCommand : MaiCommand
+    public class UpdateCommand : MaiCommandBase
     {
-        public override Task Initialize()
+        public UpdateCommand()
         {
-            HeadCommand = new Regex("^update$");
-            DirectCommand = new Regex("^update$|^更新$");
-            DefaultSettings.SettingsName = "舞萌歌曲数据更新";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-            }
-
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
-            return Task.CompletedTask;
+            CommandHead = new Regex("^update");
+            DirectCommandHead = new Regex("^update|^更新");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("update", "1");
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task Parse(CqGroupMessagePostContext source)
         {
             var matchedUserBindData = BindCommand.UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
 
@@ -58,12 +40,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             try
             {
-                responseString = ApiOperator.Instance.Post(BotSettings.Instance.WahlapConnectiveKitsUrl,
+                responseString = ApiOperator.Instance.Post(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
                     "get_user_music_data",
-                    new UserMusicDataRequestDto(matchedUserBindData.AimeId, Instance.Songs.Last().Id));
+                    new UserMusicDataRequestDto(matchedUserBindData.AimeId, MaiCommandInstance.Songs.Last().Id));
             }
             catch (Exception exception)
             {
+                Program.Logger.LogError(exception.Message + "\n" + exception.StackTrace);
                 Program.Session.SendGroupMessage(source.GroupId, [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("出现未处理的错误")
@@ -125,7 +108,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 try
                 {
-                    song = Instance.GetSong(rawData.Id);
+                    song = MaiCommandInstance.GetSong(rawData.Id);
                 }
                 catch
                 {
@@ -153,7 +136,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             try
             {
-                var uploadResponseString = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                var uploadResponseString = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/player/update_records", uploadContent,
                     [new KeyValuePair<string, string>("Import-Token", matchedUserBindData.DivingFishImportToken)]);
                 
@@ -175,14 +158,15 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
             catch (Exception exception)
             {
+                Program.Logger.LogError(exception.Message + "\n" + exception.StackTrace);
+                
                 Program.Session.SendGroupMessage(source.GroupId, [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("出现未处理的错误")
                 ]);
                 return Task.CompletedTask;
             }
-
-
+            
             return Task.CompletedTask;
         }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.IO;
 using EleCho.GoCqHttpSdk.Post;
 using System.Collections.Generic;
 using EleCho.GoCqHttpSdk;
@@ -11,16 +10,13 @@ namespace LapisBot_Renewed.GroupCommands
 {
     public class TaskHandleQueueCommand : GroupCommand
     {
-        public override Task Initialize()
-        {
-            HeadCommand = new Regex(@"^handle\s");
-            DirectCommand = new Regex(@"^待处理\s");
-            DefaultSettings.SettingsName = "待处理列表";
+	    public TaskHandleQueueCommand()
+	    {
+		    CommandHead = new Regex("^handle");
+		    DirectCommandHead = new Regex("^待处理");
+	    }
 
-            return Task.CompletedTask;
-        }
-
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
 			if (command == "confirm")
 			{

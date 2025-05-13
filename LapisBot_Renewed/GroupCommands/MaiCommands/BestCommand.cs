@@ -1,57 +1,47 @@
 ﻿using System.Text.RegularExpressions;
-using LapisBot_Renewed.GroupCommands.MaiCommands;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
-using System.IO;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
 using LapisBot_Renewed.Operations.ApiOperation;
+using LapisBot_Renewed.Settings;
 using Microsoft.Extensions.Logging;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
-    public class BestCommand : MaiCommand
+    public class BestCommand : MaiCommandBase
     {
-        public override Task Initialize()
+        public BestCommand()
         {
-            HeadCommand = new Regex(@"^b50$");
-            SubHeadCommand = new Regex(@"^b50\s");
-            DirectCommand = new Regex(@"^b50$|^逼五零$");
-            SubDirectCommand = new Regex(@"^b50\s|^逼五零\s");
-            DefaultSettings.SettingsName = "Best 50";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
+            CommandHead = new Regex("^b50");
+            DirectCommandHead = new Regex("^b50|^逼五零");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("b50", "1");
+        }
+        
+        private void TagRatingByScore(BestDto.ScoreDto[] scores)
+        {
+            foreach (BestDto.ScoreDto score in scores)
             {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-
+                score.rate = GetRate(score.Achievements);
+                score.MaxDxScore = MaiCommandInstance.GetSong(score.Id)
+                    .Charts[score.LevelIndex].MaxDxScore;
             }
-
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
-            return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             var content = string.Empty;
             BestDto best;
 
-            content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
+            content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
                 new { username = command, b50 = true });
             best = JsonConvert.DeserializeObject<BestDto>(content);
 
             if (best.Charts == null)
-                content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
                     new { qq = command, b50 = true });
             best = JsonConvert.DeserializeObject<BestDto>(content);
@@ -66,84 +56,16 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     });
                 return Task.CompletedTask;
             }
+            
+            TagRatingByScore(best.Charts.SdCharts);
+            TagRatingByScore(best.Charts.DxCharts);
+            
+            var isCompressed =
+                SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
-            //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
-
-            foreach (BestDto.ScoreDto score in best.Charts.SdCharts)
-            {
-                var achievement = score.Achievements;
-                if (achievement >= 100.5)
-                    score.rate = InfoCommand.Rate.Sssp;
-                else if (100.5 > achievement && achievement >= 100)
-                    score.rate = InfoCommand.Rate.Sss;
-                else if (100 > achievement && achievement >= 99.5)
-                    score.rate = InfoCommand.Rate.Ssp;
-                else if (99.5 > achievement && achievement >= 99)
-                    score.rate = InfoCommand.Rate.Ss;
-                else if (99 > achievement && achievement >= 98)
-                    score.rate = InfoCommand.Rate.Sp;
-                else if (98 > achievement && achievement >= 97)
-                    score.rate = InfoCommand.Rate.S;
-                else if (97 > achievement && achievement >= 94)
-                    score.rate = InfoCommand.Rate.Aaa;
-                else if (94 > achievement && achievement >= 90)
-                    score.rate = InfoCommand.Rate.Aa;
-                else if (90 > achievement && achievement >= 80)
-                    score.rate = InfoCommand.Rate.A;
-                else if (80 > achievement && achievement >= 75)
-                    score.rate = InfoCommand.Rate.Bbb;
-                else if (75 > achievement && achievement >= 70)
-                    score.rate = InfoCommand.Rate.Bb;
-                else if (70 > achievement && achievement >= 60)
-                    score.rate = InfoCommand.Rate.B;
-                else if (60 > achievement && achievement >= 50)
-                    score.rate = InfoCommand.Rate.C;
-                else if (50 > achievement)
-                    score.rate = InfoCommand.Rate.D;
-                score.MaxDxScore = Instance.GetSong(score.Id)
-                    .Charts[score.LevelIndex].MaxDxScore;
-            }
-
-            foreach (BestDto.ScoreDto score in best.Charts.DxCharts)
-            {
-                var achievement = score.Achievements;
-                if (achievement >= 100.5)
-                    score.rate = InfoCommand.Rate.Sssp;
-                else if (100.5 > achievement && achievement >= 100)
-                    score.rate = InfoCommand.Rate.Sss;
-                else if (100 > achievement && achievement >= 99.5)
-                    score.rate = InfoCommand.Rate.Ssp;
-                else if (99.5 > achievement && achievement >= 99)
-                    score.rate = InfoCommand.Rate.Ss;
-                else if (99 > achievement && achievement >= 98)
-                    score.rate = InfoCommand.Rate.Sp;
-                else if (98 > achievement && achievement >= 97)
-                    score.rate = InfoCommand.Rate.S;
-                else if (97 > achievement && achievement >= 94)
-                    score.rate = InfoCommand.Rate.Aaa;
-                else if (94 > achievement && achievement >= 90)
-                    score.rate = InfoCommand.Rate.Aa;
-                else if (90 > achievement && achievement >= 80)
-                    score.rate = InfoCommand.Rate.A;
-                else if (80 > achievement && achievement >= 75)
-                    score.rate = InfoCommand.Rate.Bbb;
-                else if (75 > achievement && achievement >= 70)
-                    score.rate = InfoCommand.Rate.Bb;
-                else if (70 > achievement && achievement >= 60)
-                    score.rate = InfoCommand.Rate.B;
-                else if (60 > achievement && achievement >= 50)
-                    score.rate = InfoCommand.Rate.C;
-                else if (50 > achievement)
-                    score.rate = InfoCommand.Rate.D;
-                score.MaxDxScore = Instance.GetSong(score.Id)
-                    .Charts[score.LevelIndex].MaxDxScore;
-            }
-
-            Program.SettingsCommand.GetSettings(source);
             var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), false,
-                Program.SettingsCommand.CurrentBotSettings.CompressedImage);
-            //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
-
+                isCompressed);
+            
             Program.Session.SendGroupMessageAsync(source.GroupId,
                 new CqMessage
                 {
@@ -154,90 +76,19 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             return Task.CompletedTask;
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task Parse(CqGroupMessagePostContext source)
         {
             try
             {
-                var content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
+                var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
                     new { qq = source.Sender.UserId.ToString(), b50 = true });
-                //MessageManager.SendGroupMessageAsync(source.GroupId, new MessageChain() { new AtMessage(source.Sender.Id), new PlainMessage(" Best 50 生成需要较长时间，请耐心等待") });
-
                 BestDto best = JsonConvert.DeserializeObject<BestDto>(content);
-                foreach (BestDto.ScoreDto score in best.Charts.SdCharts)
-                {
-                    var achievement = score.Achievements;
-                    if (achievement >= 100.5)
-                        score.rate = InfoCommand.Rate.Sssp;
-                    else if (100.5 > achievement && achievement >= 100)
-                        score.rate = InfoCommand.Rate.Sss;
-                    else if (100 > achievement && achievement >= 99.5)
-                        score.rate = InfoCommand.Rate.Ssp;
-                    else if (99.5 > achievement && achievement >= 99)
-                        score.rate = InfoCommand.Rate.Ss;
-                    else if (99 > achievement && achievement >= 98)
-                        score.rate = InfoCommand.Rate.Sp;
-                    else if (98 > achievement && achievement >= 97)
-                        score.rate = InfoCommand.Rate.S;
-                    else if (97 > achievement && achievement >= 94)
-                        score.rate = InfoCommand.Rate.Aaa;
-                    else if (94 > achievement && achievement >= 90)
-                        score.rate = InfoCommand.Rate.Aa;
-                    else if (90 > achievement && achievement >= 80)
-                        score.rate = InfoCommand.Rate.A;
-                    else if (80 > achievement && achievement >= 75)
-                        score.rate = InfoCommand.Rate.Bbb;
-                    else if (75 > achievement && achievement >= 70)
-                        score.rate = InfoCommand.Rate.Bb;
-                    else if (70 > achievement && achievement >= 60)
-                        score.rate = InfoCommand.Rate.B;
-                    else if (60 > achievement && achievement >= 50)
-                        score.rate = InfoCommand.Rate.C;
-                    else if (50 > achievement)
-                        score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = Instance.GetSong(score.Id)
-                        .Charts[score.LevelIndex].MaxDxScore;
-                }
-
-                foreach (BestDto.ScoreDto score in best.Charts.DxCharts)
-                {
-                    var achievement = score.Achievements;
-                    if (achievement >= 100.5)
-                        score.rate = InfoCommand.Rate.Sssp;
-                    else if (100.5 > achievement && achievement >= 100)
-                        score.rate = InfoCommand.Rate.Sss;
-                    else if (100 > achievement && achievement >= 99.5)
-                        score.rate = InfoCommand.Rate.Ssp;
-                    else if (99.5 > achievement && achievement >= 99)
-                        score.rate = InfoCommand.Rate.Ss;
-                    else if (99 > achievement && achievement >= 98)
-                        score.rate = InfoCommand.Rate.Sp;
-                    else if (98 > achievement && achievement >= 97)
-                        score.rate = InfoCommand.Rate.S;
-                    else if (97 > achievement && achievement >= 94)
-                        score.rate = InfoCommand.Rate.Aaa;
-                    else if (94 > achievement && achievement >= 90)
-                        score.rate = InfoCommand.Rate.Aa;
-                    else if (90 > achievement && achievement >= 80)
-                        score.rate = InfoCommand.Rate.A;
-                    else if (80 > achievement && achievement >= 75)
-                        score.rate = InfoCommand.Rate.Bbb;
-                    else if (75 > achievement && achievement >= 70)
-                        score.rate = InfoCommand.Rate.Bb;
-                    else if (70 > achievement && achievement >= 60)
-                        score.rate = InfoCommand.Rate.B;
-                    else if (60 > achievement && achievement >= 50)
-                        score.rate = InfoCommand.Rate.C;
-                    else if (50 > achievement)
-                        score.rate = InfoCommand.Rate.D;
-                    score.MaxDxScore = Instance.GetSong(score.Id)
-                        .Charts[score.LevelIndex].MaxDxScore;
-                }
-
-                Program.SettingsCommand.GetSettings(source);
-
+                TagRatingByScore(best.Charts.SdCharts);
+                TagRatingByScore(best.Charts.DxCharts);
+                
                 var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), true,
-                    Program.SettingsCommand.CurrentBotSettings.CompressedImage);
-                //image.Write(Environment.CurrentDirectory + @"/temp/b50.png");
+                    true);
+
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                     {
@@ -247,7 +98,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
             catch (Exception ex)
             {
-                Program.logger.LogError(ex.Source + "\n" + ex.Message + "\n" + ex.StackTrace);
+                Program.Logger.LogError(ex.Source + "\n" + ex.Message + "\n" + ex.StackTrace);
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                     {

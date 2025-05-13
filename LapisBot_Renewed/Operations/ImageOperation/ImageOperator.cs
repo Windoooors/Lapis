@@ -25,8 +25,8 @@ namespace LapisBot_Renewed.Operations.ImageOperation
     {
         private Image<Rgba32> _imageSharpImage;
         
-        public int Width;
-        public int Height;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
 
         public Image(string path)
         {

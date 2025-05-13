@@ -1,86 +1,25 @@
 ﻿using System;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using static LapisBot_Renewed.GroupCommand;
 using LapisBot_Renewed.ImageGenerators;
 using LapisBot_Renewed.Operations.ApiOperation;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
-
-    public class InfoSettings : GroupCommandSettings
+    public class InfoCommand : MaiCommandBase
     {
-        public bool SongPreview { get; set; }
-
-        public InfoSettings Clone(InfoSettings infoSettings)
+        public InfoCommand()
         {
-            return JsonConvert.DeserializeObject<InfoSettings>(JsonConvert.SerializeObject(infoSettings));
-        }
-    }
+            CommandHead = new Regex("^info");
+            DirectCommandHead = new Regex("^info|^查歌");
 
-    public class InfoCommand : MaiCommand
-    {
-        //public new InfoSettings CurrentGroupCommandSettings;
-        //public new InfoSettings DefaultSettings;
-
-        public override Task GetDefaultSettings()
-        {
-            CurrentGroupCommandSettings = ((InfoSettings)DefaultSettings).Clone((InfoSettings)DefaultSettings);
-            return Task.CompletedTask;
-        }
-
-        public override Task Initialize()
-        {
-            HeadCommand = new Regex(@"^info\s");
-            DirectCommand = new Regex(@"^info\s|是什么歌$|\s是什么歌$");
-            DefaultSettings = new InfoSettings
-            {
-                Enabled = true,
-                SongPreview = false,
-                DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" }, { "SongPreview", "歌曲试听" } },
-                SettingsName = "歌曲信息"
-            };
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-            }
-
-            foreach (var path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                    CurrentGroupCommandSettings.SettingsName +
-                                                    " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<InfoSettings>(settingsString));
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public enum Rate
-        {
-            D,
-            C,
-            B,
-            Bb,
-            Bbb,
-            A,
-            Aa,
-            Aaa,
-            S,
-            Sp,
-            Ss,
-            Ssp,
-            Sss,
-            Sssp
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("info", "1");
         }
 
         public class GetScoreDto
@@ -96,13 +35,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             public Level[] Levels;
 
-            public bool userExists;
+            public bool UserExists;
 
             public void Get(string name, SongDto song)
             {
                 try
                 {
-                    var content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,"api/maimaidxprober/query/plate",
+                    var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,"api/maimaidxprober/query/plate",
                         new { username = name, version = new string[] { song.BasicInfo.Version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
 
@@ -111,66 +50,22 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     {
                         if (score.Id == song.Id)
                         {
-                            var rate = new Rate();
-
-                            var achievement = score.Achievements;
-                            if (achievement >= 100.5)
-                                rate = Rate.Sssp;
-                            else if (100.5 > achievement && achievement >= 100)
-                                rate = Rate.Sss;
-                            else if (100 > achievement && achievement >= 99.5)
-                                rate = Rate.Ssp;
-                            else if (99.5 > achievement && achievement >= 99)
-                                rate = Rate.Ss;
-                            else if (99 > achievement && achievement >= 98)
-                                rate = Rate.Sp;
-                            else if (98 > achievement && achievement >= 97)
-                                rate = Rate.S;
-                            else if (97 > achievement && achievement >= 94)
-                                rate = Rate.Aaa;
-                            else if (94 > achievement && achievement >= 90)
-                                rate = Rate.Aa;
-                            else if (90 > achievement && achievement >= 80)
-                                rate = Rate.A;
-                            else if (80 > achievement && achievement >= 75)
-                                rate = Rate.Bbb;
-                            else if (75 > achievement && achievement >= 70)
-                                rate = Rate.Bb;
-                            else if (70 > achievement && achievement >= 60)
-                                rate = Rate.B;
-                            else if (60 > achievement && achievement >= 50)
-                                rate = Rate.C;
-                            else if (50 > achievement)
-                                rate = Rate.D;
-
-                            /*
-                            if (score.Fsd == "fs")
-                                fs = FSState.FS;
-                            else if (score.Fsd == "fsd")
-                                fs = FSState.FSd;
-                            else if (score.Fsd == "")
-                                fs = FSState.None;
-                            */
                             levelList.Add(new Level()
                             {
-                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex,
+                                Achievement = score.Achievements, Rate = GetRate(score.Achievements), LevelIndex = score.LevelIndex,
                                 Fc = score.Fc,
                                 Fs = score.Fs
                             });
-
                         }
                     }
 
                     Levels = levelList.ToArray();
-                    if (Levels.Length > 0)
-                        userExists = true;
-                    else
-                        userExists = false;
+                    UserExists = Levels.Length > 0;
                 }
                 catch
                 {
-                    Levels = new Level[0];
-                    userExists = false;
+                    Levels = [];
+                    UserExists = false;
                 }
             }
 
@@ -178,7 +73,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             {
                 try
                 {
-                    var content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                    var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/plate",
                         new { qq = number, version = new string[] { song.BasicInfo.Version } });
                     ScoresDto scores = JsonConvert.DeserializeObject<ScoresDto>(content);
@@ -188,41 +83,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     {
                         if (score.Id == song.Id)
                         {
-                            var rate = new Rate();
-
-                            var achievement = score.Achievements;
-                            if (achievement >= 100.5)
-                                rate = Rate.Sssp;
-                            else if (100.5 > achievement && achievement >= 100)
-                                rate = Rate.Sss;
-                            else if (100 > achievement && achievement >= 99.5)
-                                rate = Rate.Ssp;
-                            else if (99.5 > achievement && achievement >= 99)
-                                rate = Rate.Ss;
-                            else if (99 > achievement && achievement >= 98)
-                                rate = Rate.Sp;
-                            else if (98 > achievement && achievement >= 97)
-                                rate = Rate.S;
-                            else if (97 > achievement && achievement >= 94)
-                                rate = Rate.Aaa;
-                            else if (94 > achievement && achievement >= 90)
-                                rate = Rate.Aa;
-                            else if (90 > achievement && achievement >= 80)
-                                rate = Rate.A;
-                            else if (80 > achievement && achievement >= 75)
-                                rate = Rate.Bbb;
-                            else if (75 > achievement && achievement >= 70)
-                                rate = Rate.Bb;
-                            else if (70 > achievement && achievement >= 60)
-                                rate = Rate.B;
-                            else if (60 > achievement && achievement >= 50)
-                                rate = Rate.C;
-                            else if (50 > achievement)
-                                rate = Rate.D;
-
                             levelList.Add(new Level()
                             {
-                                Achievement = score.Achievements, Rate = rate, LevelIndex = score.LevelIndex,
+                                Achievement = score.Achievements, Rate = GetRate(score.Achievements), LevelIndex = score.LevelIndex,
                                 Fc = score.Fc,
                                 Fs = score.Fs
                             });
@@ -232,23 +95,39 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                     Levels = levelList.ToArray();
                     if (Levels.Length > 0)
-                        userExists = true;
+                        UserExists = true;
                     else
-                        userExists = false;
+                        UserExists = false;
                 }
                 catch
                 {
-                    Levels = new Level[0];
-                    userExists = false;
+                    Levels = [];
+                    UserExists = false;
                 }
             }
-            
-            public static GetScoreDto GetScore = new GetScoreDto();
+
+            public static readonly GetScoreDto GetScore = new();
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
         {
-            var songs = Instance.GetSongsUsingStartsWith(command);
+            if (!SettingsCommand.Instance.GetValue(new("litecommand", "1"), source.GroupId))
+                return Task.CompletedTask;
+
+            if (command.EndsWith(" 是什么歌"))
+                command = command.Replace(" 是什么歌", "");
+            else if (command.EndsWith("是什么歌"))
+                command = command.Replace("是什么歌", "");
+            else
+                return Task.CompletedTask;
+            
+            ParseWithArgument(command, source);
+            return Task.CompletedTask;
+        }
+
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
+        {
+            var songs = MaiCommandInstance.GetSongsUsingStartsWith(command);
 
             if (songs == null)
             {
@@ -257,7 +136,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 return Task.CompletedTask;
             }
 
-            var indicatorString = Instance.GetSongIndicatorString(command);
+            var indicatorString = MaiCommandInstance.GetSongIndicatorString(command);
 
             if (songs.Length != 1)
             {
@@ -287,7 +166,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             if (userName != string.Empty)
             {
                 GetScoreDto.GetScore.Get(userName.Substring(1, userName.Length - 1), songs[0]);
-                if (!GetScoreDto.GetScore.userExists)
+                if (!GetScoreDto.GetScore.UserExists)
                 {
                     try
                     {
@@ -301,7 +180,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         return Task.CompletedTask;
                     }
 
-                    if (!GetScoreDto.GetScore.userExists)
+                    if (!GetScoreDto.GetScore.UserExists)
                     {
                         Program.Session.SendGroupMessageAsync(source.GroupId,
                             new CqMessage
@@ -318,20 +197,18 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             var generator = new InfoImageGenerator();
             
-            Program.SettingsCommand.GetSettings(source);
+            var isCompressed =
+                SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
+            
             var image = new CqImageMsg("base64://" + generator.Generate(songs[0], "歌曲信息",
                 GetScoreDto.GetScore.Levels,
-                Program.SettingsCommand.CurrentBotSettings.CompressedImage));
+                isCompressed));
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                { new CqReplyMsg(source.MessageId), image });
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), image]);
 
-            if (((InfoSettings)CurrentGroupCommandSettings).SongPreview)
-            {
+            if (SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("info", "2"), source.GroupId))
                 Program.Session.SendGroupMessageAsync(source.GroupId,
-                    new CqMessage
-                        { new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(songs[0].Id)) });
-            }
+                    [new CqRecordMsg("file:///" + GetSongPath(songs[0].Id))]);
 
             return Task.CompletedTask;
         }

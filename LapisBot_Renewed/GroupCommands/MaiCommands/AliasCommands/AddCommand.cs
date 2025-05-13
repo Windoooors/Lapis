@@ -5,33 +5,26 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using LapisBot_Renewed.Settings;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
 {
-    public class AddCommand : MaiCommand
+    public class AddCommand : AliasCommandBase
     {
+        public AddCommand()
+        {
+            CommandHead = new Regex("^add");
+            DirectCommandHead = new Regex("^添加别名");
+            
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("aliasadd", "1");
+
+            MaiCommandInstance.AddCommand = this;
+        }
+        
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^add\s");
-            DirectCommand = new Regex(@"^添加别名\s");
-            DefaultSettings.SettingsName = "添加别名";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-
-            Instance.AddCommand = this;
-            
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
             if (File.Exists(AppContext.BaseDirectory + "local_aliases.json"))
                 LocalAlias.Instance.AliasCollection.Aliases =
                     JsonConvert.DeserializeObject<List<Alias>>(
@@ -47,11 +40,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
             Console.WriteLine("Local aliases have been saved");
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             if (command.Split(" ").Length > 0)
             {
-                var songIndicatorString = Instance.GetSongIndicatorString(command);
+                var songIndicatorString = MaiCommandInstance.GetSongIndicatorString(command);
 
                 if (songIndicatorString == null)
                 {
@@ -63,7 +56,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
                     return Task.CompletedTask;
                 }
 
-                var matchedSongs = Instance.GetSongs(songIndicatorString);
+                var matchedSongs = MaiCommandInstance.GetSongs(songIndicatorString);
                 var intendedAliasString = Regex.Replace(command, songIndicatorString, "", RegexOptions.IgnoreCase);
                 if (intendedAliasString != "")
                     intendedAliasString = intendedAliasString.Substring(1, intendedAliasString.Length - 1);
@@ -83,10 +76,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
                     Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                     {
                         new CqReplyMsg(source.MessageId), new CqTextMsg(
-                            " 该别称有多首歌曲匹配：\n" + ids + "\n*发送 \"lps mai alias add ID " + idsList[0] + " " +
-                            intendedAliasString + "\" 指令即可为歌曲 " +
-                            matchedSongs[0].Title + " [" + matchedSongs[0].Type +
-                            "] 添加别名")
+                            $"该别称有多首歌曲匹配：\n{ids}\n*发送 \"lps mai alias add ID {idsList[0]} {intendedAliasString}\" 指令即可为歌曲 {
+                                matchedSongs[0].Title} [{matchedSongs[0].Type}] 添加别名")
                     });
                     
                     return Task.CompletedTask;
@@ -124,7 +115,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands
                         {
                             var id = matchedSongs[0].Id;
 
-                            var success = !Instance.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
+                            var success = !MaiCommandInstance.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
                                           LocalAlias.Instance.Add(id, intendedAliasString);
                             if (success)
                             {

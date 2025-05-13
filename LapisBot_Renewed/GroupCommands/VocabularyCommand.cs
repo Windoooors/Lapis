@@ -6,8 +6,10 @@ using Newtonsoft.Json;
 
 namespace LapisBot_Renewed.GroupCommands
 {
-    public class VocabularyCommand : GroupCommand
+    public abstract class VocabularyCommandBase : GroupCommand
     {
+        protected static VocabularyCommand VocabularyCommandInstance;
+        
         public class WordDto
         {
             [JsonProperty("word")] public string Word;
@@ -23,8 +25,16 @@ namespace LapisBot_Renewed.GroupCommands
         {
             public WordDto[] Words;
         }
-        
-        public List<Vocabulary> Vocabularies = new List<Vocabulary>();
+    }
+    
+    public class VocabularyCommand : VocabularyCommandBase
+    {
+        public readonly List<Vocabulary> Vocabularies = [];
+
+        public VocabularyCommand()
+        {
+            VocabularyCommandInstance = this;
+        }
         
         public override Task Initialize()
         {
@@ -35,11 +45,11 @@ namespace LapisBot_Renewed.GroupCommands
                 var jsonString = File.ReadAllText(file);
                 Vocabularies.Add(new Vocabulary() { Words = JsonConvert.DeserializeObject<WordDto[]>(jsonString)});
             }
+
+            SubCommands.Add(new GuessWordsCommand());
+            SubCommands.Add(new DictionaryCommand());
             
-            SubCommands.Add(new GuessWordsCommand() { Vocabularies = Vocabularies, ParentCommand = this});
-            SubCommands.Add(new DictionaryCommand() { Vocabularies = Vocabularies, ParentCommand = this});
-            
-            foreach (VocabularyCommand vocabularyCommand in SubCommands)
+            foreach (var vocabularyCommand in SubCommands)
             {
                 vocabularyCommand.Initialize();
             }

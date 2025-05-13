@@ -3,17 +3,93 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 using LapisBot_Renewed.GroupCommands.MaiCommands;
 using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.GroupCommands.MaiCommands.AliasCommands;
 using LapisBot_Renewed.Operations.ApiOperation;
+using Microsoft.Extensions.Logging;
 
 namespace LapisBot_Renewed.GroupCommands
 {
 
+    public abstract class MaiCommandBase : GroupCommand
+    {
+        protected static MaiCommand MaiCommandInstance;
+        
+        public class Alias
+        {
+            [JsonProperty("Alias")] public List<string> Aliases;
+            [JsonProperty("SongID")] public int Id;
+        }
+        
+        public static string GetSongPath(int id)
+        {
+            var outputPath = AppContext.BaseDirectory + "temp/" + id + ".silk";
+            if (!File.Exists(outputPath))
+            {
+                return AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3";
+            }
+            return outputPath;
+        }
+
+        
+        public enum Rate
+        {
+            D,
+            C,
+            B,
+            Bb,
+            Bbb,
+            A,
+            Aa,
+            Aaa,
+            S,
+            Sp,
+            Ss,
+            Ssp,
+            Sss,
+            Sssp
+        }
+        
+        protected static Rate GetRate(float achievement)
+        {
+            var rate = new Rate();
+                
+            if (achievement >= 100.5)
+                rate = Rate.Sssp;
+            else if (achievement is < 100.5f and >= 100)
+                rate = Rate.Sss;
+            else if (achievement is < 100 and >= 99.5f)
+                rate = Rate.Ssp;
+            else if (achievement is < 99.5f and >= 99)
+                rate = Rate.Ss;
+            else if (achievement is < 99 and >= 98)
+                rate = Rate.Sp;
+            else if (achievement is < 98 and >= 97)
+                rate = Rate.S;
+            else if (achievement is < 97 and >= 94)
+                rate = Rate.Aaa;
+            else if (achievement is < 94 and >= 90)
+                rate = Rate.Aa;
+            else if (achievement is < 90 and >= 80)
+                rate = Rate.A;
+            else if (achievement is < 80 and >= 75)
+                rate = Rate.Bbb;
+            else if (achievement is < 75 and >= 70)
+                rate = Rate.Bb;
+            else if (achievement is < 70 and >= 60)
+                rate = Rate.B;
+            else if (achievement is < 60 and >= 50)
+                rate = Rate.C;
+            else if (50 > achievement)
+                rate = Rate.D;
+                
+            return rate;
+        }
+    }
+    
     public class ScoresDto
     {
         [JsonProperty("verlist")] public ScoreDto[] ScoreDtos;
@@ -101,9 +177,46 @@ namespace LapisBot_Renewed.GroupCommands
         [JsonProperty("content")] public MaiCommand.Alias[] Content;
     }
 
-    public class MaiCommand : GroupCommand
+    public class MaiCommand : MaiCommandBase
     {
-        public static MaiCommand Instance;
+        public AddCommand AddCommand;
+        public SongDto[] Songs;
+        private ChartStatisticsDto _chartStatistics;
+
+        private List<Alias> _songAliases = [];
+        
+        public readonly Dictionary<string, int> LevelDictionary = new()
+        {
+            { "1", 0 }, { "2", 1 }, { "3", 2 },
+            { "4", 3 }, { "5", 4 }, { "6", 5 },
+            { "6+", 6 }, { "7", 7 }, { "7+", 8 },
+            { "8", 9 }, { "8+", 10 }, { "9", 11 },
+            { "9+", 12 }, { "10", 13 }, { "10+", 14 },
+            { "11", 15 }, { "11+", 16 }, { "12", 17 },
+            { "12+", 18 }, { "13", 19 }, { "13+", 20 },
+            { "14", 21 }, { "14+", 22 }, { "15", 23 },
+            { "1?", 24 }, { "2?", 25 }, { "3?", 26 },
+            { "4?", 27 }, { "5?", 28 }, { "6?", 29 },
+            { "6+?", 30 }, { "7?", 31 }, { "7+?", 32 },
+            { "8?", 33 }, { "8+?", 34 }, { "9?", 35 },
+            { "9+?", 36 }, { "10?", 37 }, { "10+?", 38 },
+            { "11?", 39 }, { "11+?", 40 }, { "12?", 41 },
+            { "12+?", 42 }, { "13?", 43 }, { "13+?", 44 },
+            { "14?", 45 }, { "14+?", 46 }, { "15?", 47 }
+        };
+
+        public SongDto[] GetSongsUsingDifficultyString(string difficultyString)
+        {
+            var songs = new List<SongDto>();
+
+            foreach (var song in Songs)
+            {
+                if (song.Levels.Contains(difficultyString))
+                    songs.Add(song);
+            }
+            
+            return songs.ToArray();
+        }
 
         public override Task Unload()
         {
@@ -133,7 +246,7 @@ namespace LapisBot_Renewed.GroupCommands
                 {
                     if (aliasString.ToLower() == alias)
                     {
-                        var temp = new Alias() { Aliases = new List<string>() };
+                        var temp = new Alias { Aliases = [] };
                         temp.Id = e1;
 
                         foreach (var e2 in a)
@@ -173,9 +286,7 @@ namespace LapisBot_Renewed.GroupCommands
                 foreach (var e in local)
                 {
                     if (!valueAlias.Aliases.Contains(e))
-                    {
                         tempAlias.Aliases.Add(e);
-                    }
                 }
             }
 
@@ -237,9 +348,8 @@ namespace LapisBot_Renewed.GroupCommands
                     var id = int.Parse(idHeadRegex.Replace(inputString.ToLower(), string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
-                        return new[] { Songs[index] };
-                    else
-                        return null;
+                        return [ Songs[index] ];
+                    return null;
                 }
                 catch
                 {
@@ -250,7 +360,7 @@ namespace LapisBot_Renewed.GroupCommands
             var songIndex = GetSongIndexByTitle(inputString);
             if (songIndex != -1)
             {
-                return new[] { Songs[songIndex] };
+                return [Songs[songIndex]];
             }
 
             return null;
@@ -344,7 +454,7 @@ namespace LapisBot_Renewed.GroupCommands
                     var id = int.Parse(idHeadRegex.Replace(songIndicator, string.Empty));
                     int index = GetSongIndexById(id);
                     if (index != -1)
-                        return new[] { Songs[index] };
+                        return [Songs[index]];
                     return null;
                 }
                 catch
@@ -356,54 +466,38 @@ namespace LapisBot_Renewed.GroupCommands
             var songIndex = GetSongIndexByTitle(songIndicator);
             if (songIndex != -1)
             {
-                return new[] { Songs[songIndex] };
+                return [Songs[songIndex]];
             }
 
             return null;
         }
 
-        public AddCommand AddCommand;
-        public SongDto[] Songs;
-        public ExtraSongDto[] ExtraSongs;
-        public ChartStatisticsDto ChartStatistics;
-        public readonly List<List<SongDto>> Levels = new();
-        public readonly List<List<ExtraSongDto>> ExtraLevels = new();
-        public readonly Dictionary<string, int> LevelDictionary = new();
-        private List<Alias> _songAliases = new();
-
-        public class Alias
+        private void Reload(object sender, EventArgs e)
         {
-            [JsonProperty("Alias")] public List<string> Aliases;
-            [JsonProperty("SongID")] public int Id;
+            Start();
+            AddCommand.Unload();
         }
 
-        private async void Reload(object sender, EventArgs e)
+        public MaiCommand()
         {
-            await Start();
-            await AddCommand.Unload();
+            MaiCommandInstance = this;
+            CommandHead = new Regex("^mai");
         }
 
-        private Task Start()
+        private void Start()
         {
-            Instance = this;
-
             _songAliases.Clear();
-            LevelDictionary.Clear();
             SubCommands.Clear();
-            Levels.Clear();
-            ExtraLevels.Clear();
 
-            if (!BotSettings.Instance.IsDevelopingMode)
-            {
-                ChartStatistics =
-                    JsonConvert.DeserializeObject<ChartStatisticsDto>(
-                        ApiOperator.Instance.Get(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/chart_stats"));
+            _chartStatistics =
+                JsonConvert.DeserializeObject<ChartStatisticsDto>(
+                    ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/chart_stats"));
 
-                var aliasDto =
-                    JsonConvert.DeserializeObject<AliasDto>(ApiOperator.Instance.Get(BotSettings.Instance.AliasUrl));
+            var aliasDto =
+                JsonConvert.DeserializeObject<AliasDto>(ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl));
 
-                _songAliases = aliasDto.Content.ToList();
-            }
+            _songAliases = aliasDto.Content.ToList();
 
             foreach (Alias alias in _songAliases)
             {
@@ -423,61 +517,16 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
 
-            LevelDictionary.Add("1", 0);
-            LevelDictionary.Add("2", 1);
-            LevelDictionary.Add("3", 2);
-            LevelDictionary.Add("4", 3);
-            LevelDictionary.Add("5", 4);
-            LevelDictionary.Add("6", 5);
-            LevelDictionary.Add("6+", 6);
-            LevelDictionary.Add("7", 7);
-            LevelDictionary.Add("7+", 8);
-            LevelDictionary.Add("8", 9);
-            LevelDictionary.Add("8+", 10);
-            LevelDictionary.Add("9", 11);
-            LevelDictionary.Add("9+", 12);
-            LevelDictionary.Add("10", 13);
-            LevelDictionary.Add("10+", 14);
-            LevelDictionary.Add("11", 15);
-            LevelDictionary.Add("11+", 16);
-            LevelDictionary.Add("12", 17);
-            LevelDictionary.Add("12+", 18);
-            LevelDictionary.Add("13", 19);
-            LevelDictionary.Add("13+", 20);
-            LevelDictionary.Add("14", 21);
-            LevelDictionary.Add("14+", 22);
-            LevelDictionary.Add("15", 23);
-            LevelDictionary.Add("1?", 24);
-            LevelDictionary.Add("2?", 25);
-            LevelDictionary.Add("3?", 26);
-            LevelDictionary.Add("4?", 27);
-            LevelDictionary.Add("5?", 28);
-            LevelDictionary.Add("6?", 29);
-            LevelDictionary.Add("6+?", 30);
-            LevelDictionary.Add("7?", 31);
-            LevelDictionary.Add("7+?", 32);
-            LevelDictionary.Add("8?", 33);
-            LevelDictionary.Add("8+?", 34);
-            LevelDictionary.Add("9?", 35);
-            LevelDictionary.Add("9+?", 36);
-            LevelDictionary.Add("10?", 37);
-            LevelDictionary.Add("10+?", 38);
-            LevelDictionary.Add("11?", 39);
-            LevelDictionary.Add("11+?", 40);
-            LevelDictionary.Add("12?", 41);
-            LevelDictionary.Add("12+?", 42);
-            LevelDictionary.Add("13?", 43);
-            LevelDictionary.Add("13+?", 44);
-            LevelDictionary.Add("14?", 45);
-            LevelDictionary.Add("14+?", 46);
-            LevelDictionary.Add("15?", 47);
             Songs = (SongDto[])JsonConvert.DeserializeObject(
-                ApiOperator.Instance.Get(BotSettings.Instance.DivingFishUrl, "api/maimaidxprober/music_data"),
+                ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/music_data"),
                 typeof(SongDto[]));
-            for (int i = 0; i < 48; i++)
-                Levels.Add(new List<SongDto>());
-            for (int i = 0; i < 48; i++)
-                ExtraLevels.Add(new List<ExtraSongDto>());
+
+            if (Songs == null)
+            {
+                Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
+                Start();
+                return;
+            }
 
             foreach (SongDto song in Songs)
             {
@@ -489,17 +538,7 @@ namespace LapisBot_Renewed.GroupCommands
                     }
                 }
 
-                foreach (string level in song.Levels)
-                {
-                    int j;
-                    LevelDictionary.TryGetValue(level, out j);
-                    Levels[j].Add(song);
-                }
-
-                ChartStatisticsDto.ChartStatisticDto[] chartStatistics =
-                    Array.Empty<ChartStatisticsDto.ChartStatisticDto>();
-
-                ChartStatistics.Charts.TryGetValue(song.Id.ToString(), out chartStatistics);
+                _chartStatistics.Charts.TryGetValue(song.Id.ToString(), out var chartStatistics);
                 List<float> fitRatings = new();
                 if (chartStatistics != null)
                     foreach (ChartStatisticsDto.ChartStatisticDto chartStatistic in chartStatistics)
@@ -515,36 +554,20 @@ namespace LapisBot_Renewed.GroupCommands
                 song.FitRatings = fitRatings.ToArray();
             }
 
-            ExtraSongs = (ExtraSongDto[])JsonConvert.DeserializeObject(
-                File.ReadAllText(AppContext.BaseDirectory + "/resource/extra_music_data.json"),
-                typeof(ExtraSongDto[]));
-
-            foreach (ExtraSongDto song in ExtraSongs)
-            {
-                foreach (ExtraSongDto.MapInfomationDto mapInfomationDto in song.Charts)
-                {
-                    int j;
-                    LevelDictionary.TryGetValue(mapInfomationDto.Level, out j);
-                    ExtraLevels[j].Add(song);
-                }
-            }
-
             SubCommands.Add(new RandomCommand());
             SubCommands.Add(new InfoCommand());
             SubCommands.Add(new AliasCommand());
             SubCommands.Add(new BestCommand());
-            SubCommands.Add(new PlateCommand());
             SubCommands.Add(new LettersCommand());
             SubCommands.Add(new GuessCommand());
-            SubCommands.Add(new AircadeCommand());
             SubCommands.Add(new PlateCommand());
             SubCommands.Add(new BindCommand());
             SubCommands.Add(new UpdateCommand());
+            SubCommands.Add(new SearchCommand());
 
             foreach (var subMaiCommand in SubCommands)
             {
                 subMaiCommand.Initialize();
-                subMaiCommand.ParentCommand = this;
             }
 
             //除去 LocalAlias 中已存在的别名
@@ -564,54 +587,20 @@ namespace LapisBot_Renewed.GroupCommands
                 }
             }
 
-            Console.WriteLine("MaiCommand Initialized");
-            return Task.CompletedTask;
+            Program.Logger.LogInformation("maimai related commands successfully initialized");
         }
 
         public override Task Initialize()
         {
             Program.DateChanged += Reload;
-            HeadCommand = new Regex(@"^mai\s");
-            DefaultSettings.SettingsName = "maimai DX 相关";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-
-            }
-
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
+            
             Start();
             return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             return Task.CompletedTask;
-        }
-
-        public int GetSongIndex(string command)
-        {
-            var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
-            var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
-            if (idRegex.IsMatch(command))
-            {
-                var id = int.Parse(idHeadRegex.Replace(command, string.Empty));
-                int index = GetSongIndexById(id);
-                return index;
-            }
-            else
-            {
-                int index = GetSongIndexByTitle(command);
-                return index;
-            }
         }
     }
 }

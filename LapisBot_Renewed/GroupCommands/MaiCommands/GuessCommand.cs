@@ -4,12 +4,11 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.Collections;
 using LapisBot_Renewed.ImageGenerators;
-using Newtonsoft.Json;
+using LapisBot_Renewed.Settings;
 using Xabe.FFmpeg;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
@@ -62,53 +61,19 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
         }
     }
     
-    public class GuessSettings : GroupCommand.GroupCommandSettings
-    {
-        public bool SongPreview { get; set; }
-
-        public GuessSettings Clone(GuessSettings guessSettings)
-        {
-            return JsonConvert.DeserializeObject<GuessSettings>(JsonConvert.SerializeObject(guessSettings));
-        }
-    }
-    
-    public class GuessCommand : MaiCommand
+    public class GuessCommand : MaiCommandBase
     {
         private Dictionary<string, (int, DateTime)> _guessingGroupsMap = new Dictionary<string, (int, DateTime)>();
 
-        public override Task GetDefaultSettings()
+        public GuessCommand()
         {
-            CurrentGroupCommandSettings = ((GuessSettings)DefaultSettings).Clone((GuessSettings)DefaultSettings);
-            return Task.CompletedTask;
+            CommandHead = new Regex("^guess");
+            DirectCommandHead = new Regex("^songs|^猜歌|^song");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("song", "1");
         }
         
         public override Task Initialize()
         {
-            HeadCommand = new Regex(@"^guess$");
-            SubHeadCommand = new Regex(@"^guess ");
-            DirectCommand = new Regex(@"^songs$|^猜歌$|^song$");
-            SubDirectCommand  = new Regex(@"^songs |^猜歌 |^song ");
-            CoolDownTime = 5;
-            DefaultSettings = new GuessSettings
-            {
-                Enabled = true,
-                SongPreview = false,
-                DisplayNames = new Dictionary<string, string>() { { "Enabled", "启用" }, { "SongPreview", "歌曲试听" } },
-                SettingsName = "猜歌"
-            };
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-            }
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GuessSettings>(settingsString));
-            }
-            
             Program.TimeChanged += TimeChanged;
 
             return Task.CompletedTask;
@@ -131,31 +96,27 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             }
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task Parse(CqGroupMessagePostContext source)
         {
             StartGuessing(source);
-            CancelCoolDownTimer(source.GroupId.ToString());
             return Task.CompletedTask;
         }
         
-        private Task StartGuessing(CqGroupMessagePostContext source, int difficulty)
+        private void StartGuessing(CqGroupMessagePostContext source, SongDto[] songs)
         {
             if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
                 var random = new Random();
-                SongDto[] songs = Instance.Levels[difficulty].ToArray();
                 var songIndex = random.Next(0, songs.Length);
                 _guessingGroupsMap.Add(source.GroupId.ToString(),
                     (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                         { new CqReplyMsg(source.MessageId), new CqTextMsg("试试看吧！Lapis Bot 将在 30s 后公布答案") });
-
-                var path = AudioEditor.Convert(songs[songIndex].Id);
-
+                
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
-                        { new CqRecordMsg("file:///" + path) });
+                        { new CqRecordMsg("file:///" + AudioEditor.Convert(songs[songIndex].Id)) });
             }
             else
                 Program.Session.SendGroupMessageAsync(source.GroupId,
@@ -164,24 +125,23 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         new CqReplyMsg(source.MessageId),
                         new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"")
                     });
-            return Task.CompletedTask;
         }
 
-        private Task StartGuessing(CqGroupMessagePostContext source)
+        private void StartGuessing(CqGroupMessagePostContext source)
         {
             if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
                 var random = new Random();
-                var songIndex = random.Next(0, Instance.Songs.Length);
+                var songIndex = random.Next(0, MaiCommandInstance.Songs.Length);
                 _guessingGroupsMap.Add(source.GroupId.ToString(),
-                    (Instance.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
+                    (MaiCommandInstance.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                         { new CqReplyMsg(source.MessageId), new CqTextMsg("试试看吧！Lapis Bot 将在 30s 后公布答案") });
 
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
-                        { new CqRecordMsg("file:///" + AudioEditor.Convert(Instance.Songs[songIndex].Id)) });
+                        { new CqRecordMsg("file:///" + AudioEditor.Convert(MaiCommandInstance.Songs[songIndex].Id)) });
             }
             else
                 Program.Session.SendGroupMessageAsync(source.GroupId,
@@ -190,16 +150,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                         new CqReplyMsg(source.MessageId),
                         new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"")
                     });
-            return Task.CompletedTask;
         }
 
-        private Task AnnounceAnswer((int, DateTime) keyIdDateTimePair, string groupId, bool won, long messageId)
+        private void AnnounceAnswer((int, DateTime) keyIdDateTimePair, string groupId, bool won, long messageId)
         {
-            
-            //var keyIdDateTimePair = (-1, DateTime.MinValue);
-
-            Program.SettingsCommand.GetSettings(groupId);
-            
             _guessingGroupsMap.Remove(groupId);
             
             var text = String.Empty;
@@ -207,9 +161,12 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 text = "Bingo! 答案是：";
             else
                 text = "游戏结束啦！ 答案是：";
+            
+            var isCompressed =
+                SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), long.Parse(groupId));
 
-            var image = new InfoImageGenerator().Generate(Instance.GetSong((keyIdDateTimePair.Item1)),
-                "谜底", null, Program.SettingsCommand.CurrentBotSettings.CompressedImage);
+            var image = new InfoImageGenerator().Generate(MaiCommandInstance.GetSong((keyIdDateTimePair.Item1)),
+                "谜底", null, isCompressed);
 
             if (messageId == 0)
                 Program.Session.SendGroupMessageAsync(long.Parse(groupId),
@@ -219,20 +176,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 Program.Session.SendGroupMessageAsync(long.Parse(groupId),
                     new CqMessage
                         { new CqReplyMsg(messageId), new CqTextMsg(text), new CqImageMsg("base64://" + image) });
-            
-            GroupsMap.Add(groupId, DateTime.Now.Add(new TimeSpan(0, 0, 0, CoolDownTime)));
-
-            if (!((GuessSettings)CurrentGroupCommandSettings).SongPreview)
-                return Task.CompletedTask;
-
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId),
-                new CqMessage
-                    { new CqRecordMsg("file:///" + new AudioToVoiceConverter().GetSongPath(keyIdDateTimePair.Item1)) });
-
-            return Task.CompletedTask;
         }
 
-        public override Task SubParse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             if (command == "answer")
             {
@@ -244,7 +190,6 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                             new CqReplyMsg(source.MessageId),
                             new CqTextMsg("没有游戏正在进行喔！发送指令 \"l mai guess\" 即可开启新一轮的游戏")
                         });
-                    CancelCoolDownTimer(source.GroupId.ToString());
                     return Task.CompletedTask;
                 }
 
@@ -252,18 +197,18 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 {
                     if (_guessingGroupsMap.Keys.ToArray()[i] == source.GroupId.ToString())
                     {
-                        CancelCoolDownTimer(source.GroupId.ToString());
                         AnnounceAnswer(_guessingGroupsMap.Values.ToArray()[i], source.GroupId.ToString(), false,
                             source.MessageId);
                     }
                 }
-                
+
                 return Task.CompletedTask;
             }
 
-            if (!Instance.LevelDictionary.ContainsKey(command))
+            var songs = MaiCommandInstance.GetSongsUsingDifficultyString(command);
+
+            if (songs.Length == 0)
             {
-                CancelCoolDownTimer(source.GroupId.ToString());
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
                     {
@@ -272,17 +217,10 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     });
                 return Task.CompletedTask;
             }
-            else
-            {
-                int i = -1;
-                Instance.LevelDictionary.TryGetValue(command, out i);
-                if (i == 6)
-                    return Task.CompletedTask;
-                StartGuessing(source, i);
-                CancelCoolDownTimer(source.GroupId.ToString());
-                
-                return Task.CompletedTask;
-            }
+
+            StartGuessing(source, songs);
+
+            return Task.CompletedTask;
         }
 
         public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
@@ -291,10 +229,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
             if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
-                var keyIdDateTimePair = (-1, DateTime.MinValue);
-                _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out keyIdDateTimePair);
+                _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out var keyIdDateTimePair);
 
-                var songs = Instance.GetSongs(command);
+                var songs = MaiCommandInstance.GetSongs(command);
                 if (songs.Length != 0)
                     passed = true;
                 for (int j = 0; j < songs.Length; j++)

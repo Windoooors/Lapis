@@ -1,21 +1,19 @@
 ﻿using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
-using System.IO;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot_Renewed.ImageGenerators;
+using LapisBot_Renewed.Settings;
 using LapisBot_Renewed.Operations.ApiOperation;
 
 namespace LapisBot_Renewed.GroupCommands.MaiCommands
 {
-    public class PlateCommand : MaiCommand
+    public class PlateCommand : MaiCommandBase
     {
 
         public enum PlateCategories
@@ -87,88 +85,19 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
         private readonly int[] _includedRemasterSongs =
         {
-            834,
-            22,
-            227,
-            365,
-            799,
-            803,
-            812,
-            825,
-            833,
-            61,
-            70,
-            143,
-            198,
-            204,
-            299,
-            301,
-            496,
-            589,
-            820,
-            23,
-            24,
-            255,
-            295,
-            741,
-            756,
-            777,
-            830,
-            838,
-            58,
-            62,
-            66,
-            71,
-            81,
-            100,
-            107,
-            200,
-            226,
-            247,
-            265,
-            310,
-            312,
-            759,
-            763,
-            793,
-            809,
-            816,
-            818,
-            17,
-            80,
-            145,
-            256,
-            282,
-            296,
-            414,
-            513,
-            532,
-            806,
-            65,
-            266
+            834, 22, 227, 365, 799, 803, 812, 825, 833, 61,
+            70, 143, 198, 204, 299, 301, 496, 589, 820, 23, 
+            24, 255, 295, 741, 756, 777, 830, 838, 58, 62,
+            66, 71, 81, 100, 107, 200, 226, 247, 265, 310, 312,
+            759, 763, 793, 809, 816, 818, 17, 80, 145, 256, 282,
+            296, 414, 513, 532, 806, 65, 266
         };
 
-        public override Task Initialize()
+        public PlateCommand()
         {
-            HeadCommand = new Regex(@"^plate\s");
-            DirectCommand = new Regex(@"进度$|完成表$");
-            DefaultSettings.SettingsName = "牌子查询";
-            CurrentGroupCommandSettings = DefaultSettings.Clone();
-            if (!Directory.Exists(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                Directory.CreateDirectory(AppContext.BaseDirectory + CurrentGroupCommandSettings.SettingsName +
-                                          " Settings");
-
-            }
-
-            foreach (string path in Directory.GetFiles(AppContext.BaseDirectory +
-                                                       CurrentGroupCommandSettings.SettingsName + " Settings"))
-            {
-                var settingsString = File.ReadAllText(path);
-                settingsList.Add(JsonConvert.DeserializeObject<GroupCommandSettings>(settingsString));
-            }
-
-            return Task.CompletedTask;
+            CommandHead = new Regex("^plate");
+            DirectCommandHead = new Regex("进度|完成表");
+            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("plate", "1");
         }
 
         public class UsernameDto
@@ -183,7 +112,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
             public int LevelIndex;
         }
 
-        public override Task Parse(string command, CqGroupMessagePostContext source)
+        public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
         {
             if (command == "真将" || command == "")
             {
@@ -204,7 +133,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 var wuwuRegex = new Regex("舞舞$");
                 var bazheRegex = new Regex("^霸者$");
 
-                var userName = JsonConvert.DeserializeObject<BestDto>(ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                var userName = JsonConvert.DeserializeObject<BestDto>(ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
                     new { qq = source.Sender.UserId })).Username;
 
@@ -245,7 +174,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (!(command == "霸者" || command.StartsWith("舞")))
                 {
                     var content = "";
-                    content = ApiOperator.Instance.Post(BotSettings.Instance.DivingFishUrl,
+                    content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/plate",
                         new { username = "maxscore", version });
                     scores = JsonConvert.DeserializeObject<ScoresDto>(content);
@@ -253,7 +182,7 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 else
                 {
                     var list = new List<ScoresDto.ScoreDto>();
-                    foreach (SongDto song in Instance.Songs)
+                    foreach (SongDto song in MaiCommandInstance.Songs)
                     {
                         if (song.Id < 1000)
                         {
@@ -266,8 +195,8 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                     scores = new ScoresDto() { ScoreDtos = list.ToArray() };
                 }
 
-                ScoresDto scoresInRealilty = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
-                    BotSettings.Instance.DivingFishUrl,
+                ScoresDto scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                    BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/plate",
                     new { qq = source.Sender.UserId, version }));
 
@@ -275,11 +204,11 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
                 {
-                    var song = Instance.GetSong(score.Id);
+                    var song = MaiCommandInstance.GetSong(score.Id);
                     if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.6f)
                     {
                         var scoreDto = new ScoresDto.ScoreDto();
-                        foreach (var realScore in scoresInRealilty.ScoreDtos)
+                        foreach (var realScore in scoresInReality.ScoreDtos)
                         {
                             if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
                                 scoreDto = realScore;
@@ -310,9 +239,9 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
 
                 foreach (ScoresDto.ScoreDto score in scores.ScoreDtos)
                 {
-                    var song = Instance.GetSong(score.Id);
+                    var song = MaiCommandInstance.GetSong(score.Id);
                     var scoreDto = new ScoresDto.ScoreDto();
-                    foreach (var realScore in scoresInRealilty.ScoreDtos)
+                    foreach (var realScore in scoresInReality.ScoreDtos)
                     {
                         if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
                             scoreDto = realScore;
@@ -349,12 +278,13 @@ namespace LapisBot_Renewed.GroupCommands.MaiCommands
                 if (bazheRegex.IsMatch(command))
                     category = PlateCategories.bazhe;
 
-                Program.SettingsCommand.GetSettings(source);
+                var isCompressed =
+                    SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
                 var image = new PlateImageGenerator().Generate(songsToBeDisplayed, allSongs, userName,
-                    Instance,
+                    MaiCommandInstance,
                     category, source.Sender.UserId.ToString(), true, plateVersionIndex,
-                    Program.SettingsCommand.CurrentBotSettings.CompressedImage);
+                    isCompressed);
 
                 Program.Session.SendGroupMessageAsync(source.GroupId,
                     new CqMessage
