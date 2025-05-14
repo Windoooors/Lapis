@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
-namespace LapisBot_Renewed.Settings;
+namespace LapisBot.Settings;
 
 public class SettingsCategory
 {
-    public string DisplayName { get; set; }
-    public List<SettingsItemsOfACommand> Items { get; set; }
+    public string DisplayName { get; init; }
+    public List<SettingsItemsOfACommand> Items { get; init; }
 }

@@ -1,27 +1,28 @@
+using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.Collections;
-using LapisBot_Renewed.Settings;
+using LapisBot.Collections;
+using LapisBot.Settings;
 using Raffinert.FuzzySharp;
 
-namespace LapisBot_Renewed.GroupCommands.MaiCommands;
+namespace LapisBot.GroupCommands.MaiCommands;
 
 public class SearchCommand : MaiCommandBase
 {
-    public override Task Unload()
-    {
-        return Task.CompletedTask;
-    }
-
     public SearchCommand()
     {
         CommandHead = new Regex("^search");
         DirectCommandHead = new Regex("^search|^查歌|^搜歌|^搜索|^索引");
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("search", "1");
+    }
+
+    public override Task Unload()
+    {
+        return Task.CompletedTask;
     }
 
     public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
@@ -54,24 +55,21 @@ public class SearchCommand : MaiCommandBase
                 songs.Add(song);
         }
 
-        var text = "找到了以下歌曲：\n";
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine("找到了以下歌曲：");
 
         if (songs.Count > 0)
             foreach (var song in songs)
-            {
-                text += "ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过标题匹配）\n";
-            }
+                stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过标题匹配）");
 
         if (songAliasDict.Count > 0)
             foreach (var pair in songAliasDict)
             {
-                var aliasText = "";
-                foreach (var alias in pair.Value)
-                {
-                    aliasText += $"\"{alias}\" ";
-                }
+                var aliasStringBuilder = new StringBuilder();
+                foreach (var alias in pair.Value) aliasStringBuilder.AppendJoin(' ', $"\"{alias}\"");
 
-                text += "ID " + pair.Key.Id + " - " + pair.Key.Title + " [" + pair.Key.Type + $"] （通过别称 {aliasText}匹配）\n";
+                stringBuilder.AppendLine("ID " + pair.Key.Id + " - " + pair.Key.Title + " [" + pair.Key.Type +
+                                         $"] （通过别称 {aliasStringBuilder}匹配）");
             }
 
         var id = 0;
@@ -83,21 +81,24 @@ public class SearchCommand : MaiCommandBase
             id = songs[0].Id;
         if (songs.Count == 0 && songAliasDict.Count == 0)
             id = -1;
-        
+
         if (id != -1)
-            text += $"*发送 \"lps mai info ID { id}\" 指令即可查询歌曲 {
-                maiCommand.GetSong(id).Title} [{maiCommand.GetSong(id).Type}] 的信息";
+        {
+            stringBuilder.Append($"*发送 \"lps mai info ID {id}\" 指令即可查询歌曲 {
+                maiCommand.GetSong(id).Title} [{maiCommand.GetSong(id).Type}] 的信息");
+        }
         else
-            text = "未找到歌曲";
-        
+        {
+            stringBuilder.Clear();
+            stringBuilder = new StringBuilder("\"未找到歌曲\"");
+        }
+
         Program.Session.SendGroupMessageAsync(source.GroupId,
-            new CqMessage
-            {
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg(text)
-            });
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg(stringBuilder.ToString())
+        ]);
 
         return Task.CompletedTask;
     }
 }
-

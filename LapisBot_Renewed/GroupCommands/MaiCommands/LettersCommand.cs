@@ -1,34 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.Settings;
+using LapisBot.Settings;
 
-namespace LapisBot_Renewed.GroupCommands.MaiCommands;
+namespace LapisBot.GroupCommands.MaiCommands;
 
 public class LettersCommand : MaiCommandBase
 {
-    
-    private class SongList
-    {
-        public SongDto[] AllSongs;
-        public readonly List<SongDto> GuessedSongs = new();
-        public readonly List<char> GuessedLetters = new();
-    }
-
     private readonly Dictionary<string, (SongList, DateTime)>
         _guessingGroupsMap = new();
-    
-    public override Task Initialize()
-    {
-        Program.TimeChanged += TimeChanged;
-        
-        return Task.CompletedTask;
-    }
 
     public LettersCommand()
     {
@@ -37,17 +23,16 @@ public class LettersCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("letter", "1");
     }
 
-    private enum SpecialCharactersToBeIncluded
+    public override Task Initialize()
     {
-       Chinese,
-       Japanese,
-       Both,
-       Neither
-    };
+        Program.TimeChanged += TimeChanged;
+
+        return Task.CompletedTask;
+    }
 
     private SongDto GetRandomSong(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
     {
-        Regex pattern  = new Regex("");
+        var pattern = new Regex("");
         switch (specialCharactersToBeIncluded)
         {
             case SpecialCharactersToBeIncluded.Chinese:
@@ -64,11 +49,8 @@ public class LettersCommand : MaiCommandBase
         var random = new Random();
         var index = random.Next(0, MaiCommandInstance.Songs.Length);
 
-        if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both)
-        {
-            return MaiCommandInstance.Songs[index];
-        }
-        
+        if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both) return MaiCommandInstance.Songs[index];
+
         while (pattern.IsMatch(MaiCommandInstance.Songs[index].Title))
             index = random.Next(0, MaiCommandInstance.Songs.Length);
         return MaiCommandInstance.Songs[index];
@@ -87,14 +69,14 @@ public class LettersCommand : MaiCommandBase
                 songs.Add(song);
         }
 
-        return new SongList() { AllSongs = songs.ToArray() };
+        return new SongList { AllSongs = songs.ToArray() };
     }
-    
+
     private void TimeChanged(object obj, EventArgs e)
     {
         if (_guessingGroupsMap.Count == 0)
             return;
-        for (int i = 0; i < _guessingGroupsMap.Count; i++)
+        for (var i = 0; i < _guessingGroupsMap.Count; i++)
         {
             if (_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks > DateTime.Now.Ticks)
                 continue;
@@ -105,47 +87,49 @@ public class LettersCommand : MaiCommandBase
             taskAnnounce.Start();
         }
     }
-    
-    private Task AnnounceAnswer(SongList songs, string groupId, long messageId, bool gameOver)
+
+    private void AnnounceAnswer(SongList songs, string groupId, long messageId, bool gameOver)
     {
         if (gameOver)
             _guessingGroupsMap.Remove(groupId);
-        
-        var title = "舞萌开字母结束啦！\n答案是：\n";
-        
+
+        var title = "舞萌开字母结束啦！\n答案是：";
+
         var songNames = "";
-        int index = 1;
+        var index = 1;
 
         foreach (var song in songs.AllSongs)
         {
             if (gameOver)
+            {
                 songNames += $"{index}.{song.Title}\n";
+            }
             else
             {
                 var songDisplay = string.Empty;
 
                 var hiddenLetterCount = 0;
-            
-                foreach (char songNameCharacter in song.Title)
+
+                foreach (var songNameCharacter in song.Title)
                 {
-                    var blankMarkChar = new char[] { ' ', '\u3000', '\u200e'  }.Contains(songNameCharacter) ? songNameCharacter : '*';
-                    
-                    foreach (char character in songs.GuessedLetters)
-                    {
+                    var blankMarkChar = new[] { ' ', '\u3000', '\u200e' }.Contains(songNameCharacter)
+                        ? songNameCharacter
+                        : '*';
+
+                    foreach (var character in songs.GuessedLetters)
                         if (char.ToLower(character) == char.ToLower(songNameCharacter))
                             blankMarkChar = songNameCharacter;
-                    }
-                    
+
                     if (blankMarkChar == '*')
                         hiddenLetterCount++;
 
                     songDisplay += blankMarkChar;
                 }
-                
+
                 songDisplay.TrimEnd();
-                
+
                 var isSongGuessed = false;
-                
+
                 foreach (var guessedSong in songs.GuessedSongs)
                     if (song == guessedSong)
                     {
@@ -161,7 +145,7 @@ public class LettersCommand : MaiCommandBase
                     if (songs.GuessedSongs.Count == songs.AllSongs.Length)
                     {
                         AnnounceAnswer(songs, groupId, messageId, true);
-                        return Task.CompletedTask;
+                        return;
                     }
                 }
 
@@ -170,100 +154,86 @@ public class LettersCommand : MaiCommandBase
 
             index++;
         }
-        
+
         songNames.Remove(songNames.Length - 1);
 
-        var text = "";
-        if (gameOver)
-            text = $"{title}\n{songNames}";
-        else
-            text = $"{songNames}\n已开字母：{string.Join(", ", songs.GuessedLetters)}";
+        var text = gameOver ? $"{title}\n{songNames}" : $"{songNames}\n已开字母：{string.Join(", ", songs.GuessedLetters)}";
 
         if (messageId != 0)
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId), new CqMessage
-            {
+            Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
                 new CqReplyMsg(messageId),
                 new CqTextMsg(text)
-            });
+            ]);
         else
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId), new CqMessage
-            {
+            Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
                 new CqTextMsg(text)
-            });
-
-        return Task.CompletedTask;
+            ]);
     }
 
-    private Task StartGuessing(CqGroupMessagePostContext source, SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
+    private void StartGuessing(CqGroupMessagePostContext source,
+        SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
     {
         if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-            {
+            var messageStringBuilder = new StringBuilder();
+            messageStringBuilder.AppendLine("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai letters answer\"");
+            messageStringBuilder.AppendLine("要开字母 a，请发送指令 \"开 a\"");
+            messageStringBuilder.Append("要猜编号为 \\\"1\\\" 的歌曲为 [SD] LUCIA, 请发送指令 \\\"1.LUCIA\\\"");
+
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg(
-                    "本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai letters answer\"\n" +
-                    "要开字母 a，请发送指令 \"开 a\"\n" +
-                    "要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"")
-            });
-            return Task.CompletedTask;
+                new CqTextMsg(messageStringBuilder.ToString())
+            ]);
+            return;
         }
 
         var excludedCharacterInformation = "";
         if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Japanese)
-        {
             excludedCharacterInformation = "本次开字母游戏中的谜底均不包含中文字符\n";
-        }
         else if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Chinese)
-        {
             excludedCharacterInformation = "本次开字母游戏中的谜底均不包含日文字符\n";
-        }
         else if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Neither)
-        {
             excludedCharacterInformation = "本次开字母游戏中的谜底均不包含中、日文字符\n";
-        }
 
-        var title = excludedCharacterInformation + "Lapis 将在 20mins 后公布答案！\n" + 
-                    "要开字母 a，请发送指令 \"开 a\"\n" +
-                    "要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"";
-        
-        var songNames = "";
-        int index = 1;
+        var titleStringBuilder = new StringBuilder();
+        titleStringBuilder.AppendLine(excludedCharacterInformation + "Lapis 将在 20mins 后公布答案！");
+        titleStringBuilder.AppendLine("要开字母 a，请发送指令 \"开 a\"");
+        titleStringBuilder.AppendLine("要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"");
+
+        var songNamesStringBuilder = new StringBuilder();
+        var index = 1;
 
         var songs = GenerateSongList(specialCharactersToBeIncluded);
 
         foreach (var song in songs.AllSongs)
         {
             var songDisplay = "";
-            
-            foreach (char songNameCharacter in song.Title)
+
+            foreach (var songNameCharacter in song.Title)
             {
-                var blankMarkChar = new char[] { ' ', '\u3000' }.Contains(songNameCharacter) ? songNameCharacter : '*';
-                
+                var blankMarkChar = new[] { ' ', '\u3000' }.Contains(songNameCharacter) ? songNameCharacter : '*';
+
                 songDisplay += blankMarkChar;
             }
 
-            songDisplay.TrimEnd();
-            
-            songNames += $"{index}.{songDisplay}\n";
-            
+            songNamesStringBuilder.AppendLine($"{index}.{songDisplay}");
+
             index++;
         }
 
+        songNamesStringBuilder.Remove(songNamesStringBuilder.Length - 1, 1);
+
         Program.Session.SendGroupMessageAsync(source.GroupId,
-            new CqMessage
-                { $"{title}\n\n{songNames}" });
-        
+            [$"{titleStringBuilder}{songNamesStringBuilder}"]);
+
         _guessingGroupsMap.Add(source.GroupId.ToString(),
             (songs, DateTime.Now.Add(new TimeSpan(0, 0, 20, 0))));
-        
-        return Task.CompletedTask;
     }
-    
+
     public override Task Parse(CqGroupMessagePostContext source)
     {
         StartGuessing(source, SpecialCharactersToBeIncluded.Both);
-        
+
         return Task.CompletedTask;
     }
 
@@ -294,40 +264,37 @@ public class LettersCommand : MaiCommandBase
 
             if (keyWordDateTimePair.Item1 == null)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                    { new CqReplyMsg(source.MessageId), "现在没有正在进行的舞萌开字母游戏！" });
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                    [new CqReplyMsg(source.MessageId), "现在没有正在进行的舞萌开字母游戏！"]);
                 return Task.CompletedTask;
             }
-            
+
             AnnounceAnswer(keyWordDateTimePair.Item1, source.GroupId.ToString(), source.MessageId, true);
             return Task.CompletedTask;
         }
         else
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                { new CqReplyMsg(source.MessageId), "不支持的参数类型" });
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
             return Task.CompletedTask;
         }
-        
+
         StartGuessing(source, specialCharactersToBeIncluded);
         return Task.CompletedTask;
     }
 
     public override Task RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        (SongList, DateTime) keyValuePair;
-        _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out keyValuePair);
+        _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out var keyValuePair);
 
         if (keyValuePair.Item1 == null)
             return Task.CompletedTask;
-        
+
         if (command.StartsWith("开 "))
         {
             var targetLetter = command.Replace("开 ", "");
             if (targetLetter == "" || targetLetter.Length > 1)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                    { new CqReplyMsg(source.MessageId), "不支持的参数类型" });
+                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
                 return Task.CompletedTask;
             }
 
@@ -340,72 +307,78 @@ public class LettersCommand : MaiCommandBase
         }
 
         var indexPattern = new Regex(@"^[1-9][0-9]\.|^[1-9]\.");
-        
-        if (indexPattern.IsMatch(command))
+
+        if (!indexPattern.IsMatch(command))
+            return Task.CompletedTask;
+
+        var index = int.Parse(new Regex("^[1-9][0-9]|^[1-9]").Match(command).ToString());
+        if (index > 15 || index < 1)
         {
-            var index = int.Parse(new Regex("^[1-9][0-9]|^[1-9]").Match(command).ToString());
-            if (index > 15 || index < 1)
-            {
-                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                    { new CqReplyMsg(source.MessageId), "不支持的参数类型" });
-                return Task.CompletedTask;
-            }
-
-            var songIndicator = indexPattern.Replace(command, "");
-            if (songIndicator == "")
-            {
-                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                    { new CqReplyMsg(source.MessageId), "不支持的参数类型" });
-                return Task.CompletedTask;
-            }
-
-            var songs = MaiCommandInstance.GetSongs(songIndicator);
-
-            if (songs == null)
-            {
-                Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                    { new CqReplyMsg(source.MessageId), "未开出歌曲" });
-                return Task.CompletedTask;
-            }
-
-            foreach (var song in songs)
-            {
-                if (keyValuePair.Item1.AllSongs[index - 1] == song)
-                {
-                    if (keyValuePair.Item1.GuessedSongs.Contains(song))
-                    {
-                        Program.Session.SendGroupMessageAsync(source.GroupId,
-                            new CqMessage
-                            {
-                                new CqReplyMsg(source.MessageId), "该歌曲已经被开出"
-                            });
-                        return Task.CompletedTask;
-                    }
-                    
-                    keyValuePair.Item1.GuessedSongs.Add(song);
-
-                    if (keyValuePair.Item1.GuessedSongs.Count == keyValuePair.Item1.AllSongs.Length)
-                    {
-                        AnnounceAnswer(keyValuePair.Item1, source.GroupId.ToString(), source.MessageId, true);
-                        return Task.CompletedTask;
-                    }
-
-                    Program.Session.SendGroupMessageAsync(source.GroupId,
-                        new CqMessage
-                        {
-                            new CqReplyMsg(source.MessageId), "开出歌曲：",
-                            "[" + song.Type.ToUpper() + "] " + song.Title
-                        });
-                    AnnounceAnswer(keyValuePair.Item1, source.GroupId.ToString(), source.MessageId, false);
-                    return Task.CompletedTask;
-                }
-            }
-
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-                { new CqReplyMsg(source.MessageId), "未开出歌曲" });
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
             return Task.CompletedTask;
         }
-        
+
+        var songIndicator = indexPattern.Replace(command, "");
+        if (songIndicator == "")
+        {
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
+            return Task.CompletedTask;
+        }
+
+        var songs = MaiCommandInstance.GetSongs(songIndicator);
+
+        if (songs == null)
+        {
+            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
+            return Task.CompletedTask;
+        }
+
+        foreach (var song in songs)
+        {
+            if (keyValuePair.Item1.AllSongs[index - 1] != song)
+                continue;
+
+            if (keyValuePair.Item1.GuessedSongs.Contains(song))
+            {
+                Program.Session.SendGroupMessageAsync(source.GroupId,
+                [
+                    new CqReplyMsg(source.MessageId), "该歌曲已经被开出"
+                ]);
+                return Task.CompletedTask;
+            }
+
+            keyValuePair.Item1.GuessedSongs.Add(song);
+
+            if (keyValuePair.Item1.GuessedSongs.Count == keyValuePair.Item1.AllSongs.Length)
+            {
+                AnnounceAnswer(keyValuePair.Item1, source.GroupId.ToString(), source.MessageId, true);
+                return Task.CompletedTask;
+            }
+
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+            [
+                new CqReplyMsg(source.MessageId), $"开出歌曲：\"{song.Title}\" [{song.Type.ToUpper()}]"
+            ]);
+            AnnounceAnswer(keyValuePair.Item1, source.GroupId.ToString(), source.MessageId, false);
+            return Task.CompletedTask;
+        }
+
+        Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
         return Task.CompletedTask;
+    }
+
+    private class SongList
+    {
+        public readonly List<char> GuessedLetters = new();
+        public readonly List<SongDto> GuessedSongs = new();
+        public SongDto[] AllSongs;
+    }
+
+    private enum SpecialCharactersToBeIncluded
+    {
+        Chinese,
+        Japanese,
+        Both,
+        Neither
     }
 }

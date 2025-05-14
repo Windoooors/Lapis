@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.ImageGenerators;
-using LapisBot_Renewed.Settings;
+using LapisBot.ImageGenerators;
+using LapisBot.Settings;
 
-namespace LapisBot_Renewed.GroupCommands;
+namespace LapisBot.GroupCommands;
 
 public class SettingsCommand : GroupCommand
 {
@@ -18,24 +18,18 @@ public class SettingsCommand : GroupCommand
         DirectCommandHead = new Regex("^settings");
         Instance = this;
     }
-    
+
     public bool GetValue(SettingsIdentifierPair identifierPair, long groupId)
     {
-        bool defaultValue = true;
-        
+        var defaultValue = true;
+
         foreach (var category in SettingsItems.Categories)
-        {
-            foreach (var itemsOfACommand in category.Items)
-            {
-                if (itemsOfACommand.Identifier == identifierPair.PrimeIdentifier)
-                    foreach (var item in itemsOfACommand.Items)
-                    {
-                        if (item.Identifier == identifierPair.Identifier)
-                            defaultValue = item.DefaultValue;
-                    }
-            }
-        }
-        
+        foreach (var itemsOfACommand in category.Items)
+            if (itemsOfACommand.Identifier == identifierPair.PrimeIdentifier)
+                foreach (var item in itemsOfACommand.Items)
+                    if (item.Identifier == identifierPair.Identifier)
+                        defaultValue = item.DefaultValue;
+
         return SettingsPool.GetValue(identifierPair.ToString(), groupId, defaultValue);
     }
 
@@ -70,17 +64,17 @@ public class SettingsCommand : GroupCommand
         }
 
         var identifiers = command.Split(" ")[0].Split(".");
-        
+
         var identifierPair = new SettingsIdentifierPair(identifiers[0], identifiers[1]);
 
         var valueString = command.Split(" ")[1];
         var value = valueString.Equals("true");
-        
+
         SettingsPool.SetValue(identifierPair.ToString(), source.GroupId, value);
 
         Program.Session.SendGroupMessageAsync(source.GroupId,
             [new CqReplyMsg(source.MessageId), new CqTextMsg("设置变更成功！")]);
-        
+
         return Task.CompletedTask;
     }
 }

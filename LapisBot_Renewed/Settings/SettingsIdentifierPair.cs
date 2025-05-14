@@ -1,9 +1,9 @@
-namespace LapisBot_Renewed.Settings;
+namespace LapisBot.Settings;
 
 public class SettingsIdentifierPair
 {
-    public string PrimeIdentifier;
     public string Identifier;
+    public string PrimeIdentifier;
 
     public SettingsIdentifierPair(string primeIdentifier, string identifier)
     {
@@ -16,6 +16,9 @@ public class SettingsIdentifierPair
         PrimeIdentifier = "";
         Identifier = "";
     }
-    
-    public new string ToString() => $"{PrimeIdentifier}.{Identifier}";
+
+    public new string ToString()
+    {
+        return $"{PrimeIdentifier}.{Identifier}";
+    }
 }

@@ -1,39 +1,40 @@
 ﻿using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using System.Reflection;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.Operations.ImageOperation;
-using LapisBot_Renewed.Settings;
+using LapisBot.Operations.ImageOperation;
+using LapisBot.Settings;
 
-namespace LapisBot_Renewed.GroupCommands
+namespace LapisBot.GroupCommands;
+
+public class AboutCommand : GroupCommand
 {
-    public class AboutCommand : GroupCommand
+    public AboutCommand()
     {
-        public AboutCommand()
-        {
-            CommandHead = new Regex("^about|^关于");
-            DirectCommandHead = new Regex("^about|^关于");
-            ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("about", "1");
-        }
+        CommandHead = new Regex("^about|^关于");
+        DirectCommandHead = new Regex("^about|^关于");
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("about", "1");
+    }
 
-        public override Task Parse(CqGroupMessagePostContext source)
+    public override Task Parse(CqGroupMessagePostContext source)
+    {
+        var image = new Image(Environment.CurrentDirectory + @"/resource/about.png");
+        image.DrawText(RuntimeInformation.OSDescription, Color.White, 22, FontWeight.Regular, 128.56f, 202.23f);
+        image.DrawText(RuntimeInformation.FrameworkDescription, Color.White, 22, FontWeight.Regular, 128.56f, 231.67f);
+        image.DrawText(RuntimeInformation.OSArchitecture.ToString(), Color.White, 22, FontWeight.Regular, 128.56f,
+            262.48f);
+        image.DrawText("Version " + Assembly.GetAssembly(GetType()).GetName().Version, Color.White, 22,
+            FontWeight.Regular, 20.49f, 325f);
+        Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
         {
-            var image = new Image(Environment.CurrentDirectory + @"/resource/about.png");
-            image.DrawText(RuntimeInformation.OSDescription, Color.White, 22, FontWeight.Regular, 128.56f, 202.23f);
-            image.DrawText(RuntimeInformation.FrameworkDescription, Color.White, 22, FontWeight.Regular, 128.56f, 231.67f);
-            image.DrawText(RuntimeInformation.OSArchitecture.ToString(), Color.White, 22, FontWeight.Regular, 128.56f, 262.48f);
-            image.DrawText("Version " + Assembly.GetAssembly(GetType()).GetName().Version, Color.White, 22, FontWeight.Regular, 20.49f, 325f);
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
-            {
-                new CqReplyMsg(source.MessageId),
-                new CqImageMsg("base64://" + image.ToBase64())
-            });
-            image.Dispose();
-            return Task.CompletedTask;
-        }
+            new CqReplyMsg(source.MessageId),
+            new CqImageMsg("base64://" + image.ToBase64())
+        });
+        image.Dispose();
+        return Task.CompletedTask;
     }
 }

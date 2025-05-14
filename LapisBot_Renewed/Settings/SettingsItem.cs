@@ -1,8 +1,8 @@
-namespace LapisBot_Renewed.Settings;
+namespace LapisBot.Settings;
 
 public class SettingsItem
 {
-    public string Identifier { get; set; }
-    public string DisplayName { get; set; }
-    public bool DefaultValue { get; set; }
+    public string Identifier { get; init; }
+    public string DisplayName { get; init; }
+    public bool DefaultValue { get; init; }
 }

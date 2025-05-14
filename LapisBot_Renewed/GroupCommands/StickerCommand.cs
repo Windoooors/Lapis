@@ -1,34 +1,30 @@
 ﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using LapisBot_Renewed.GroupCommands.StickerCommands;
+using LapisBot.GroupCommands.StickerCommands;
 
-namespace LapisBot_Renewed.GroupCommands
+namespace LapisBot.GroupCommands;
+
+public abstract class StickerCommandBase : GroupCommand
 {
-    public abstract class StickerCommandBase : GroupCommand
+    public static StickerCommand StickerCommandInstance;
+}
+
+public class StickerCommand : StickerCommandBase
+{
+    public StickerCommand()
     {
-        public static StickerCommand StickerCommandInstance;
+        CommandHead = new Regex("^sticker");
+        StickerCommandInstance = this;
     }
-    
-    public class StickerCommand : StickerCommandBase
+
+    public override Task Initialize()
     {
-        public StickerCommand()
-        {
-            CommandHead = new Regex("^sticker");
-            StickerCommandInstance = this;
-        }
-        
-        public override Task Initialize()
-        {
-            SubCommands.Clear();
-            SubCommands.Add(new FortuneCommand());
-            SubCommands.Add(new ObituaryCommand());
+        SubCommands.Clear();
+        SubCommands.Add(new FortuneCommand());
+        SubCommands.Add(new ObituaryCommand());
 
-            foreach (var stickerCommand in SubCommands)
-            {
-                stickerCommand.Initialize();
-            }
+        foreach (var stickerCommand in SubCommands) stickerCommand.Initialize();
 
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

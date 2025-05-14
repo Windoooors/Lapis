@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot_Renewed.Operations.ImageOperation;
-using LapisBot_Renewed.Settings;
+using LapisBot.Operations.ImageOperation;
+using LapisBot.Settings;
 
-namespace LapisBot_Renewed.GroupCommands.StickerCommands;
+namespace LapisBot.GroupCommands.StickerCommands;
 
 public class ObituaryCommand : StickerCommandBase
 {
+    private readonly Regex _fontSizeCommand = new(@"^-s\s(([0-7][0-2]\s)|([0-9]\s)|([0-6][0-9]\s))");
+    private readonly Regex _topCommand = new(@"^-t\s(([0-2][0-9][0-9]\s)|([0-9][0-9]\s)|([0-9]\s))");
+
     public ObituaryCommand()
     {
         CommandHead = new Regex("^悲报");
         DirectCommandHead = new Regex("^悲报");
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("obituary", "1");
     }
-
-    private readonly Regex _fontSizeCommand = new (@"^-s\s(([0-7][0-2]\s)|([0-9]\s)|([0-6][0-9]\s))");
-    private readonly Regex _topCommand = new (@"^-t\s(([0-2][0-9][0-9]\s)|([0-9][0-9]\s)|([0-9]\s))");
 
     public override Task ParseWithArgument(string command, CqGroupMessagePostContext source)
     {

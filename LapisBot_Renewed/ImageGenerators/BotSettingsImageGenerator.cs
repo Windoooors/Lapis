@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using LapisBot_Renewed.GroupCommands;
-using LapisBot_Renewed.Operations.ImageOperation;
-using LapisBot_Renewed.Settings;
+using LapisBot.GroupCommands;
+using LapisBot.Operations.ImageOperation;
+using LapisBot.Settings;
 
-namespace LapisBot_Renewed.ImageGenerators;
+namespace LapisBot.ImageGenerators;
 
 public class BotSettingsImageGenerator
 {
@@ -12,8 +12,8 @@ public class BotSettingsImageGenerator
     {
         using var image = new Image(512, 768);
 
-        int top = 0;
-        
+        var top = 0;
+
         var tempTop = top;
         foreach (var category in SettingsItems.Categories)
         {
@@ -21,10 +21,7 @@ public class BotSettingsImageGenerator
             foreach (var commandItem in category.Items)
             {
                 tempTop += 69;
-                foreach (var item in commandItem.Items)
-                {
-                    tempTop += 69;
-                }
+                foreach (var item in commandItem.Items) tempTop += 69;
             }
         }
 
@@ -35,15 +32,17 @@ public class BotSettingsImageGenerator
         {
             top += 100;
             image.DrawText(category.DisplayName, Color.White, 48, FontWeight.Light, 14.8f, top - 20);
-            
+
             foreach (var commandItem in category.Items)
             {
                 using var commandNameBackground = new Image(Path.Combine(Environment.CurrentDirectory,
                     "resource/settings/command_background.png"));
-                
-                commandNameBackground.DrawText(commandItem.Identifier, Color.White,28f, FontWeight.Regular, HorizontalAlignment.Center, 93, 46);
-                commandNameBackground.DrawText(commandItem.DisplayName, Color.White, 28f, FontWeight.Light, HorizontalAlignment.Left, 196, 46);
-                
+
+                commandNameBackground.DrawText(commandItem.Identifier, Color.White, 28f, FontWeight.Regular,
+                    HorizontalAlignment.Center, 93, 46);
+                commandNameBackground.DrawText(commandItem.DisplayName, Color.White, 28f, FontWeight.Light,
+                    HorizontalAlignment.Left, 196, 46);
+
                 image.DrawImage(commandNameBackground, 0, top);
 
                 top += 69;
@@ -53,16 +52,16 @@ public class BotSettingsImageGenerator
                     var itemValue =
                         SettingsCommand.Instance.GetValue(
                             new SettingsIdentifierPair(commandItem.Identifier, item.Identifier), groupId);
-                    
+
                     var itemImagePath = Path.Combine(Environment.CurrentDirectory,
                         itemValue ? "resource/settings/item_enabled.png" : "resource/settings/item_disabled.png");
                     using var itemImage = new Image(itemImagePath);
 
                     itemImage.DrawText(item.Identifier, Color.White, 34f, FontWeight.Light, 23, 46);
                     itemImage.DrawText(item.DisplayName, Color.White, 28f, FontWeight.Regular, 80, 46);
-                    
+
                     image.DrawImage(itemImage, 0, top);
-                    
+
                     top += 69;
                 }
             }
@@ -80,4 +79,3 @@ public class BotSettingsImageGenerator
         return result;
     }
 }
-
