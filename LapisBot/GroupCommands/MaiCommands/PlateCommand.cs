@@ -278,7 +278,7 @@ public class PlateCommand : MaiCommandBase
             Program.Session.SendGroupMessageAsync(source.GroupId,
             [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg("未找到该姓名框")
+                new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
             ]);
         }
     }
