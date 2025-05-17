@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using LapisBot.GroupCommands;
 using LapisBot.Operations.ApiOperation;
+using LapisBot.PrivateCommands;
+using LapisBot.UniversalCommands;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog.Extensions.Logging;
@@ -18,28 +19,29 @@ public class BotConfiguration
 {
     public static BotConfiguration Instance;
 
-    public string Address;
-    public long AdministratorQqNumber;
-    public long BotQqNumber;
-    public string AliasUrl;
-    public string DivingFishUrl;
-    public string WahlapConnectiveKitsUrl;
+    [JsonProperty] public string Address;
+    [JsonProperty] public long AdministratorQqNumber;
+    [JsonProperty] public string AliasUrl;
+    [JsonProperty] public long BotQqNumber;
+    [JsonProperty] public string DivingFishUrl;
+    [JsonProperty] public string WahlapConnectiveKitsUrl;
 }
 
 public class Program
 {
-    public static readonly List<GroupCommand> GroupCommands =
+    public static readonly Command[] Commands =
     [
         new TaskHandleQueueCommand(),
         new AbuseCommand(),
         new VocabularyCommand(),
-        new HelpCommand(),
         new StickerCommand(),
         new AboutCommand(),
         new MaiCommand(),
         new RepeatCommand(),
-        new MemberCommand(),
-        new SettingsCommand()
+        new GroupMemberCommand(),
+        new SettingsCommand(),
+        new HelpCommand(),
+        new StickerSavingCommand()
     ];
 
     private static DateTime _lastDateTime;
@@ -101,7 +103,7 @@ public class Program
 
         Logger.LogInformation("Initializing...");
 
-        foreach (var command in GroupCommands)
+        foreach (var command in Commands)
         {
             var task = new Task(() => command.StartInitializing());
             InitializationTasks.Add(task);
@@ -111,6 +113,12 @@ public class Program
         var commandParser = new CommandParser();
 
         Session.UseGroupMessage(async (context, next) =>
+        {
+            commandParser.StartParsing(context);
+            await next.Invoke();
+        });
+
+        Session.UsePrivateMessage(async (context, next) =>
         {
             commandParser.StartParsing(context);
             await next.Invoke();
@@ -134,7 +142,7 @@ public class Program
             _lastDateTime =
                 JsonConvert.DeserializeObject<DateTime>(File
                     .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "data/date.json")).Result);
-        var thread = new Thread(Reload);
+        var thread = new Thread(CountTime);
         thread.Start();
 
         Console.ReadLine();
@@ -156,7 +164,7 @@ public class Program
         Logger.LogInformation("Date data has been saved.");
     }
 
-    private static void Reload()
+    private static void CountTime()
     {
         try
         {
@@ -211,7 +219,7 @@ public class Program
 
     private static void Console_CancelKeyPress(object sender, EventArgs e)
     {
-        foreach (var command in GroupCommands)
+        foreach (var command in Commands)
             command.StartUnloading();
 
         SaveDate();

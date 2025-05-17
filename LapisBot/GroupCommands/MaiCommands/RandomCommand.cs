@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -23,13 +22,13 @@ public class RandomCommand : MaiCommandBase
         var songs = MaiCommandInstance.GetSongsUsingDifficultyString(command);
         if (songs.Length == 0)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("不支持的等级名称")]);
+            SendMessage(source, [new CqTextMsg("不支持的等级名称")]);
         }
         else
         {
             if (songs.Length == 0)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqTextMsg("不支持的等级名称")]);
+                SendMessage(source, [new CqTextMsg("不支持的等级名称")]);
                 return;
             }
 
@@ -39,7 +38,7 @@ public class RandomCommand : MaiCommandBase
             var isCompressed =
                 SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
@@ -47,13 +46,13 @@ public class RandomCommand : MaiCommandBase
             ]);
 
             if (SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("random", "2"), source.GroupId))
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                 [
                     new CqRecordMsg("file:///" + GetSongPath(songs[j].Id))
                 ]);
         }
     }
-    
+
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))

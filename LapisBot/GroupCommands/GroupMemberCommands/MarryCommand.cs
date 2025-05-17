@@ -14,51 +14,96 @@ using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands.GroupMemberCommands;
 
-public class MarryCommand : MemberCommandBase
+public class MarryCommand : GroupMemberCommandBase
 {
+    public MarryCommand()
+    {
+        CommandHead = new Regex("^娶|^嫁");
+        DirectCommandHead = new Regex("^娶|^嫁");
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("marry", "1");
+    }
+
+    public override void Initialize()
+    {
+        Program.DateChanged += Refresh;
+    }
+
+    private void Refresh(object sender, EventArgs e)
+    {
+        CouplesOperator.Refresh();
+    }
+
+    public override void Parse(CqGroupMessagePostContext source)
+    {
+        var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
+        if (couple == null)
+        {
+            if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
+                    out var group) ||
+                group.Members.Count - CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
+            {
+                MemberNotEnoughErrorHelp(source);
+                return;
+            }
+
+            var memberArray = group.Members.ToArray();
+
+            var i = new Random().Next(0, group.Members.Count);
+
+            while (memberArray[i].Id == source.Sender.UserId ||
+                   CouplesOperator.IsMarried(memberArray[i].Id, source.GroupId))
+                i = new Random().Next(0, group.Members.Count);
+
+            var memberId = memberArray[i].Id;
+            CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
+
+            Parse(source);
+            return;
+        }
+
+        if (!SendMessage(couple.BrideId, source))
+            Parse(source);
+    }
+
+    private bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    {
+        var memberInformation = Program.Session.GetGroupMemberInformation(source.GroupId, memberId);
+
+        if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
+        {
+            GroupMemberCommandInstance.RemoveMember(memberId, source.GroupId);
+            CouplesOperator.RemoveCouple(memberId, source.GroupId);
+            return false;
+        }
+
+        var nickname = memberInformation.GroupNickname == ""
+            ? memberInformation.Nickname
+            : memberInformation.GroupNickname;
+
+        SendMessage(source,
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
+            $"您的对象是 {nickname} ({memberId}) ！"
+        ]);
+
+        return true;
+    }
+
+    public override void Unload()
+    {
+        CouplesOperator.Save();
+        Program.Logger.LogInformation("Couple data have been saved");
+    }
+
     public static class CouplesOperator
     {
-        public class Couple(long groomId, long brideId)
-        {
-            public long GroomId { get; } = groomId;
-            public long BrideId { get; } = brideId;
-
-            public override bool Equals(object obj)
-            {
-                return obj is Couple other && ((other.GroomId == GroomId && other.BrideId == BrideId) ||
-                                               (other.GroomId == BrideId && other.BrideId == GroomId));
-            }
-
-            public override int GetHashCode()
-            {
-                var max = Math.Max(GroomId, BrideId);
-                var min = Math.Min(GroomId, BrideId);
-
-                return HashCode.Combine(min, max);
-            }
-        }
-
-        public class CouplesInGroup(long groupId)
-        {
-            public long GroupId { get; } = groupId;
-            
-            public readonly HashSet<Couple> Couples = [];
-            
-            public override bool Equals(object obj)
-            {
-                return obj is CouplesInGroup other && other.GroupId == GroupId;
-            }
-
-            public override int GetHashCode()
-            {
-                return GroupId.GetHashCode();
-            }
-        }
-
-        public static readonly HashSet<CouplesInGroup> CouplesInGroupSet = File.Exists(Path.Combine(AppContext.BaseDirectory, "data/couples.json"))
-            ? JsonConvert.DeserializeObject<HashSet<CouplesInGroup>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,
-                "data/couples.json")))
-            : [];
+        public static readonly HashSet<CouplesInGroup> CouplesInGroupSet =
+            File.Exists(Path.Combine(AppContext.BaseDirectory, "data/couples.json"))
+                ? JsonConvert.DeserializeObject<HashSet<CouplesInGroup>>(File.ReadAllText(Path.Combine(
+                    AppContext.BaseDirectory,
+                    "data/couples.json")))
+                : [];
 
         public static Couple GetCouple(long id, long groupId)
         {
@@ -66,7 +111,7 @@ public class MarryCommand : MemberCommandBase
                 return null;
 
             var couples = couplesInGroup.Couples;
-            
+
             foreach (var couple in couples)
             {
                 if (couple.GroomId == id)
@@ -95,7 +140,7 @@ public class MarryCommand : MemberCommandBase
             }
 
             var couples = couplesInGroup.Couples;
-            
+
             couples.Add(new Couple(groomId, brideId));
         }
 
@@ -105,7 +150,7 @@ public class MarryCommand : MemberCommandBase
                 return false;
 
             var couples = couplesInGroup.Couples;
-            
+
             foreach (var couple in couples)
                 if (couple.GroomId == id || couple.BrideId == id)
                     return couples.Remove(couple);
@@ -119,7 +164,7 @@ public class MarryCommand : MemberCommandBase
                 return false;
 
             var couples = couplesInGroup.Couples;
-            
+
             foreach (var couple in couples)
                 if (couple.GroomId == id || couple.BrideId == id)
                     return true;
@@ -136,83 +181,41 @@ public class MarryCommand : MemberCommandBase
         {
             CouplesInGroupSet.Clear();
         }
-    }
 
-    public MarryCommand()
-    {
-        CommandHead = new Regex("^娶|^嫁");
-        DirectCommandHead = new Regex("^娶|^嫁");
-        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("marry", "1");
-    }
-
-    public override void Initialize()
-    {
-        Program.DateChanged += Refresh;
-    }
-
-    private void Refresh(object sender, EventArgs e)
-    {
-        CouplesOperator.Refresh();
-    }
-
-    public override void Parse(CqGroupMessagePostContext source)
-    {
-        var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
-        if (couple == null)
+        public class Couple(long groomId, long brideId)
         {
-            if (!MemberCommandInstance.Groups.TryGetValue(new MemberCommand.Group(source.GroupId),
-                    out var group) || group.Members.Count - CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
+            public long GroomId { get; } = groomId;
+            public long BrideId { get; } = brideId;
+
+            public override bool Equals(object obj)
             {
-                MemberNotEnoughErrorHelp(source);
-                return;
+                return obj is Couple other && ((other.GroomId == GroomId && other.BrideId == BrideId) ||
+                                               (other.GroomId == BrideId && other.BrideId == GroomId));
             }
-            
-            var memberArray = group.Members.ToArray();
 
-            var i = new Random().Next(0, group.Members.Count);
+            public override int GetHashCode()
+            {
+                var max = Math.Max(GroomId, BrideId);
+                var min = Math.Min(GroomId, BrideId);
 
-            while (memberArray[i].Id == source.Sender.UserId || CouplesOperator.IsMarried(memberArray[i].Id, source.GroupId))
-                i = new Random().Next(0, group.Members.Count);
-
-            var memberId = memberArray[i].Id;
-            CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
-
-            Parse(source);
-            return;
+                return HashCode.Combine(min, max);
+            }
         }
 
-        if (!SendMessage(couple.BrideId, source))
-            Parse(source);
-    }
-
-    private bool SendMessage(long memberId, CqGroupMessagePostContext source)
-    {
-        var memberInformation = Program.Session.GetGroupMemberInformation(source.GroupId, memberId);
-
-        if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
+        public class CouplesInGroup(long groupId)
         {
-            MemberCommandInstance.RemoveMember(memberId, source.GroupId);
-            CouplesOperator.RemoveCouple(memberId, source.GroupId);
-            return false;
+            public readonly HashSet<Couple> Couples = [];
+            public long GroupId { get; } = groupId;
+
+            public override bool Equals(object obj)
+            {
+                return obj is CouplesInGroup other && other.GroupId == GroupId;
+            }
+
+            public override int GetHashCode()
+            {
+                return GroupId.GetHashCode();
+            }
         }
-
-        var nickname = memberInformation.GroupNickname == ""
-            ? memberInformation.Nickname
-            : memberInformation.GroupNickname;
-
-        Program.Session.SendGroupMessage(source.GroupId,
-        [
-            new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
-            $"您的对象是 {nickname} ({memberId}) ！"
-        ]);
-
-        return true;
-    }
-
-    public override void Unload()
-    {
-        CouplesOperator.Save();
-        Program.Logger.LogInformation("Couple data have been saved");
     }
 }

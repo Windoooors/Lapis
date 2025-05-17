@@ -1,26 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Message;
-using EleCho.GoCqHttpSdk.Post;
-using LapisBot.GroupCommands;
-using LapisBot.Settings;
+﻿using EleCho.GoCqHttpSdk.Post;
+using LapisBot.UniversalCommands;
 
 namespace LapisBot;
 
-public class GroupCommand
+public class GroupCommand : Command
 {
-    public List<GroupCommand> SubCommands = [];
-
-    public SettingsIdentifierPair ActivationSettingsSettingsIdentifier { get; set; } = new();
-    public Regex CommandHead;
-    public Regex DirectCommandHead;
-
-    public virtual void Initialize()
-    {
-    }
-
     public virtual void Parse(CqGroupMessagePostContext source)
     {
         HelpCommand.Instance.Parse(source);
@@ -33,29 +17,5 @@ public class GroupCommand
 
     public virtual void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-    }
-
-    public virtual void Unload()
-    {
-    }
-
-    public void StartUnloading()
-    {
-        foreach (var command in SubCommands)
-        {
-            command.StartUnloading();
-        }
-        
-        Unload();
-    }
-
-    public void StartInitializing()
-    {
-        Initialize();
-
-        foreach (var command in SubCommands)
-        {
-            command.StartInitializing();
-        }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -20,8 +19,6 @@ public class AddCommand : AliasCommandBase
         DirectCommandHead = new Regex("^添加别名");
 
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("aliasadd", "1");
-
-        MaiCommandInstance.AddCommand = this;
     }
 
     public override void Initialize()
@@ -30,7 +27,7 @@ public class AddCommand : AliasCommandBase
             LocalAlias.Instance.AliasCollection.Aliases =
                 JsonConvert.DeserializeObject<List<Alias>>(
                     File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data/local_aliases.json")));
-        
+
         foreach (var alias in MaiCommandInstance.SongAliases)
         {
             var localAlias = LocalAlias.Instance;
@@ -61,7 +58,7 @@ public class AddCommand : AliasCommandBase
 
             if (songIndicatorString == null)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("添加失败！找不到歌曲！")
@@ -76,7 +73,7 @@ public class AddCommand : AliasCommandBase
 
             if (matchedSongs.Length > 1)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg(GetMultiAliasesMatchedInformationString(matchedSongs, "alias add",
                         intendedAliasString, "添加别名"))
@@ -87,7 +84,7 @@ public class AddCommand : AliasCommandBase
 
             if (intendedAliasString == "")
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("没有别名吗...那我怎么知道要添加什么啊喵！") //喵
@@ -97,7 +94,7 @@ public class AddCommand : AliasCommandBase
             {
                 if (matchedSongs.Length == 0)
                 {
-                    Program.Session.SendGroupMessageAsync(source.GroupId,
+                    SendMessage(source,
                     [
                         new CqReplyMsg(source.MessageId),
                         new CqTextMsg("添加失败！找不到歌曲！")
@@ -105,7 +102,7 @@ public class AddCommand : AliasCommandBase
                 }
                 else if (matchedSongs.Length > 1)
                 {
-                    Program.Session.SendGroupMessageAsync(source.GroupId, [
+                    SendMessage(source, [
                         new CqReplyMsg(source.MessageId),
                         new CqTextMsg(GetMultiAliasesMatchedInformationString(matchedSongs, "alias add",
                             intendedAliasString, "添加别名"))
@@ -121,7 +118,7 @@ public class AddCommand : AliasCommandBase
                                       LocalAlias.Instance.Add(id, intendedAliasString);
                         if (success)
                         {
-                            Program.Session.SendGroupMessageAsync(source.GroupId,
+                            SendMessage(source,
                             [
                                 new CqReplyMsg(source.MessageId),
                                 new CqTextMsg("添加成功！")
@@ -130,7 +127,7 @@ public class AddCommand : AliasCommandBase
                         }
                         else
                         {
-                            Program.Session.SendGroupMessageAsync(source.GroupId,
+                            SendMessage(source,
                             [
                                 new CqReplyMsg(source.MessageId),
                                 new CqTextMsg("已存在此别名")
@@ -141,7 +138,7 @@ public class AddCommand : AliasCommandBase
                     task.whenConfirm = action;
                     task.whenCancel = () =>
                     {
-                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                        SendMessage(source,
                             new CqMessage
                             {
                                 new CqReplyMsg(source.MessageId),
@@ -151,7 +148,7 @@ public class AddCommand : AliasCommandBase
                     var success = TaskHandleQueue.Singleton.AddTask(task);
 
                     if (success)
-                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                        SendMessage(source,
                         [
                             new CqReplyMsg(source.MessageId),
                             new CqTextMsg(
@@ -159,7 +156,7 @@ public class AddCommand : AliasCommandBase
                                 + "\n发送 \"l handle confirm\" 以确认，发送 \"l handle cancel\" 以取消")
                         ]);
                     else
-                        Program.Session.SendGroupMessageAsync(source.GroupId,
+                        SendMessage(source,
                         [
                             new CqReplyMsg(source.MessageId),
                             new CqTextMsg("当前已有代办事项！请处理后再试！")
@@ -169,7 +166,7 @@ public class AddCommand : AliasCommandBase
         }
         else
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("没有参数吗...那我怎么知道要添加什么啊喵！")

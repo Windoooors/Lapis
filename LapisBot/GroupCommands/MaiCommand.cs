@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.GroupCommands.MaiCommands;
 using LapisBot.GroupCommands.MaiCommands.AliasCommands;
 using LapisBot.Operations.ApiOperation;
+using LapisBot.UniversalCommands;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -35,6 +38,24 @@ public abstract class MaiCommandBase : GroupCommand
     }
 
     protected static MaiCommand MaiCommandInstance;
+
+    protected void DivingFishErrorHelp(CqGroupMessagePostContext source)
+    {
+        SendMessage(source,
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg("与水鱼网通信时出现问题")
+        ]);
+    }
+
+    protected void UnboundErrorHelp(CqGroupMessagePostContext source)
+    {
+        SendMessage(source,
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
+        ]);
+    }
 
     public string GetMultiAliasesMatchedInformationString(SongDto[] songs, string command, string functionString)
     {
@@ -221,7 +242,6 @@ public class MaiCommand : MaiCommandBase
     private ChartStatisticsDto _chartStatistics;
 
     public List<Alias> SongAliases = [];
-    public AddCommand AddCommand;
     public SongDto[] Songs;
 
     public MaiCommand()
@@ -237,9 +257,9 @@ public class MaiCommand : MaiCommandBase
             new LettersCommand(),
             new GuessCommand(),
             new PlateCommand(),
-            new BindCommand(),
             new UpdateCommand(),
-            new SearchCommand()
+            new SearchCommand(),
+            new BindCommand()
         ];
     }
 
@@ -470,13 +490,67 @@ public class MaiCommand : MaiCommandBase
 
     private void Start()
     {
-        _chartStatistics =
-            JsonConvert.DeserializeObject<ChartStatisticsDto>(
-                ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
-                    "api/maimaidxprober/chart_stats"));
+        try
+        {
+            var responseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/chart_stats", 60);
+            _chartStatistics =
+                JsonConvert.DeserializeObject<ChartStatisticsDto>(responseContent);
+        }
+        catch (Exception ex)
+        {
+            Program.Logger.LogWarning(
+                ex.InnerException is TaskCanceledException or HttpRequestException
+                    ? "Error occurred when trying to get chart statistics from DivingFish, check if DivingFish URL is correct."
+                    : "Unknown error occurred when trying to get chart statistics from DivingFish."
+            );
+            _chartStatistics = new ChartStatisticsDto();
+        }
 
-        var aliasDto =
-            JsonConvert.DeserializeObject<AliasDto>(ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl));
+        try
+        {
+            Songs = (SongDto[])JsonConvert.DeserializeObject(
+                ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/music_data", 60),
+                typeof(SongDto[]));
+        }
+        catch (Exception ex)
+        {
+            Program.Logger.LogWarning(
+                ex.InnerException is TaskCanceledException or HttpRequestException
+                    ? "Error occurred when trying to get song metadata from DivingFish, check if DivingFish URL is correct."
+                    : "Unknown error occurred when trying to get song metadata from DivingFish."
+            );
+
+            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
+            Start();
+            return;
+        }
+
+        if (Songs == null)
+        {
+            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
+            Start();
+            return;
+        }
+
+        AliasDto aliasDto;
+
+        try
+        {
+            aliasDto =
+                JsonConvert.DeserializeObject<AliasDto>(
+                    ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 60));
+        }
+        catch (Exception ex)
+        {
+            Program.Logger.LogWarning(
+                ex.InnerException is TaskCanceledException or HttpRequestException
+                    ? "Error occurred when trying to get alias data from SakuraBot, check if alias URL is correct."
+                    : "Unknown error occurred when trying to get alias data from SakuraBot."
+            );
+
+            aliasDto = new AliasDto { Content = [] };
+        }
 
         SongAliases = aliasDto.Content.ToList();
 
@@ -492,17 +566,6 @@ public class MaiCommand : MaiCommandBase
 
                 foreach (var invalidAlias in invalidAliasStrings) alias.Aliases.Remove(invalidAlias);
             }
-
-        Songs = (SongDto[])JsonConvert.DeserializeObject(
-            ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/music_data"),
-            typeof(SongDto[]));
-
-        if (Songs == null)
-        {
-            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
-            Start();
-            return;
-        }
 
         foreach (var song in Songs)
         {

@@ -9,6 +9,7 @@ using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.Settings;
+using LapisBot.UniversalCommands;
 
 namespace LapisBot.GroupCommands.VocabularyCommands;
 
@@ -90,7 +91,7 @@ public class GuessWordsCommand : VocabularyCommandBase
         stringBuilder.AppendLine("提示：");
         stringBuilder.Append(text);
 
-        Program.Session.SendGroupMessageAsync(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(stringBuilder.ToString())
         ]);
@@ -108,13 +109,13 @@ public class GuessWordsCommand : VocabularyCommandBase
         stringBuilder.Remove(stringBuilder.Length - 1, 1);
 
         if (messageId != 0)
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+            Program.Session.SendGroupMessage(long.Parse(groupId),
             [
                 new CqReplyMsg(messageId),
                 new CqTextMsg(stringBuilder.ToString())
             ]);
         else
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+            Program.Session.SendGroupMessage(long.Parse(groupId),
             [
                 new CqTextMsg(stringBuilder.ToString())
             ]);
@@ -140,7 +141,7 @@ public class GuessWordsCommand : VocabularyCommandBase
                                                      "resource/vocabulary/")[0]), string.Empty)
                                          + " 词库开始游戏";
 
-        Program.Session.SendGroupMessageAsync(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(text)
         ]);
@@ -152,7 +153,7 @@ public class GuessWordsCommand : VocabularyCommandBase
         {
             if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [
+                SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("没有游戏正在进行喔！发送指令 \"l word 1\" 即可开启新一轮的游戏")
                 ]);
@@ -183,7 +184,7 @@ public class GuessWordsCommand : VocabularyCommandBase
     {
         if (_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps word answer\"")
             ]);
@@ -204,7 +205,7 @@ public class GuessWordsCommand : VocabularyCommandBase
         _guessingGroupsMap.Add(source.GroupId.ToString(),
             (word, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
 
-        Program.Session.SendGroupMessageAsync(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(stringBuilder.ToString())
         ]);

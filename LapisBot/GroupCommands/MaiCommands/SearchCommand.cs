@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -88,7 +87,7 @@ public class SearchCommand : MaiCommandBase
             stringBuilder = new StringBuilder("未找到歌曲");
         }
 
-        Program.Session.SendGroupMessageAsync(source.GroupId,
+        SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(stringBuilder.ToString())

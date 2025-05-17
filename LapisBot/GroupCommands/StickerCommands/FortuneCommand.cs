@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.Operations.ImageOperation;
 using LapisBot.Settings;
+using LapisBot.UniversalCommands;
 
 namespace LapisBot.GroupCommands.StickerCommands;
 
@@ -69,8 +69,8 @@ public class FortuneCommand : StickerCommandBase
 
             image.DrawText(command, new Color(0.6f, 0, 0, 1), fontSize, FontWeight.Regular,
                 HorizontalAlignment.Center, 233, top);
-            
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+
+            SendMessage(source, new CqMessage
                 { new CqImageMsg("base64://" + image.ToBase64()) });
             image.Dispose();
             return;

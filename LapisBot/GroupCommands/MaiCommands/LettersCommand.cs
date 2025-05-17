@@ -158,12 +158,12 @@ public class LettersCommand : MaiCommandBase
         var text = gameOver ? $"{title}\n{songNames}" : $"{songNames}\n已开字母：{string.Join(", ", songs.GuessedLetters)}";
 
         if (messageId != 0)
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
+            Program.Session.SendGroupMessage(long.Parse(groupId), [
                 new CqReplyMsg(messageId),
                 new CqTextMsg(text)
             ]);
         else
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId), [
+            Program.Session.SendGroupMessage(long.Parse(groupId), [
                 new CqTextMsg(text)
             ]);
     }
@@ -178,7 +178,7 @@ public class LettersCommand : MaiCommandBase
             messageStringBuilder.AppendLine("要开字母 a，请发送指令 \"开 a\"");
             messageStringBuilder.Append("要猜编号为 \\\"1\\\" 的歌曲为 [SD] LUCIA, 请发送指令 \\\"1.LUCIA\\\"");
 
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(messageStringBuilder.ToString())
             ]);
@@ -221,7 +221,7 @@ public class LettersCommand : MaiCommandBase
 
         songNamesStringBuilder.Remove(songNamesStringBuilder.Length - 1, 1);
 
-        Program.Session.SendGroupMessageAsync(source.GroupId,
+        SendMessage(source,
             [$"{titleStringBuilder}{songNamesStringBuilder}"]);
 
         _guessingGroupsMap.Add(source.GroupId.ToString(),
@@ -260,7 +260,7 @@ public class LettersCommand : MaiCommandBase
 
             if (keyWordDateTimePair.Item1 == null)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                     [new CqReplyMsg(source.MessageId), "现在没有正在进行的舞萌开字母游戏！"]);
                 return;
             }
@@ -270,7 +270,7 @@ public class LettersCommand : MaiCommandBase
         }
         else
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
+            SendMessage(source, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
             return;
         }
 
@@ -289,7 +289,7 @@ public class LettersCommand : MaiCommandBase
             var targetLetter = command.Replace("开 ", "");
             if (targetLetter == "" || targetLetter.Length > 1)
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
+                SendMessage(source, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
                 return;
             }
 
@@ -309,14 +309,14 @@ public class LettersCommand : MaiCommandBase
         var index = int.Parse(new Regex("^[1-9][0-9]|^[1-9]").Match(command).ToString());
         if (index > 15 || index < 1)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
+            SendMessage(source, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
             return;
         }
 
         var songIndicator = indexPattern.Replace(command, "");
         if (songIndicator == "")
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
+            SendMessage(source, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
             return;
         }
 
@@ -324,7 +324,7 @@ public class LettersCommand : MaiCommandBase
 
         if (songs == null)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
+            SendMessage(source, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
             return;
         }
 
@@ -335,7 +335,7 @@ public class LettersCommand : MaiCommandBase
 
             if (keyValuePair.Item1.GuessedSongs.Contains(song))
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId), "该歌曲已经被开出"
                 ]);
@@ -350,7 +350,7 @@ public class LettersCommand : MaiCommandBase
                 return;
             }
 
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId), $"开出歌曲：\"{song.Title}\" [{song.Type.ToUpper()}]"
             ]);
@@ -358,7 +358,7 @@ public class LettersCommand : MaiCommandBase
             return;
         }
 
-        Program.Session.SendGroupMessageAsync(source.GroupId, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
+        SendMessage(source, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
     }
 
     private class SongList

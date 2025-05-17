@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -29,7 +28,7 @@ public class AboutCommand : GroupCommand
             262.48f);
         image.DrawText("Version " + Assembly.GetAssembly(GetType()).GetName().Version, Color.White, 22,
             FontWeight.Regular, 20.49f, 325f);
-        Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+        SendMessage(source, new CqMessage
         {
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + image.ToBase64())

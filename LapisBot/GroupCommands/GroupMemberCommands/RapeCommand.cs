@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
@@ -11,7 +10,7 @@ using LapisBot.Settings;
 
 namespace LapisBot.GroupCommands.GroupMemberCommands;
 
-public class RapeCommand : MemberCommandBase
+public class RapeCommand : GroupMemberCommandBase
 {
     public RapeCommand()
     {
@@ -26,7 +25,7 @@ public class RapeCommand : MemberCommandBase
 
         if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
         {
-            MemberCommandInstance.RemoveMember(memberId, source.GroupId);
+            GroupMemberCommandInstance.RemoveMember(memberId, source.GroupId);
             return false;
         }
 
@@ -34,7 +33,7 @@ public class RapeCommand : MemberCommandBase
             ? memberInformation.Nickname
             : memberInformation.GroupNickname;
 
-        Program.Session.SendGroupMessage(source.GroupId,
+        SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
@@ -50,7 +49,7 @@ public class RapeCommand : MemberCommandBase
 
         if (id == source.Sender.UserId)
         {
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId), "哇 还有水仙"
             ]);
             return;
@@ -58,17 +57,17 @@ public class RapeCommand : MemberCommandBase
 
         if (id == BotConfiguration.Instance.BotQqNumber)
         {
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId), "🥺"
             ]);
             return;
         }
 
-        if (!MemberCommandInstance.Groups.TryGetValue(new MemberCommand.Group(source.GroupId),
+        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                 out var group))
             return;
 
-        if (group.Members.Contains(new MemberCommand.GroupMember(id)))
+        if (group.Members.Contains(new GroupMemberCommand.GroupMember(id)))
         {
             if (!SendMessage(id, source)) ParseWithArgument(command, source);
         }
@@ -80,7 +79,7 @@ public class RapeCommand : MemberCommandBase
 
     public override void Parse(CqGroupMessagePostContext source)
     {
-        if (!MemberCommandInstance.Groups.TryGetValue(new MemberCommand.Group(source.GroupId),
+        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                 out var group) || group.Members.Count <= 1)
         {
             MemberNotEnoughErrorHelp(source);

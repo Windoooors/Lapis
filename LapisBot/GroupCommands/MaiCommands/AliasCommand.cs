@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -68,7 +67,7 @@ public class AliasCommand : AliasCommandBase
 
         if (songs == null)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("不存在该歌曲")
@@ -78,7 +77,7 @@ public class AliasCommand : AliasCommandBase
 
         if (songs.Length == 1)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(GetAliasesInText(MaiCommandInstance.GetAliasById(songs[0].Id)))
@@ -86,7 +85,7 @@ public class AliasCommand : AliasCommandBase
             return;
         }
 
-        Program.Session.SendGroupMessageAsync(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(GetMultiAliasesMatchedInformationString(songs, "alias", "别称"))
         ]);

@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using LapisBot.GroupCommands.StickerCommands;
 
 namespace LapisBot.GroupCommands;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
@@ -9,6 +10,7 @@ using EleCho.GoCqHttpSdk.Post;
 using LapisBot.ImageGenerators;
 using LapisBot.Operations.ApiOperation;
 using LapisBot.Settings;
+using LapisBot.UniversalCommands;
 using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands.MaiCommands;
@@ -103,124 +105,137 @@ public class PlateCommand : MaiCommandBase
     {
         if (command == "真将" || command == "")
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("未找到该姓名框")
             ]);
             return;
         }
 
+        var jiRegex = new Regex("极$");
+        var jiangRegex = new Regex("将$");
+        var shenRegex = new Regex("神$");
+        var wuwuRegex = new Regex("舞舞$");
+        var bazheRegex = new Regex("^霸者$");
+
+        string userName;
         try
         {
-            var jiRegex = new Regex("极$");
-            var jiangRegex = new Regex("将$");
-            var shenRegex = new Regex("神$");
-            var wuwuRegex = new Regex("舞舞$");
-            var bazheRegex = new Regex("^霸者$");
-
-            var userName = JsonConvert.DeserializeObject<BestDto>(ApiOperator.Instance.Post(
+            userName = JsonConvert.DeserializeObject<BestDto>(ApiOperator.Instance.Post(
                 BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/query/player",
                 new { qq = source.Sender.UserId })).Username;
-
-            var versionCharacter =
-                wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, ""), ""), ""), "");
-
-            Characters.TryGetValue(versionCharacter, out var versionCharacterInJapanese);
-
-            if (versionCharacterInJapanese != null)
-                versionCharacter = versionCharacterInJapanese;
-
-            _plateToVersion.TryGetValue(versionCharacter, out var singleVersion);
-
-            string[] version = { singleVersion };
-
-            var plateVersionIndex = _plateToVersion.Keys.ToList().IndexOf(versionCharacter);
-
-            if (command == "霸者" || command.StartsWith("舞"))
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
             {
-                version =
-                [
-                    "maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS", "maimai ORANGE",
-                    "maimai ORANGE PLUS",
-                    "maimai PiNK", "maimai PiNK PLUS", "maimai MURASAKi", "maimai MURASAKi PLUS", "maimai MiLK",
-                    "maimai MiLK PLUS",
-                    "maimai FiNALE"
-                ];
-                plateVersionIndex = 12;
-            }
-            else if (command.StartsWith("真"))
-            {
-                version =
-                [
-                    "maimai", "maimai PLUS"
-                ];
+                DivingFishErrorHelp(source);
+                return;
             }
 
-            ScoresDto scores;
-            if (!(command == "霸者" || command.StartsWith("舞")))
+            UnboundErrorHelp(source);
+            return;
+        }
+
+        var versionCharacter =
+            wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, ""), ""), ""), "");
+
+        Characters.TryGetValue(versionCharacter, out var versionCharacterInJapanese);
+
+        if (versionCharacterInJapanese != null)
+            versionCharacter = versionCharacterInJapanese;
+
+        _plateToVersion.TryGetValue(versionCharacter, out var singleVersion);
+
+        string[] version = { singleVersion };
+
+        var plateVersionIndex = _plateToVersion.Keys.ToList().IndexOf(versionCharacter);
+
+        if (command == "霸者" || command.StartsWith("舞"))
+        {
+            version =
+            [
+                "maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS", "maimai ORANGE",
+                "maimai ORANGE PLUS",
+                "maimai PiNK", "maimai PiNK PLUS", "maimai MURASAKi", "maimai MURASAKi PLUS", "maimai MiLK",
+                "maimai MiLK PLUS",
+                "maimai FiNALE"
+            ];
+            plateVersionIndex = 12;
+        }
+        else if (command.StartsWith("真"))
+        {
+            version =
+            [
+                "maimai", "maimai PLUS"
+            ];
+        }
+
+        ScoresDto scores;
+        if (!(command == "霸者" || command.StartsWith("舞")))
+        {
+            var content = "";
+            try
             {
-                var content = "";
                 content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/plate",
                     new { username = "maxscore", version });
-                scores = JsonConvert.DeserializeObject<ScoresDto>(content);
             }
-            else
+            catch (Exception ex)
             {
-                var list = new List<ScoresDto.ScoreDto>();
-                foreach (var song in MaiCommandInstance.Songs)
-                    if (song.Id < 1000)
-                        for (var i = 0; i < song.Ratings.Length; i++)
-                            list.Add(new ScoresDto.ScoreDto
-                                { Id = song.Id, LevelIndex = i });
+                if (ex.InnerException is TaskCanceledException or HttpRequestException)
+                {
+                    DivingFishErrorHelp(source);
+                    return;
+                }
 
-                scores = new ScoresDto { ScoreDtos = list.ToArray() };
+                UnboundErrorHelp(source);
+                return;
             }
 
-            var scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+            scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+        }
+        else
+        {
+            var list = new List<ScoresDto.ScoreDto>();
+            foreach (var song in MaiCommandInstance.Songs)
+                if (song.Id < 1000)
+                    for (var i = 0; i < song.Ratings.Length; i++)
+                        list.Add(new ScoresDto.ScoreDto
+                            { Id = song.Id, LevelIndex = i });
+
+            scores = new ScoresDto { ScoreDtos = list.ToArray() };
+        }
+
+        ScoresDto scoresInReality;
+
+        try
+        {
+            scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
                 BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/query/plate",
                 new { qq = source.Sender.UserId, version }));
-
-            var songsToBeDisplayed = new List<SongToBeDisplayed>();
-
-            foreach (var score in scores.ScoreDtos)
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
             {
-                var song = MaiCommandInstance.GetSong(score.Id);
-                if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.6f)
-                {
-                    var scoreDto = new ScoresDto.ScoreDto();
-                    foreach (var realScore in scoresInReality.ScoreDtos)
-                        if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
-                            scoreDto = realScore;
-
-                    if (_excludedSongs.Contains(song.Id))
-                        if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
-                            continue;
-
-                    if (command == "霸者" || command.StartsWith("舞"))
-                    {
-                        if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
-                            songsToBeDisplayed.Add(new SongToBeDisplayed
-                                { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
-                        else if (score.LevelIndex != 4)
-                            songsToBeDisplayed.Add(new SongToBeDisplayed
-                                { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
-                    }
-                    else if (score.LevelIndex != 4)
-                    {
-                        songsToBeDisplayed.Add(new SongToBeDisplayed
-                            { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
-                    }
-                }
+                DivingFishErrorHelp(source);
+                return;
             }
 
-            var allSongs = new List<SongToBeDisplayed>();
+            UnboundErrorHelp(source);
+            return;
+        }
 
-            foreach (var score in scores.ScoreDtos)
+        var songsToBeDisplayed = new List<SongToBeDisplayed>();
+
+        foreach (var score in scores.ScoreDtos)
+        {
+            var song = MaiCommandInstance.GetSong(score.Id);
+            if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.6f)
             {
-                var song = MaiCommandInstance.GetSong(score.Id);
                 var scoreDto = new ScoresDto.ScoreDto();
                 foreach (var realScore in scoresInReality.ScoreDtos)
                     if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
@@ -233,53 +248,92 @@ public class PlateCommand : MaiCommandBase
                 if (command == "霸者" || command.StartsWith("舞"))
                 {
                     if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
-                        allSongs.Add(new SongToBeDisplayed
+                        songsToBeDisplayed.Add(new SongToBeDisplayed
                             { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
                     else if (score.LevelIndex != 4)
-                        allSongs.Add(new SongToBeDisplayed
+                        songsToBeDisplayed.Add(new SongToBeDisplayed
                             { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
                 }
                 else if (score.LevelIndex != 4)
                 {
-                    allSongs.Add(new SongToBeDisplayed
+                    songsToBeDisplayed.Add(new SongToBeDisplayed
                         { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
                 }
             }
+        }
 
-            var category = PlateCategories.Ji;
+        var allSongs = new List<SongToBeDisplayed>();
 
-            if (jiRegex.IsMatch(command))
-                category = PlateCategories.Ji;
-            if (jiangRegex.IsMatch(command))
-                category = PlateCategories.Jiang;
-            if (shenRegex.IsMatch(command))
-                category = PlateCategories.Shen;
-            if (wuwuRegex.IsMatch(command))
-                category = PlateCategories.Wuwu;
-            if (bazheRegex.IsMatch(command))
-                category = PlateCategories.Bazhe;
+        foreach (var score in scores.ScoreDtos)
+        {
+            var song = MaiCommandInstance.GetSong(score.Id);
+            var scoreDto = new ScoresDto.ScoreDto();
+            foreach (var realScore in scoresInReality.ScoreDtos)
+                if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
+                    scoreDto = realScore;
 
-            var isCompressed =
-                SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
+            if (_excludedSongs.Contains(song.Id))
+                if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
+                    continue;
 
+            if (command == "霸者" || command.StartsWith("舞"))
+            {
+                if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
+                    allSongs.Add(new SongToBeDisplayed
+                        { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                else if (score.LevelIndex != 4)
+                    allSongs.Add(new SongToBeDisplayed
+                        { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+            }
+            else if (score.LevelIndex != 4)
+            {
+                allSongs.Add(new SongToBeDisplayed
+                    { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+            }
+        }
+
+        var category = PlateCategories.Ji;
+
+        if (jiRegex.IsMatch(command))
+            category = PlateCategories.Ji;
+        if (jiangRegex.IsMatch(command))
+            category = PlateCategories.Jiang;
+        if (shenRegex.IsMatch(command))
+            category = PlateCategories.Shen;
+        if (wuwuRegex.IsMatch(command))
+            category = PlateCategories.Wuwu;
+        if (bazheRegex.IsMatch(command))
+            category = PlateCategories.Bazhe;
+
+        var isCompressed =
+            SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
+
+        try
+        {
             var image = new PlateImageGenerator().Generate(songsToBeDisplayed, allSongs, userName,
                 MaiCommandInstance,
                 category, source.Sender.UserId.ToString(), true, plateVersionIndex,
                 isCompressed);
 
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + image)
             ]);
         }
-        catch
+        catch (Exception ex)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
-            [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
-            ]);
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+            {
+                SendMessage(source,
+                [
+                    new CqReplyMsg(source.MessageId),
+                    "获取头像时出现错误"
+                ]);
+                return;
+            }
+            
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }
 

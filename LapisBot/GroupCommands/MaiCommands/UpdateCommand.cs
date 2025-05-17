@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
@@ -8,7 +9,7 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.Operations.ApiOperation;
 using LapisBot.Settings;
-using Microsoft.Extensions.Logging;
+using LapisBot.UniversalCommands;
 using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands.MaiCommands;
@@ -29,28 +30,33 @@ public class UpdateCommand : MaiCommandBase
         if (matchedUserBindData == null || matchedUserBindData.AimeId == 0 ||
             matchedUserBindData.DivingFishImportToken == null)
         {
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("您的信息未绑定完全\n请访问 https://setchin.com/lapis/docs/index.html#/maimaiDX/bind 以了解更多")
             ]);
             return;
         }
 
-        var responseString = "";
+        string responseString;
 
         try
         {
             responseString = ApiOperator.Instance.Post(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
                 "get_user_music_data",
-                new UserMusicDataRequestDto(matchedUserBindData.AimeId, MaiCommandInstance.Songs.Last().Id));
+                new UserMusicDataRequestDto(matchedUserBindData.AimeId, MaiCommandInstance.Songs.Last().Id), 60);
         }
         catch (Exception exception)
         {
-            Program.Logger.LogError(exception.Message + "\n" + exception.StackTrace);
-            Program.Session.SendGroupMessage(source.GroupId, [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("出现未处理的错误")
-            ]);
+            if (exception is TaskCanceledException or HttpRequestException)
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("与服务器通信时出现问题")
+                ]);
+                return;
+            }
+            
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
             return;
         }
 
@@ -104,7 +110,7 @@ public class UpdateCommand : MaiCommandBase
                     break;
             }
 
-            var song = new SongDto();
+            SongDto song;
 
             try
             {
@@ -144,26 +150,27 @@ public class UpdateCommand : MaiCommandBase
 
             if (uploadResponse.Status == "error")
             {
-                Program.Session.SendGroupMessage(source.GroupId, [
+                SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户")
                 ]);
                 return;
             }
 
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg($"更新成功！\n本次一共更新了 {musicDataList.Count} 张谱面的数据")
             ]);
         }
         catch (Exception exception)
         {
-            Program.Logger.LogError(exception.Message + "\n" + exception.StackTrace);
+            if (exception is TaskCanceledException or HttpRequestException)
+            {
+                DivingFishErrorHelp(source);
+                return;
+            }
 
-            Program.Session.SendGroupMessage(source.GroupId, [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("出现未处理的错误")
-            ]);
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }
 
@@ -193,7 +200,7 @@ public class UpdateCommand : MaiCommandBase
     {
         [JsonProperty("Code")] public int Code;
 
-        [JsonProperty("MusicData")] public RawMusicDataDetailDto[] RawMusicDataDetailArray;
+        [JsonProperty("MusicData")] public RawMusicDataDetailDto[] RawMusicDataDetailArray = [];
     }
 
     private class RawMusicDataDetailDto

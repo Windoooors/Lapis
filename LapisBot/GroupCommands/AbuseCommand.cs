@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -28,7 +27,7 @@ public class AbuseCommand : GroupCommand
         if (source.GroupId == 1078224429)
         {
             var i = new Random().Next(0, _dirtyWordsStrings.Length);
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            SendMessage(source, new CqMessage
             {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(_dirtyWordsStrings[i])
@@ -37,7 +36,7 @@ public class AbuseCommand : GroupCommand
         else
         {
             var i = new Random().Next(0, 5);
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            SendMessage(source, new CqMessage
             {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(_dirtyWordsStrings[i])

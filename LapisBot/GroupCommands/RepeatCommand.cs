@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -18,7 +17,7 @@ public class RepeatCommand : GroupCommand
 
     public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
     {
-        Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+        SendMessage(source, new CqMessage
             { command });
     }
 }

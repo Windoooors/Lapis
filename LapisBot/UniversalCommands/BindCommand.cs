@@ -5,14 +5,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.Operations.ApiOperation;
 using LapisBot.Settings;
 using Newtonsoft.Json;
 
-namespace LapisBot.GroupCommands.MaiCommands;
+namespace LapisBot.UniversalCommands;
 
 public class UserBindData
 {
@@ -21,7 +20,7 @@ public class UserBindData
     public long QqId;
 }
 
-public class BindCommand : MaiCommandBase
+public class BindCommand : UniversalCommand
 {
     public static List<UserBindData> UserBindDataList = new();
 
@@ -40,7 +39,7 @@ public class BindCommand : MaiCommandBase
                     File.ReadAllText($"{AppContext.BaseDirectory}data/bind_data.json")).ToList();
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqMessagePostContext source)
     {
         var wechatArgumentRegex = new Regex(@"wechat\s");
         var divingFishArgumentRegex = new Regex(@"divingfish\s");
@@ -59,14 +58,14 @@ public class BindCommand : MaiCommandBase
         HelpCommand.Instance.ArgumentErrorHelp(source);
     }
 
-    private void BindWeChat(string command, CqGroupMessagePostContext source)
+    private void BindWeChat(string command, CqMessagePostContext source)
     {
-        var matchedUserBindData = UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
+        var matchedUserBindData = UserBindDataList.Find(data => data.QqId == source.UserId);
 
         if (matchedUserBindData == null)
         {
             matchedUserBindData = new UserBindData();
-            matchedUserBindData.QqId = source.Sender.UserId;
+            matchedUserBindData.QqId = source.UserId;
             UserBindDataList.Add(matchedUserBindData);
         }
 
@@ -74,7 +73,7 @@ public class BindCommand : MaiCommandBase
         {
             matchedUserBindData.AimeId = 0;
 
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("解绑成功！")
             ]);
@@ -90,16 +89,17 @@ public class BindCommand : MaiCommandBase
         {
             responseString = ApiOperator.Instance.Post(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
                 "get_aime_id",
-                new AimeIdRequestDto(command));
+                new AimeIdRequestDto(command), 60);
         }
         catch (Exception exception)
         {
-            if (exception is HttpRequestException)
+            if (exception is TaskCanceledException or HttpRequestException)
             {
-                Program.Session.SendGroupMessage(source.GroupId, [
+                SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("与服务器的通信出现问题")
                 ]);
+
                 return;
             }
 
@@ -111,7 +111,7 @@ public class BindCommand : MaiCommandBase
 
         if (response.Code == 101)
         {
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("绑定出现问题，可能是您的二维码已过期")
             ]);
@@ -121,23 +121,23 @@ public class BindCommand : MaiCommandBase
 
         matchedUserBindData.AimeId = response.AimeId;
 
-        Program.Session.SendGroupMessage(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId),
-            new CqTextMsg("绑定成功！\n请及时撤回您的二维码扫描结果或立刻重新获取一个新的二维码")
+            new CqTextMsg("绑定成功！\n请及时撤回您的二维码扫描结果或立刻重新获取一个新的二维码以避免泄漏")
         ]);
 
         File.WriteAllText($"{AppContext.BaseDirectory}data/bind_data.json",
             JsonConvert.SerializeObject(UserBindDataList.ToArray()));
     }
 
-    private void BindDivingFish(string command, CqGroupMessagePostContext source)
+    private void BindDivingFish(string command, CqMessagePostContext source)
     {
-        var matchedUserBindData = UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
+        var matchedUserBindData = UserBindDataList.Find(data => data.QqId == source.UserId);
 
         if (matchedUserBindData == null)
         {
             matchedUserBindData = new UserBindData();
-            matchedUserBindData.QqId = source.Sender.UserId;
+            matchedUserBindData.QqId = source.UserId;
             UserBindDataList.Add(matchedUserBindData);
         }
 
@@ -145,7 +145,7 @@ public class BindCommand : MaiCommandBase
         {
             matchedUserBindData.DivingFishImportToken = null;
 
-            Program.Session.SendGroupMessage(source.GroupId, [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("解绑成功！")
             ]);
@@ -161,9 +161,9 @@ public class BindCommand : MaiCommandBase
         File.WriteAllText($"{AppContext.BaseDirectory}data/bind_data.json",
             JsonConvert.SerializeObject(UserBindDataList.ToArray()));
 
-        Program.Session.SendGroupMessage(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId),
-            new CqTextMsg("绑定成功！\n请及时撤回")
+            new CqTextMsg("绑定成功！\n请及时撤回以避免泄漏")
         ]);
     }
 
@@ -174,7 +174,8 @@ public class BindCommand : MaiCommandBase
 
     private class AimeIdResponseDto
     {
-        public long AimeId;
-        public int Code;
+        [JsonProperty] public long AimeId;
+
+        [JsonProperty] public int Code;
     }
 }

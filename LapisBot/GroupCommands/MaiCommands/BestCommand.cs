@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
@@ -7,7 +8,7 @@ using EleCho.GoCqHttpSdk.Post;
 using LapisBot.ImageGenerators;
 using LapisBot.Operations.ApiOperation;
 using LapisBot.Settings;
-using Microsoft.Extensions.Logging;
+using LapisBot.UniversalCommands;
 using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands.MaiCommands;
@@ -36,19 +37,50 @@ public class BestCommand : MaiCommandBase
         var content = string.Empty;
         BestDto best;
 
-        content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/query/player",
-            new { username = command, b50 = true });
+        try
+        {
+            content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/query/player",
+                new { username = command, b50 = true });
+        }
+        catch (Exception e)
+        {
+            if (e is TaskCanceledException or HttpRequestException)
+            {
+                DivingFishErrorHelp(source);
+                return;
+            }
+
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
+            return;
+        }
+
         best = JsonConvert.DeserializeObject<BestDto>(content);
 
         if (best.Charts == null)
-            content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/player",
-                new { qq = command, b50 = true });
+            try
+            {
+                content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/player",
+                    new { qq = command, b50 = true });
+            }
+            catch (Exception e)
+            {
+                if (e is TaskCanceledException or HttpRequestException)
+                {
+                    DivingFishErrorHelp(source);
+                    return;
+                }
+
+                HelpCommand.Instance.UnexpectedErrorHelp(source);
+                return;
+            }
+
         best = JsonConvert.DeserializeObject<BestDto>(content);
 
         if (best.Charts == null)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("未找到该玩家")
@@ -65,7 +97,7 @@ public class BestCommand : MaiCommandBase
         var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), false,
             isCompressed);
 
-        Program.Session.SendGroupMessageAsync(source.GroupId,
+        SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + image)
@@ -74,19 +106,35 @@ public class BestCommand : MaiCommandBase
 
     public override void Parse(CqGroupMessagePostContext source)
     {
+        string content;
         try
         {
-            var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+            content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/query/player",
                 new { qq = source.Sender.UserId.ToString(), b50 = true });
-            var best = JsonConvert.DeserializeObject<BestDto>(content);
-            TagRatingByScore(best.Charts.SdCharts);
-            TagRatingByScore(best.Charts.DxCharts);
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+            {
+                DivingFishErrorHelp(source);
+                return;
+            }
 
+            UnboundErrorHelp(source);
+            return;
+        }
+
+        var best = JsonConvert.DeserializeObject<BestDto>(content);
+        TagRatingByScore(best.Charts.SdCharts);
+        TagRatingByScore(best.Charts.DxCharts);
+
+        try
+        {
             var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), true,
                 true);
 
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + image)
@@ -94,12 +142,17 @@ public class BestCommand : MaiCommandBase
         }
         catch (Exception ex)
         {
-            Program.Logger.LogError(ex.Source + "\n" + ex.Message + "\n" + ex.StackTrace);
-            Program.Session.SendGroupMessageAsync(source.GroupId,
-            [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
-            ]);
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+            {
+                SendMessage(source,
+                [
+                    new CqReplyMsg(source.MessageId),
+                    "获取头像时出现错误"
+                ]);
+                return;
+            }
+            
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }
 }

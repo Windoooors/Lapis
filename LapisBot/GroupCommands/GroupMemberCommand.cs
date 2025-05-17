@@ -10,20 +10,20 @@ using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands;
 
-public abstract class MemberCommandBase : GroupCommand
+public abstract class GroupMemberCommandBase : GroupCommand
 {
-    protected static MemberCommand MemberCommandInstance;
+    protected static GroupMemberCommand GroupMemberCommandInstance;
 
     protected void MemberNotEnoughErrorHelp(CqGroupMessagePostContext source)
     {
-        Program.Session.SendGroupMessage(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId), "最近发言的人数太少了，Lapis 找不到你的对象 _(:_」∠)_"
         ]);
     }
 
     protected void MemberNotHaveChatErrorHelp(CqGroupMessagePostContext source)
     {
-        Program.Session.SendGroupMessage(source.GroupId, [
+        SendMessage(source, [
             new CqReplyMsg(source.MessageId), "该群友最近未发言！"
         ]);
     }
@@ -34,50 +34,18 @@ public abstract class MemberCommandBase : GroupCommand
     }
 }
 
-public class MemberCommand : MemberCommandBase
+public class GroupMemberCommand : GroupMemberCommandBase
 {
-    public class GroupMember(long id)
-    {
-        public long Id { get; } = id;
-        public int ChatCount { get; set; }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is GroupMember other && Id == other.Id;
-        }
-    }
-
-    public class Group(long groupId)
-    {
-        public readonly long GroupId = groupId;
-        public readonly HashSet<GroupMember> Members = [];
-
-        public override int GetHashCode()
-        {
-            return GroupId.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Group other && GroupId == other.GroupId;
-        }
-    }
-
     public readonly HashSet<Group> Groups =
         File.Exists(Path.Combine(AppContext.BaseDirectory, "data/groups.json"))
             ? JsonConvert.DeserializeObject<HashSet<Group>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,
                 "data/groups.json")))
             : [];
 
-    public MemberCommand()
+    public GroupMemberCommand()
     {
         SubCommands = [new MarryCommand(), new RapeCommand()];
-        MemberCommandInstance = this;
+        GroupMemberCommandInstance = this;
     }
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
@@ -120,5 +88,37 @@ public class MemberCommand : MemberCommandBase
     public override void Unload()
     {
         SaveData();
+    }
+
+    public class GroupMember(long id)
+    {
+        public long Id { get; } = id;
+        public int ChatCount { get; set; }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is GroupMember other && Id == other.Id;
+        }
+    }
+
+    public class Group(long groupId)
+    {
+        public readonly long GroupId = groupId;
+        public readonly HashSet<GroupMember> Members = [];
+
+        public override int GetHashCode()
+        {
+            return GroupId.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Group other && GroupId == other.GroupId;
+        }
     }
 }

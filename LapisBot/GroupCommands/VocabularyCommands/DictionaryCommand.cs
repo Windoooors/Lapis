@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -29,7 +28,7 @@ public class DictionaryCommand : VocabularyCommandBase
 
         if (targetWordItem == null)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+            SendMessage(source, new CqMessage
             {
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("未查询到该词语")
@@ -42,7 +41,7 @@ public class DictionaryCommand : VocabularyCommandBase
             text += translation.Type + "." + translation.Translation + "; \n";
         text = text.TrimEnd();
 
-        Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
+        SendMessage(source, new CqMessage
         {
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(text)

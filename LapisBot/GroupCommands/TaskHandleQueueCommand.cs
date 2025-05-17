@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -21,7 +20,7 @@ public class TaskHandleQueueCommand : GroupCommand
         if (command == "confirm")
         {
             if (TaskHandleQueue.Singleton.IsEmpty())
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                     new CqMessage
                     {
                         new CqTextMsg("没有待处理的消息！")
@@ -32,7 +31,7 @@ public class TaskHandleQueueCommand : GroupCommand
         else if (command == "cancel")
         {
             if (TaskHandleQueue.Singleton.IsEmpty())
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                     new CqMessage
                     {
                         new CqTextMsg("没有待处理的消息！")
@@ -42,7 +41,7 @@ public class TaskHandleQueueCommand : GroupCommand
         }
         else
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
                 new CqMessage
                 {
                     new CqTextMsg("参数错误！应为 \"confirm\" 或 \"cancel\"！")

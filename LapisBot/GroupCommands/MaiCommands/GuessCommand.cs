@@ -53,9 +53,8 @@ public static class AudioEditor
                               "temp/" + id + "/" +
                               startTime.TotalSeconds + ".mp3");
         }
-        catch (Exception ex)
+        catch
         {
-            Console.Write(ex.StackTrace);
             return "";
         }
     }
@@ -106,15 +105,15 @@ public class GuessCommand : MaiCommandBase
             var songIndex = random.Next(0, songs.Length);
             _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
                 [new CqReplyMsg(source.MessageId), new CqTextMsg("试试看吧！Lapis Bot 将在 30s 后公布答案")]);
 
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
                 [new CqRecordMsg("file:///" + AudioEditor.Convert(songs[songIndex].Id))]);
         }
         else
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"")
@@ -130,15 +129,15 @@ public class GuessCommand : MaiCommandBase
             var songIndex = random.Next(0, MaiCommandInstance.Songs.Length);
             _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (MaiCommandInstance.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
                 [new CqReplyMsg(source.MessageId), new CqTextMsg("试试看吧！Lapis Bot 将在 30s 后公布答案")]);
 
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
                 [new CqRecordMsg("file:///" + AudioEditor.Convert(MaiCommandInstance.Songs[songIndex].Id))]);
         }
         else
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai guess answer\"")
@@ -159,10 +158,10 @@ public class GuessCommand : MaiCommandBase
             "谜底", null, isCompressed);
 
         if (messageId == 0)
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+            Program.Session.SendGroupMessage(long.Parse(groupId),
                 [new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
         else
-            Program.Session.SendGroupMessageAsync(long.Parse(groupId),
+            Program.Session.SendGroupMessage(long.Parse(groupId),
                 [new CqReplyMsg(messageId), new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
     }
 
@@ -172,7 +171,7 @@ public class GuessCommand : MaiCommandBase
         {
             if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
-                Program.Session.SendGroupMessageAsync(source.GroupId,
+                SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("没有游戏正在进行喔！发送指令 \"l mai guess\" 即可开启新一轮的游戏")
@@ -192,7 +191,7 @@ public class GuessCommand : MaiCommandBase
 
         if (songs.Length == 0)
         {
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("不支持的等级名称")
@@ -226,7 +225,7 @@ public class GuessCommand : MaiCommandBase
         }
 
         if (passed)
-            Program.Session.SendGroupMessageAsync(source.GroupId,
+            SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("不对哦")
