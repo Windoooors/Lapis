@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.GroupCommands;
 using LapisBot.Settings;
@@ -35,5 +37,25 @@ public class GroupCommand
 
     public virtual void Unload()
     {
+    }
+
+    public void StartUnloading()
+    {
+        foreach (var command in SubCommands)
+        {
+            command.StartUnloading();
+        }
+        
+        Unload();
+    }
+
+    public void StartInitializing()
+    {
+        Initialize();
+
+        foreach (var command in SubCommands)
+        {
+            command.StartInitializing();
+        }
     }
 }

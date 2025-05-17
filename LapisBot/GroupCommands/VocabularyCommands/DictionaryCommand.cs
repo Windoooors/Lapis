@@ -37,11 +37,10 @@ public class DictionaryCommand : VocabularyCommandBase
             return;
         }
 
-        var text = string.Empty;
-        text += "\n查询结果：" + targetWordItem.Word + " ";
+        var text = "查询结果：" + targetWordItem.Word + " ";
         foreach (var translation in targetWordItem.Translations)
             text += translation.Type + "." + translation.Translation + "; \n";
-        text.TrimEnd();
+        text = text.TrimEnd();
 
         Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
         {

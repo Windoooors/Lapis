@@ -143,13 +143,11 @@ public class InfoImageGenerator
                 else
                     fsIndicatorText = level.Fs.ToUpper();
 
-                var indicatorText = string.Empty;
-                if (fcIndicatorText != string.Empty)
-                    indicatorText = fcIndicatorText + " " + fsIndicatorText;
-                else
-                    indicatorText = fsIndicatorText;
+                var indicatorText = fcIndicatorText != string.Empty
+                    ? fcIndicatorText + " " + fsIndicatorText
+                    : fsIndicatorText;
                 if (indicatorText.Length != 0)
-                    indicatorText.TrimEnd();
+                    indicatorText = indicatorText.TrimEnd();
 
                 if (indicatorText == string.Empty)
                     continue;

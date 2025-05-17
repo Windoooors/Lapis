@@ -30,6 +30,20 @@ public class AddCommand : AliasCommandBase
             LocalAlias.Instance.AliasCollection.Aliases =
                 JsonConvert.DeserializeObject<List<Alias>>(
                     File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data/local_aliases.json")));
+        
+        foreach (var alias in MaiCommandInstance.SongAliases)
+        {
+            var localAlias = LocalAlias.Instance;
+            foreach (var e1 in localAlias.GetIds())
+            {
+                if (e1 != alias.Id)
+                    continue;
+                var a = LocalAlias.Instance.Get(e1);
+                foreach (var aliasString in a)
+                    if (alias.Aliases.Contains(aliasString))
+                        alias.Aliases.Remove(aliasString);
+            }
+        }
     }
 
     private static void Save()

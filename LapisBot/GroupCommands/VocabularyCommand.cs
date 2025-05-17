@@ -48,12 +48,5 @@ public class VocabularyCommand : VocabularyCommandBase
             var jsonString = File.ReadAllText(file);
             Vocabularies.Add(new Vocabulary { Words = JsonConvert.DeserializeObject<WordDto[]>(jsonString) });
         }
-
-        foreach (var command in SubCommands) command.Initialize();
-    }
-
-    public override void Unload()
-    {
-        foreach (var command in SubCommands) command.Unload();
     }
 }

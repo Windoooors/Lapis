@@ -220,7 +220,7 @@ public class MaiCommand : MaiCommandBase
 
     private ChartStatisticsDto _chartStatistics;
 
-    private List<Alias> _songAliases = [];
+    public List<Alias> SongAliases = [];
     public AddCommand AddCommand;
     public SongDto[] Songs;
 
@@ -258,7 +258,7 @@ public class MaiCommand : MaiCommandBase
     {
         alias = alias.ToLower();
         var aliases = new List<Alias>();
-        foreach (var valueAlias in _songAliases)
+        foreach (var valueAlias in SongAliases)
         foreach (var valueAliasString in valueAlias.Aliases)
             if (valueAliasString.ToLower().Equals(alias.ToLower()))
                 aliases.Add(valueAlias);
@@ -285,7 +285,7 @@ public class MaiCommand : MaiCommandBase
     public Alias GetAliasById(int id)
     {
         var valueAlias = new Alias { Id = id, Aliases = new List<string>() };
-        foreach (var alias in _songAliases)
+        foreach (var alias in SongAliases)
             if (alias.Id == id)
             {
                 valueAlias = alias;
@@ -374,7 +374,7 @@ public class MaiCommand : MaiCommandBase
         var tempIds = new List<string>();
         var tempTitles = new List<string>();
 
-        foreach (var alias in _songAliases)
+        foreach (var alias in SongAliases)
         foreach (var aliasString in alias.Aliases)
             if (inputString.ToLower().StartsWith(aliasString.ToLower()))
                 tempAlias.Add(aliasString.ToLower());
@@ -470,8 +470,6 @@ public class MaiCommand : MaiCommandBase
 
     private void Start()
     {
-        _songAliases.Clear();
-
         _chartStatistics =
             JsonConvert.DeserializeObject<ChartStatisticsDto>(
                 ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
@@ -480,9 +478,9 @@ public class MaiCommand : MaiCommandBase
         var aliasDto =
             JsonConvert.DeserializeObject<AliasDto>(ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl));
 
-        _songAliases = aliasDto.Content.ToList();
+        SongAliases = aliasDto.Content.ToList();
 
-        foreach (var alias in _songAliases)
+        foreach (var alias in SongAliases)
             if (alias.Id == 11422)
             {
                 var invalidAliasStrings = new List<string>();
@@ -525,21 +523,6 @@ public class MaiCommand : MaiCommandBase
         }
 
         foreach (var command in SubCommands) command.Initialize();
-
-        //除去 LocalAlias 中已存在的别名
-        foreach (var alias in _songAliases)
-        {
-            var localAlias = LocalAlias.Instance;
-            foreach (var e1 in localAlias.GetIds())
-            {
-                if (e1 != alias.Id)
-                    continue;
-                var a = LocalAlias.Instance.Get(e1);
-                foreach (var aliasString in a)
-                    if (alias.Aliases.Contains(aliasString))
-                        alias.Aliases.Remove(aliasString);
-            }
-        }
     }
 
     public override void Initialize()
@@ -547,10 +530,5 @@ public class MaiCommand : MaiCommandBase
         Program.DateChanged += Reload;
 
         Start();
-    }
-
-    public override void Unload()
-    {
-        foreach (var command in SubCommands) command.Unload();
     }
 }

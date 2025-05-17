@@ -11,7 +11,7 @@ using LapisBot.Settings;
 
 namespace LapisBot.GroupCommands.GroupMemberCommands;
 
-public class RapeCommand : GroupMemberCommandBase
+public class RapeCommand : MemberCommandBase
 {
     public RapeCommand()
     {
@@ -26,7 +26,7 @@ public class RapeCommand : GroupMemberCommandBase
 
         if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
         {
-            GroupMemberCommandInstance.RemoveMember(memberId, source.GroupId);
+            MemberCommandInstance.RemoveMember(memberId, source.GroupId);
             return false;
         }
 
@@ -64,11 +64,11 @@ public class RapeCommand : GroupMemberCommandBase
             return;
         }
 
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
+        if (!MemberCommandInstance.Groups.TryGetValue(new MemberCommand.Group(source.GroupId),
                 out var group))
             return;
 
-        if (group.Members.Contains(new GroupMemberCommand.GroupMember(id)))
+        if (group.Members.Contains(new MemberCommand.GroupMember(id)))
         {
             if (!SendMessage(id, source)) ParseWithArgument(command, source);
         }
@@ -80,7 +80,7 @@ public class RapeCommand : GroupMemberCommandBase
 
     public override void Parse(CqGroupMessagePostContext source)
     {
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
+        if (!MemberCommandInstance.Groups.TryGetValue(new MemberCommand.Group(source.GroupId),
                 out var group) || group.Members.Count <= 1)
         {
             MemberNotEnoughErrorHelp(source);

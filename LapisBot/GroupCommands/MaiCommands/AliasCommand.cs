@@ -41,16 +41,6 @@ public class AliasCommand : AliasCommandBase
         ParseWithArgument(command, source);
     }
 
-    public override void Unload()
-    {
-        foreach (var command in SubCommands) command.Unload();
-    }
-
-    public override void Initialize()
-    {
-        foreach (var command in SubCommands) command.Initialize();
-    }
-
     private string GetAliasesInText(Alias alias)
     {
         var song = MaiCommandInstance.GetSong(alias.Id);

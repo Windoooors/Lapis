@@ -379,7 +379,7 @@ public class BestImageGenerator
             FontWeight.Regular, HorizontalAlignment.Right, width - 10, 39);
         var indicatorText = fcIndicatorText + " " + fsIndicatorText;
         if (indicatorText.Length != 0)
-            indicatorText.TrimEnd();
+            indicatorText = indicatorText.TrimEnd();
         rateLayer.DrawText(indicatorText, fontColor, 10, FontWeight.Heavy,
             HorizontalAlignment.Right, width - 10, 51);
         rateImage.Scale(80, 80);

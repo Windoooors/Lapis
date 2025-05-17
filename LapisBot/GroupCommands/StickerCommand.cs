@@ -21,14 +21,4 @@ public class StickerCommand : StickerCommandBase
         ];
         StickerCommandInstance = this;
     }
-
-    public override void Initialize()
-    {
-        foreach (var command in SubCommands) command.Initialize();
-    }
-
-    public override void Unload()
-    {
-        foreach (var command in SubCommands) command.Unload();
-    }
 }

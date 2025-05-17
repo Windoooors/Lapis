@@ -147,6 +147,7 @@ public class CommandParser
                 {
                     var taskParse = new Task(() => command.ParseWithArgument(commandString, source));
                     taskParse.Start();
+                    return;
                 }
             }
             else if (command.DirectCommandHead.IsMatch(commandString))
@@ -159,6 +160,7 @@ public class CommandParser
                 {
                     var taskParse = new Task(() => command.Parse(source));
                     taskParse.Start();
+                    return;
                 }
             }
         }

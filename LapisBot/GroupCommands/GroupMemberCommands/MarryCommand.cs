@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands.GroupMemberCommands;
 
-public class MarryCommand : GroupMemberCommandBase
+public class MarryCommand : MemberCommandBase
 {
     public static class CouplesOperator
     {
@@ -160,7 +160,7 @@ public class MarryCommand : GroupMemberCommandBase
         var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
         if (couple == null)
         {
-            if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
+            if (!MemberCommandInstance.Groups.TryGetValue(new MemberCommand.Group(source.GroupId),
                     out var group) || group.Members.Count - CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
             {
                 MemberNotEnoughErrorHelp(source);
@@ -191,7 +191,7 @@ public class MarryCommand : GroupMemberCommandBase
 
         if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
         {
-            GroupMemberCommandInstance.RemoveMember(memberId, source.GroupId);
+            MemberCommandInstance.RemoveMember(memberId, source.GroupId);
             CouplesOperator.RemoveCouple(memberId, source.GroupId);
             return false;
         }

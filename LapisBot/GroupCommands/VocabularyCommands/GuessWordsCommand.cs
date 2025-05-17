@@ -81,7 +81,7 @@ public class GuessWordsCommand : VocabularyCommandBase
             text += blankText;
         }
 
-        text.TrimEnd(' ');
+        text = text.TrimEnd();
 
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("不对哦！");

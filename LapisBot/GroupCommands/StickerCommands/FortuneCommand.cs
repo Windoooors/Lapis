@@ -69,7 +69,7 @@ public class FortuneCommand : StickerCommandBase
 
             image.DrawText(command, new Color(0.6f, 0, 0, 1), fontSize, FontWeight.Regular,
                 HorizontalAlignment.Center, 233, top);
-
+            
             Program.Session.SendGroupMessageAsync(source.GroupId, new CqMessage
                 { new CqImageMsg("base64://" + image.ToBase64()) });
             image.Dispose();

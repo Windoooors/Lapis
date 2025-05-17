@@ -38,7 +38,7 @@ public class Program
         new AboutCommand(),
         new MaiCommand(),
         new RepeatCommand(),
-        new GroupMemberCommand(),
+        new MemberCommand(),
         new SettingsCommand()
     ];
 
@@ -103,7 +103,7 @@ public class Program
 
         foreach (var command in GroupCommands)
         {
-            var task = new Task(() => command.Initialize());
+            var task = new Task(() => command.StartInitializing());
             InitializationTasks.Add(task);
             task.Start();
         }
@@ -212,7 +212,7 @@ public class Program
     private static void Console_CancelKeyPress(object sender, EventArgs e)
     {
         foreach (var command in GroupCommands)
-            command.Unload();
+            command.StartUnloading();
 
         SaveDate();
     }

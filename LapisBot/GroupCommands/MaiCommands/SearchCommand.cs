@@ -85,7 +85,7 @@ public class SearchCommand : MaiCommandBase
         else
         {
             stringBuilder.Clear();
-            stringBuilder = new StringBuilder("\"未找到歌曲\"");
+            stringBuilder = new StringBuilder("未找到歌曲");
         }
 
         Program.Session.SendGroupMessageAsync(source.GroupId,

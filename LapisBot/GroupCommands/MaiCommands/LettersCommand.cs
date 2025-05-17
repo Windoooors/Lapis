@@ -124,7 +124,7 @@ public class LettersCommand : MaiCommandBase
                     songDisplay += blankMarkChar;
                 }
 
-                songDisplay.TrimEnd();
+                songDisplay = songDisplay.TrimEnd();
 
                 var isSongGuessed = false;
 
@@ -153,7 +153,7 @@ public class LettersCommand : MaiCommandBase
             index++;
         }
 
-        songNames.Remove(songNames.Length - 1);
+        songNames = songNames.TrimEnd();
 
         var text = gameOver ? $"{title}\n{songNames}" : $"{songNames}\n已开字母：{string.Join(", ", songs.GuessedLetters)}";
 

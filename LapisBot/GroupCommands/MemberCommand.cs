@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands;
 
-public abstract class GroupMemberCommandBase : GroupCommand
+public abstract class MemberCommandBase : GroupCommand
 {
-    protected static GroupMemberCommand GroupMemberCommandInstance;
+    protected static MemberCommand MemberCommandInstance;
 
     protected void MemberNotEnoughErrorHelp(CqGroupMessagePostContext source)
     {
@@ -34,7 +34,7 @@ public abstract class GroupMemberCommandBase : GroupCommand
     }
 }
 
-public class GroupMemberCommand : GroupMemberCommandBase
+public class MemberCommand : MemberCommandBase
 {
     public class GroupMember(long id)
     {
@@ -74,10 +74,10 @@ public class GroupMemberCommand : GroupMemberCommandBase
                 "data/groups.json")))
             : [];
 
-    public GroupMemberCommand()
+    public MemberCommand()
     {
         SubCommands = [new MarryCommand(), new RapeCommand()];
-        GroupMemberCommandInstance = this;
+        MemberCommandInstance = this;
     }
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
@@ -103,8 +103,6 @@ public class GroupMemberCommand : GroupMemberCommandBase
     public override void Initialize()
     {
         Program.DateChanged += DateChanged;
-
-        foreach (var command in SubCommands) command.Initialize();
     }
 
     private void DateChanged(object sender, EventArgs e)
@@ -122,7 +120,5 @@ public class GroupMemberCommand : GroupMemberCommandBase
     public override void Unload()
     {
         SaveData();
-
-        foreach (var command in SubCommands) command.Unload();
     }
 }
