@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.ImageGenerators;
 using LapisBot.Operations.ApiOperation;
 using LapisBot.Settings;
-using LapisBot.UniversalCommands;
 using Newtonsoft.Json;
 
 namespace LapisBot.GroupCommands.MaiCommands;
@@ -72,7 +70,7 @@ public class InfoCommand : MaiCommandBase
         {
             try
             {
-                var conversionSucceeded = Int64.TryParse(userName, out var userId);
+                var conversionSucceeded = long.TryParse(userName, out var userId);
                 scoreData = GetScore.Get(conversionSucceeded ? userId : userName, songs[0]);
             }
             catch (Exception ex)
@@ -99,18 +97,18 @@ public class InfoCommand : MaiCommandBase
             {
                 scoreData = GetScore.Get(id, songs[0]);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (ex.InnerException is TaskCanceledException or HttpRequestException)
                     DivingFishErrorHelp(source);
                 else
                     UnboundErrorHelp(source);
-                
+
                 scoreData = new GetScore.ScoreData
                 {
                     Levels = [],
                     UserExists = false
-                }; 
+                };
             }
         }
 

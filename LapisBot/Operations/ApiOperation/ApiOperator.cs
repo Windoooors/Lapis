@@ -23,12 +23,12 @@ public class ApiOperator
     {
         return GetCore(url, 10);
     }
-    
+
     public string Get(string baseUrl, string path, int timeOut)
     {
         return GetCore(new UriBuilder(baseUrl) { Path = path }.Uri.AbsoluteUri, timeOut);
     }
-    
+
     public string Get(string url, int timeOut)
     {
         return GetCore(url, timeOut);

@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
@@ -35,7 +34,7 @@ public abstract class Command
     public virtual void Initialize()
     {
     }
-    
+
     protected static void SendMessage(CqMessagePostContext source, CqMessage message)
     {
         if (source is CqGroupMessagePostContext groupSource)

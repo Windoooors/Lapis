@@ -34,7 +34,7 @@ public class SettingsCommand : GroupCommand
 
     public override void Parse(CqGroupMessagePostContext source)
     {
-        SendMessage(source, [
+        Program.Session.SendGroupMessageAsync(source.GroupId, [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + new BotSettingsImageGenerator().Generate(source.GroupId,
                 GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId)))
@@ -46,7 +46,7 @@ public class SettingsCommand : GroupCommand
         if (!(source.Sender.Role is CqRole.Admin or CqRole.Owner ||
               source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber))
         {
-            SendMessage(source,
+            Program.Session.SendGroupMessageAsync(source.GroupId,
                 [new CqReplyMsg(source.MessageId), new CqTextMsg("您无权执行该指令")]);
             return;
         }
@@ -55,7 +55,7 @@ public class SettingsCommand : GroupCommand
 
         if (!operationRegex.IsMatch(command))
         {
-            SendMessage(source, [
+            Program.Session.SendGroupMessageAsync(source.GroupId, [
                 new CqReplyMsg(source.MessageId), new CqTextMsg("参数输入有误")
             ]);
             return;
@@ -70,7 +70,7 @@ public class SettingsCommand : GroupCommand
 
         SettingsPool.SetValue(identifierPair.ToString(), source.GroupId, value);
 
-        SendMessage(source,
+        Program.Session.SendGroupMessageAsync(source.GroupId,
             [new CqReplyMsg(source.MessageId), new CqTextMsg("设置变更成功！")]);
     }
 }

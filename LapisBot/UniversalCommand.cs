@@ -1,5 +1,3 @@
-using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using LapisBot.UniversalCommands;
 
