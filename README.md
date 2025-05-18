@@ -1,5 +1,5 @@
 # Lapis Bot
-[中文] English(README.en.md)
+中文 [English](README.en.md)
 
 ## 描述
 用 C# 实现的 QQ 机器人，专注于舞萌 DX 相关的功能，支持 go-cqhttp
