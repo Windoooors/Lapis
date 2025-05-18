@@ -39,6 +39,7 @@ public class GuessWordsCommand : VocabularyCommandBase
                 continue;
             var keyWordDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
             var groupId = _guessingGroupsMap.Keys.ToArray()[i];
+            _guessingGroupsMap.Remove(groupId);
             var taskAnnounce = new Task(() =>
                 AnnounceAnswer(keyWordDateTimePair.Item1, groupId, false, 0));
             taskAnnounce.Start();

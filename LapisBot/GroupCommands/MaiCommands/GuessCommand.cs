@@ -86,6 +86,7 @@ public class GuessCommand : MaiCommandBase
                 continue;
             var keyIdDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
             var groupId = _guessingGroupsMap.Keys.ToArray()[i];
+            _guessingGroupsMap.Remove(groupId);
             var taskAnnounce = new Task(() =>
                 AnnounceAnswer(keyIdDateTimePair, groupId, false, 0));
             taskAnnounce.Start();

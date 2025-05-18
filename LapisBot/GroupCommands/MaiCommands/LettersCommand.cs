@@ -80,6 +80,7 @@ public class LettersCommand : MaiCommandBase
                 continue;
             var keyWordDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
             var groupId = _guessingGroupsMap.Keys.ToArray()[i];
+            _guessingGroupsMap.Remove(groupId);
             var taskAnnounce = new Task(() =>
                 AnnounceAnswer(keyWordDateTimePair.Item1, groupId, 0, true));
             taskAnnounce.Start();
