@@ -53,7 +53,7 @@ public MaiCommand()
   如果你使用 NapCat，可以跟着[这里](https://napneko.github.io/guide/napcat)完成框架部署
   
 * 编辑 `config.json` 以使 Lapis Bot 连接到机器人框架  
-  应该将上文 WebSocket 服务器监听的地址填入 Address 一栏  
+  应该将上文 WebSocket 服务器监听的地址填入 `Address` 一栏，此外还应将您的 QQ 账户和您的机器人的 QQ 账户分别填入 `AdministratorQqNumber` 和 `BotQqNumber`  
   eg. 
 ```{
     "Address": "localhost:3000",
@@ -64,6 +64,8 @@ public MaiCommand()
     "WahlapConnectiveKitsUrl": ""
 }
 ```
+* 启动 LapisBot  
+  `./LapisBot`
 
 ## 引用的库
 * NLog (https://github.com/NLog/NLog)

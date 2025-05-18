@@ -54,7 +54,7 @@ public MaiCommand()
   You may get more instructions about this from [NapCat](https://napneko.github.io/guide/napcat) if you want it.
   
 * Connect Lapis to the framework you just set up by editing `config.json`  
-  The address should be the one that the WebSocket server is listening on.  
+  `Address` should be the one that the WebSocket server is listening on. `AdministratorQqNumber` and `BotQqNumber` should be respectively your QQ number and your bot's QQ number.  
   eg. 
 ```{
     "Address": "localhost:3000",
@@ -65,6 +65,8 @@ public MaiCommand()
     "WahlapConnectiveKitsUrl": ""
 }
 ```
+* Launch LapisBot  
+  `./LapisBot`
 
 ## Libraries Used
 * [NLog](https://github.com/NLog/NLog)
