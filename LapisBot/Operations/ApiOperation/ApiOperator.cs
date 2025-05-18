@@ -50,6 +50,14 @@ public class ApiOperator
             JsonConvert.SerializeObject(content), headers, 10);
     }
 
+    public string Post(string baseUrl, string path, object content, KeyValuePair<string, string>[] headers, int timeOut)
+    {
+        if (content == null) throw new ArgumentNullException(nameof(content));
+
+        return PostCore(new UriBuilder(baseUrl) { Path = path }.Uri.AbsoluteUri,
+            JsonConvert.SerializeObject(content), headers, timeOut);
+    }
+
     public string Post(string baseUrl, string path, object content)
     {
         if (content == null) throw new ArgumentNullException(nameof(content));

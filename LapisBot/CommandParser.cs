@@ -2,9 +2,10 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Post;
-using LapisBot.GroupCommands;
+using LapisBot.Commands;
+using LapisBot.Commands.GroupCommands;
+using LapisBot.Commands.UniversalCommands;
 using LapisBot.Settings;
-using LapisBot.UniversalCommands;
 using Microsoft.Extensions.Logging;
 
 namespace LapisBot;

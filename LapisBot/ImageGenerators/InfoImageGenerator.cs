@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using LapisBot.GroupCommands;
-using LapisBot.GroupCommands.MaiCommands;
+using LapisBot.Commands.GroupCommands;
+using LapisBot.Commands.GroupCommands.MaiCommands;
 using LapisBot.Operations.ImageOperation;
 using HorizontalAlignment = LapisBot.Operations.ImageOperation.HorizontalAlignment;
 
@@ -131,8 +131,8 @@ public class InfoImageGenerator
                     image.Dispose();
                 }
 
-                var fcIndicatorText = string.Empty;
-                var fsIndicatorText = string.Empty;
+                string fcIndicatorText;
+                string fsIndicatorText;
 
                 if (level.Fc.Length > 2)
                     fcIndicatorText = level.Fc.Substring(0, level.Fc.Length - 1).ToUpper() + "+";

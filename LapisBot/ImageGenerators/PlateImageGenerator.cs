@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LapisBot.GroupCommands;
-using LapisBot.GroupCommands.MaiCommands;
+using LapisBot.Commands.GroupCommands;
+using LapisBot.Commands.GroupCommands.MaiCommands;
 using LapisBot.Operations.ApiOperation;
 using LapisBot.Operations.ImageOperation;
 

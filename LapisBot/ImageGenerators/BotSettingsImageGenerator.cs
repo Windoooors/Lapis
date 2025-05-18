@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using LapisBot.GroupCommands;
+using LapisBot.Commands.GroupCommands;
 using LapisBot.Operations.ImageOperation;
 using LapisBot.Settings;
 

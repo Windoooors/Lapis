@@ -4,10 +4,11 @@ using System.IO;
 using System.Threading;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
-using LapisBot.GroupCommands;
+using LapisBot.Commands;
+using LapisBot.Commands.GroupCommands;
+using LapisBot.Commands.PrivateCommands;
+using LapisBot.Commands.UniversalCommands;
 using LapisBot.Operations.ApiOperation;
-using LapisBot.PrivateCommands;
-using LapisBot.UniversalCommands;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog.Extensions.Logging;
@@ -153,8 +154,8 @@ public class Program
     private static void Welcome(long userId)
     {
         Thread.Sleep(3000);
-        Session.SendPrivateMessageAsync(userId, new CqMessage
-            { new CqTextMsg("感谢使用！请邀请 Lapis Bot 进入您的群聊！\n若要保存表情，请直接将表情发送给 Lapis Bot") });
+        Session.SendPrivateMessageAsync(userId,
+            [new CqTextMsg("感谢使用！请邀请 Lapis Bot 进入您的群聊！\n若要保存表情，请直接将表情发送给 Lapis Bot")]);
     }
 
     private static void SaveDate()
@@ -207,7 +208,7 @@ public class Program
                 {
                     _lastDateTimeHour = DateTime.Now;
                     if (HourChanged != null)
-                        HourChanged(new object(), new EventArgs());
+                        HourChanged(new object(), EventArgs.Empty);
                 }
             }
         }
