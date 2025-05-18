@@ -1,0 +1,84 @@
+# Lapis Bot
+[中文](README.md) English
+
+## Description
+A QQ bot written in C#, specializing in maimai DX related functions and compatible with go-cqhttp frameworks.
+
+## Framework & Language
+- .NET 9.0
+- C# 13.0
+
+## Functions
+Lapis is now capable for
+* B50 Acquisition
+* Chart Information and Score Acquisition
+* Plate Acquisition
+* Random Song Recommendation Generation
+* Song Nicknames Acquisition and Management
+* Song Puzzles Based on the Music or Its Title
+* Fuzzy Song Match
+  
+and other non-maimai-related tasks.
+  
+Noticed that Wahlap Connective Kits are not and will not be open-sourced due to safety reasons, so that you may not be able to use score uploading functions.
+  
+If you want to build from project, please remove instantiations for both UpdateCommand and BindCommand in the constructor of MaiCommand.
+  
+It will look like this afterwards:
+```
+public MaiCommand()
+{
+    MaiCommandInstance = this;
+    CommandHead = new Regex("^mai");
+    SubCommands =
+    [
+        new RandomCommand(),
+        new InfoCommand(),
+        new AliasCommand(),
+        new BestCommand(),
+        new LettersCommand(),
+        new GuessCommand(),
+        new PlateCommand(),
+        new SearchCommand()
+    ];
+}
+```
+  
+## Depolyment
+* Install FFmpeg by running (if you are on Debian or Debian based distros)  
+  `sudo apt install ffmpeg`
+  
+* Install .NET Runtime 9.0.x by following instructions from Microsoft (https://learn.microsoft.com/zh-cn/dotnet/core/install/)
+  
+* Set up a NapCat or LLOneBot or other go-cqhttp compatible framework instance (NapCat is recommended), log in with your bot QQ account, and create a WebSocket server listening on a preferred address.  
+  You may get more instructions about this from https://napneko.github.io/guide/napcat
+  
+* Connect Lapis to the framework you just set up by editing `config.json`  
+  The address should be the one that the WebSocket server is listening on.  
+  eg. 
+```{
+    "Address": "localhost:3000",
+    "AdministratorQqNumber": 2794813909,
+    "BotQqNumber": 3064967438,
+    "AliasUrl": "https://api.yuzuchan.moe/maimaidx/maimaidxalias",
+    "DivingFishUrl": "https://www.diving-fish.com",
+    "WahlapConnectiveKitsUrl": ""
+}
+```
+
+## Libraries Used
+* NLog (https://github.com/NLog/NLog)
+* SixLabours.ImageSharp (https://github.com/SixLabors/ImageSharp)
+* SixLabours.ImageSharp.Drawing (https://github.com/SixLabors/ImageSharp.Drawing)
+* EleCho.GoCqHttpSdk (https://github.com/OrgEleCho/EleCho.GoCqHttpSdk)
+* Newtonsoft.Json (https://github.com/JamesNK/Newtonsoft.Json)
+* NLog.Extensions.Logging (https://github.com/NLog/NLog.Extensions.Logging)
+* Raffinert.FuzzySharp (https://github.com/Raffinert/FuzzySharp)
+* Xabe.FFmpeg (https://github.com/tomaszzmuda/Xabe.FFmpeg)
+
+## Contributors
+- Setchin ([@Windoooors](https://github.com/Windoooors))
+- 2750558108 ([@L2750558108](https://github.com/L2750558108))
+
+## Contributing
+Everyone is welcomed to contribute to this project. You can tell us some suggestions by **Issue**. Moreover, we will appreciate if you could contribute codes by **Pull Request**.
