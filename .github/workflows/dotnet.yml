@@ -20,10 +20,10 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-    - name: Cull Update Command
-      run: sed sed -i 's/new UpdateCommand(),//g' ./Lapis/Commands/GroupCommands/MaiCommand.cs
-    - name: Cull Bind Command
-      run: sed sed -i 's/new BindCommand()//g' ./Lapis/Commands/GroupCommands/MaiCommand.cs
+    - name: Remove update commands
+      run: |
+        sed -i '/new UpdateCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
+        sed -i '/new BindCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
