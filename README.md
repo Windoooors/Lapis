@@ -44,8 +44,10 @@ public MaiCommand()
 ```
   
 ## 部署
-* 安装 FFmpeg（如果你使用 Debian 或基于它的发行版就运行下列命令）  
-  `sudo apt install ffmpeg`
+* 安装 FFmpeg  
+  `sudo apt install ffmpeg` *Debian*  
+  `winget install ffmpeg` *Windows Server*  
+  `brew install ffmpeg` *macOS with Homebrew*  
   
 * 根据[微软](https://learn.microsoft.com/zh-cn/dotnet/core/install/)的文档安装 .NET 运行时 9.0.x
   
@@ -66,9 +68,11 @@ public MaiCommand()
     "WahlapConnectiveKitsUrl": ""
 }
 ```
-* 在启动 Lapis 之前，请解压资源文件，并将其中的 `resource` 文件夹（注意是文件夹而非文件夹中的文件）移动到 Lapis 可执行文件所在的目录
+* 在启动 Lapis 之前，请从[这里](https://github.com/Windoooors/Lapis/releases/tag/resource-v1.0.0)下载资源文件，并将其解压，然后将其中的 `resource` 文件夹（注意是文件夹而非文件夹中的文件）移动到 Lapis 可执行文件所在的目录
+  
 * 启动 Lapis  
-  `./Lapis`
+  `./Lapis` *Linux and Darwin*  
+  `.\Lapis.exe` *Windows with Powershell*  
 
 ## 引用的库
 * NLog (https://github.com/NLog/NLog)

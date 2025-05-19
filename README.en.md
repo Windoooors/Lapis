@@ -46,7 +46,9 @@ public MaiCommand()
   
 ## Depolyment
 * Install FFmpeg by running (if you are on Debian or Debian based distros)  
-  `sudo apt install ffmpeg`
+  `sudo apt install ffmpeg` *Debian*  
+  `winget install ffmpeg` *Windows Server*  
+  `brew install ffmpeg` *macOS with Homebrew*  
   
 * Install .NET Runtime 9.0.x by following instructions from [Microsoft](https://learn.microsoft.com/zh-cn/dotnet/core/install/)
   
@@ -67,9 +69,11 @@ public MaiCommand()
     "WahlapConnectiveKitsUrl": ""
 }
 ```
-* Before launching, please unarchive resource files, then put the `resource` folder into the directory that contains the executable file of Lapis.
+* Before launching, please download resource files from [here](https://github.com/Windoooors/Lapis/releases/tag/resource-v1.0.0) and unarchive them, then put the `resource` folder into the directory that contains the executable file of Lapis.
+  
 * Launch Lapis   
-  `./Lapis`
+  `./Lapis` *Linux and Darwin*  
+  `.\Lapis.exe` *Windows with Powershell*  
 
 ## Libraries Used
 * [NLog](https://github.com/NLog/NLog)
