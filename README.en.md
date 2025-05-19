@@ -56,7 +56,8 @@ public MaiCommand()
 * Connect Lapis to the framework you just set up by editing `config.json`  
   `Address` should be the one that the WebSocket server is listening on. `AdministratorQqNumber` , `BotQqNumber` and `BotName` should be respectively your QQ number, your bot's QQ number and your bot's name.  
   eg. 
-```{
+```
+{
     "Address": "localhost:3000",
     "AdministratorQqNumber": 0,
     "BotQqNumber": 0,

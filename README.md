@@ -55,7 +55,8 @@ public MaiCommand()
 * 编辑 `config.json` 以使 Lapis Bot 连接到机器人框架  
   应该将上文所说的 WebSocket 服务器监听的地址填入 `Address` 一栏，此外还应将您的 QQ 账户和您的机器人的 QQ 账户及您的机器人的名称分别填入 `AdministratorQqNumber` 和 `BotQqNumber` 及 `BotName`  
   eg. 
-```{
+```
+{
     "Address": "localhost:3000",
     "AdministratorQqNumber": 0,
     "BotQqNumber": 0,
