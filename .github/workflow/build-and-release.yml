@@ -1,0 +1,67 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [linux-x64, linux-arm64, win-x64, osx-x64, osx-arm64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Remove Update Related Commands
+        run: |
+          sed -i '/new UpdateCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
+          sed -i '/new BindCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish - ${{ matrix.os }}
+        run: |
+          dotnet publish ./Lapis/Lapis.csproj \
+            -c Release \
+            -r ${{ matrix.os }} \
+            --self-contained false \
+            /p:PublishSingleFile=true \
+            /p:PublishTrimmed=false \
+            /p:IncludeNativeLibrariesForSelfExtract=true \
+            -o publish/${{ matrix.os }}
+
+      - name: Upload Artifact - ${{ matrix.os }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: publish/${{ matrix.os }}
+
+      - name: Create Archive for Release - ${{ matrix.os }}
+        run: |
+          cd publish/${{ matrix.os }}
+          name=${{ matrix.os }}
+          if [[ "${{ matrix.os }}" == win-* ]]; then
+            zip -r ../../${name}.zip .
+          else
+            tar -czf ../../${name}.tar.gz .
+          fi
+
+      - name: Upload to GitHub Release - ${{ matrix.os }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.zip
+            *.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
