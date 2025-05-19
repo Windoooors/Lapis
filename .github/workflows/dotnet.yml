@@ -20,9 +20,19 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+    - name: Cull Update Command
+      run: sed sed -i 's/new UpdateCommand(),//g' ./Lapis/Commands/GroupCommands/MaiCommand.cs
+    - name: Cull Bind Command
+      run: sed sed -i 's/new BindCommand()//g' ./Lapis/Commands/GroupCommands/MaiCommand.cs
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+  
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: .NET
+        path: build_output/
