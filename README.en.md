@@ -1,8 +1,8 @@
-# Lapis Bot
+# Lapis
 [中文](README.md) English
 
 ## Description
-A QQ bot written in C#, specializing in maimai DX related functions and compatible with go-cqhttp frameworks.
+A QQ bot program written in C#, specializing in maimai DX related functions and compatible with go-cqhttp frameworks.
 
 ## Framework & Language
 - .NET 9.0
@@ -54,19 +54,21 @@ public MaiCommand()
   You may get more instructions about this from [NapCat](https://napneko.github.io/guide/napcat) if you want it.
   
 * Connect Lapis to the framework you just set up by editing `config.json`  
-  `Address` should be the one that the WebSocket server is listening on. `AdministratorQqNumber` and `BotQqNumber` should be respectively your QQ number and your bot's QQ number.  
+  `Address` should be the one that the WebSocket server is listening on. `AdministratorQqNumber` , `BotQqNumber` and `BotName` should be respectively your QQ number, your bot's QQ number and your bot's name.  
   eg. 
 ```{
     "Address": "localhost:3000",
-    "AdministratorQqNumber": 2794813909,
-    "BotQqNumber": 3064967438,
+    "AdministratorQqNumber": 0,
+    "BotQqNumber": 0,
+    "BotName": "",
     "AliasUrl": "https://api.yuzuchan.moe/maimaidx/maimaidxalias",
     "DivingFishUrl": "https://www.diving-fish.com",
     "WahlapConnectiveKitsUrl": ""
 }
 ```
-* Launch LapisBot  
-  `./LapisBot`
+* Before launching, please unarchive resource files, then put the `resource` folder into the directory that contains the executable file of Lapis.
+* Launch Lapis   
+  `./Lapis`
 
 ## Libraries Used
 * [NLog](https://github.com/NLog/NLog)
