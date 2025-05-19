@@ -14,6 +14,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        os: [linux-x64, linux-arm64, win-x64, osx-x64, osx-arm64]
+
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -26,13 +30,31 @@ jobs:
         sed -i '/new BindCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Publish - ${{ matrix.os }}
+      run: |
+        dotnet publish \
+          -c Release \
+          -r ${{ matrix.os }} \
+          --self-contained false \
+          /p:PublishSingleFile=true \
+          /p:PublishTrimmed=false \
+          /p:IncludeNativeLibrariesForSelfExtract=true \
+          -o publish/${{ matrix.os }}
   
-    - name: Upload build artifact
+    - name: Package build output
+      run: |
+        cd publish/${{ matrix.os }}
+        if [[ "${{ matrix.os }}" == win-* ]]; then
+          zip -r ../../${{ matrix.os }}.zip .
+        else
+          tar -czf ../../${{ matrix.os }}.tar.gz .
+        fi
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: .NET
-        path: build_output/
+        name: build-${{ matrix.os }}
+        path: |
+          ${{ matrix.os }}.zip
+          ${{ matrix.os }}.tar.gz
+        if-no-files-found: ignore
