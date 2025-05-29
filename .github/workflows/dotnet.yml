@@ -28,6 +28,8 @@ jobs:
       run: |
         sed -i '/new UpdateCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
         sed -i '/new BindCommand(),/d' Lapis/Commands/GroupCommands/MaiCommand.cs
+        sed -i '/new UpdateCommand()/d' Lapis/Commands/GroupCommands/MaiCommand.cs
+        sed -i '/new BindCommand()/d' Lapis/Commands/GroupCommands/MaiCommand.cs
     - name: Restore dependencies
       run: dotnet restore
     - name: Publish - ${{ matrix.os }}

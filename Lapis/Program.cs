@@ -40,9 +40,9 @@ public class Program
         new VocabularyCommand(),
         new StickerCommand(),
         new AboutCommand(),
-        new MaiCommand(),
         new RepeatCommand(),
         new GroupMemberCommand(),
+        new MaiCommand(),
         new SettingsCommand(),
         new HelpCommand(),
         new StickerSavingCommand()

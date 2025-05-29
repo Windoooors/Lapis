@@ -257,8 +257,8 @@ public class MaiCommand : MaiCommandBase
             new GuessCommand(),
             new PlateCommand(),
             new UpdateCommand(),
-            new SearchCommand(),
-            new BindCommand()
+            new BindCommand(),
+            new SearchCommand()
         ];
     }
 

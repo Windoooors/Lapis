@@ -96,6 +96,7 @@ public class PlateCommand : MaiCommandBase
     public PlateCommand()
     {
         CommandHead = new Regex("^plate");
+        DirectCommandHead = new Regex("^plate");
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("plate", "1");
     }
 
@@ -145,6 +146,15 @@ public class PlateCommand : MaiCommandBase
             versionCharacter = versionCharacterInJapanese;
 
         _plateToVersion.TryGetValue(versionCharacter, out var singleVersion);
+
+        if (singleVersion == null)
+        {
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("未找到该姓名框")
+            ]);
+            return;
+        }
 
         string[] version = { singleVersion };
 

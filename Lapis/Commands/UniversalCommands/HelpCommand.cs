@@ -28,6 +28,8 @@ public class HelpCommand : UniversalCommand
         SendMessage(source, message);
     }
 
+    public override void ParseWithArgument(string command, CqMessagePostContext source) {} // 空重写以防 "help me" 导致触发帮助的情况发生
+
     public void ErrorHelp(CqMessagePostContext source, string errorMessage)
     {
         var message = new CqMessage
