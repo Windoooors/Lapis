@@ -547,8 +547,10 @@ public class MaiCommand : MaiCommandBase
                     ? "Error occurred when trying to get alias data from SakuraBot, check if alias URL is correct."
                     : "Unknown error occurred when trying to get alias data from SakuraBot."
             );
-
-            aliasDto = new AliasDto { Content = [] };
+            
+            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
+            Start();
+            return;
         }
 
         SongAliases = aliasDto.Content.ToList();
