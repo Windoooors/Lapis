@@ -98,4 +98,41 @@ public class RapeCommand : GroupMemberCommandBase
         if (!SendMessage(memberId, source))
             Parse(source);
     }
+
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    {
+        switch (command) //私货
+        {
+            case "日小乌":
+                ParseWithArgument("200509301", source);
+                break;
+            case "日色老师":
+                ParseWithArgument("2794813909", source);
+                break;
+            case "日空老师":
+                ParseWithArgument("3522656010", source);
+                break;
+            case "日草老师":
+                ParseWithArgument("1792975423", source);
+                break;
+            case "日慧敏姐":
+                ParseWithArgument("1784234439", source);
+                break;
+            case "日乐家君":
+                ParseWithArgument("2575663823", source);
+                break;
+            case "日笑老师":
+                ParseWithArgument("1837582042", source);
+                break;
+            case "日Asagi":
+            case "日 Asagi":
+            case "日 asagi":
+            case "日asagi":
+                ParseWithArgument("2975985647", source);
+                break;
+            case "日烤学妹":
+                ParseWithArgument("1684931081", source);
+                break;
+        }
+    }
 }

@@ -64,7 +64,7 @@ public MaiCommand()
     "AdministratorQqNumber": 0,
     "BotQqNumber": 0,
     "BotName": "",
-    "AliasUrl": "https://api.yuzuchan.moe/maimaidx/maimaidxalias",
+    "AliasUrl": "https://maimai.lxns.net/api/v0/maimai/alias/list",
     "DivingFishUrl": "https://www.diving-fish.com",
     "WahlapConnectiveKitsUrl": ""
 }
@@ -82,7 +82,6 @@ public MaiCommand()
 * [EleCho.GoCqHttpSdk](https://github.com/OrgEleCho/EleCho.GoCqHttpSdk)
 * [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
 * [NLog.Extensions.Logging](https://github.com/NLog/NLog.Extensions.Logging)
-* [Raffinert.FuzzySharp](https://github.com/Raffinert/FuzzySharp)
 * [Xabe.FFmpeg](https://github.com/tomaszzmuda/Xabe.FFmpeg)
 
 ## Contributors

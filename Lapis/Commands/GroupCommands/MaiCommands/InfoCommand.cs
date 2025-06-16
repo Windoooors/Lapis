@@ -43,8 +43,10 @@ public class InfoCommand : MaiCommandBase
 
         if (songs == null)
         {
-            SendMessage(source,
-                [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该歌曲")]);
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId),
+                GetMultiSearchResultInformationString(MaiCommandInstance.GetSongIndicatorString(command), "info", "信息")
+            ]);
             return;
         }
 

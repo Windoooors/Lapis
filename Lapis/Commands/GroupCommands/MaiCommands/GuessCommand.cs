@@ -107,7 +107,10 @@ public class GuessCommand : MaiCommandBase
             _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
             SendMessage(source,
-                [new CqReplyMsg(source.MessageId), new CqTextMsg($"试试看吧！{BotConfiguration.Instance.BotName} 将在 30s 后公布答案")]);
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg($"试试看吧！{BotConfiguration.Instance.BotName} 将在 30s 后公布答案")
+            ]);
 
             SendMessage(source,
                 [new CqRecordMsg("file:///" + AudioEditor.Convert(songs[songIndex].Id))]);
@@ -131,7 +134,10 @@ public class GuessCommand : MaiCommandBase
             _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (MaiCommandInstance.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
             SendMessage(source,
-                [new CqReplyMsg(source.MessageId), new CqTextMsg($"试试看吧！{BotConfiguration.Instance.BotName} 将在 30s 后公布答案")]);
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg($"试试看吧！{BotConfiguration.Instance.BotName} 将在 30s 后公布答案")
+            ]);
 
             SendMessage(source,
                 [new CqRecordMsg("file:///" + AudioEditor.Convert(MaiCommandInstance.Songs[songIndex].Id))]);

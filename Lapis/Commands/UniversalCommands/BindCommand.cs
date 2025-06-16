@@ -109,7 +109,7 @@ public class BindCommand : UniversalCommand
 
         var response = JsonConvert.DeserializeObject<AimeIdResponseDto>(responseString);
 
-        if (response.Code == 101)
+        if (response.Code == 100)
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),

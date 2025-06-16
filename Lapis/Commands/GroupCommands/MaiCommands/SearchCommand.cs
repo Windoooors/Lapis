@@ -1,16 +1,26 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Miscellaneous;
 using Lapis.Settings;
-using Raffinert.FuzzySharp;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
 public class SearchCommand : MaiCommandBase
 {
+    private readonly string[] _specialCharacters =
+    [
+        ".", ",", ";", ":", "?", "!", "\"", "'",
+        "(", ")", "[", "]", "{", "}", "<", ">",
+        "~", "-", "=", "+", "*", "/", "\\",
+        "%", "&", "#", "@", "$", "。", "，", "；", "：", "？", "！", "“”", "‘’",
+        "（", "）", "［", "］", "｛", "｝", "〈", "〉",
+        "～", "－", "＝", "＋", "×", "／", "＼",
+        "％", "＆", "＃", "＠", "＄"
+    ];
+
     public SearchCommand()
     {
         CommandHead = new Regex("^search");
@@ -18,37 +28,112 @@ public class SearchCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("search", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public static SearchCommand SearchCommandInstance { get; } = new();
+
+    private bool IsSameKeywords(string[] keywords)
     {
-        var maiCommand = MaiCommandInstance;
+        var firstKeyword = keywords[0];
+        foreach (var keyword in keywords)
+            if (keyword != firstKeyword)
+                return false;
 
-        var songAliasDict = new Dictionary<SongDto, List<string>>();
-        var songs = new List<SongDto>();
+        return true;
+    }
 
-        foreach (var song in maiCommand.Songs)
+    private bool IsMatch(string keyword, string input)
+    {
+        var inputWithNoSpecialCharacters = input;
+        foreach (var specialCharacter in _specialCharacters)
+            inputWithNoSpecialCharacters = inputWithNoSpecialCharacters.Replace(specialCharacter, string.Empty);
+
+        var kanjiKeyword = HanziToKanjiConverter.Convert(keyword);
+
+        return IsMatchBase(keyword, input) ||
+               IsMatchBase(keyword, inputWithNoSpecialCharacters) ||
+               IsMatchBase(kanjiKeyword, input) ||
+               IsMatchBase(kanjiKeyword, inputWithNoSpecialCharacters);
+    }
+
+    private bool IsMatchBase(string pattern, string input)
+    {
+        if (pattern.ToLower() == input.ToLower())
+            return true;
+
+        var splitResult = pattern.ToLower().Split(' ');
+        var patterns = splitResult.Length == 0 ? [pattern.ToLower()] : splitResult;
+        var allMatched = true;
+
+        if (patterns.Length > 1 && IsSameKeywords(patterns))
         {
-            var aliases = maiCommand.GetAliasById(song.Id).Aliases;
+            var regex = new Regex(patterns[0]);
+            var matches = regex.Matches(input.ToLower());
+            if (matches.Count > 1)
+                return true;
+            return false;
+        } // 处理例如通过 break break break 的关键词匹配歌曲 BREaK! BREaK! BREaK! 的情况
+
+        foreach (var regexString in patterns)
+        {
+            var regex = new Regex(regexString);
+
+            if (!regex.IsMatch(input.ToLower()))
+                allMatched = false;
+        }
+
+        return allMatched;
+    }
+
+    public SearchResult Search(string keyWord)
+    {
+        var songsMatchedByAlias = new Dictionary<SongDto, List<string>>();
+        var songsMatchedByArtist = new List<SongDto>();
+        var songsMatchedByTitle = new List<SongDto>();
+        var allSongs = new List<SongDto>();
+
+        foreach (var song in MaiCommandInstance.Songs)
+        {
+            var aliases = MaiCommandInstance.GetAliasById(song.Id).Aliases;
 
             foreach (var alias in aliases)
-            {
-                var ratio = Fuzz.Ratio(command, alias);
-                if (ratio >= 60)
+                if (IsMatch(keyWord, alias))
                 {
-                    if (!songAliasDict.ContainsKey(song))
+                    if (!songsMatchedByAlias.ContainsKey(song))
                     {
-                        songAliasDict.Add(song, [alias]);
+                        songsMatchedByAlias.Add(song, [alias]);
                         continue;
                     }
 
-                    songAliasDict[song].Add(alias);
+                    songsMatchedByAlias[song].Add(alias);
                 }
-            }
 
-            if (Fuzz.Ratio(command, song.Title) >= 50)
-                songs.Add(song);
+            if (IsMatch(keyWord, song.BasicInfo.Artist) && !songsMatchedByArtist.Contains(song))
+                songsMatchedByArtist.Add(song);
+
+            if (IsMatch(keyWord, song.Title) && !songsMatchedByTitle.Contains(song))
+                songsMatchedByTitle.Add(song);
         }
 
+        allSongs.AddRange(songsMatchedByTitle);
+        allSongs.AddRange(songsMatchedByArtist);
+        allSongs.AddRange(songsMatchedByAlias.Keys);
+
+        return new SearchResult
+        {
+            SongsMatchedByArtist = songsMatchedByArtist,
+            SongsMatchedByTitle = songsMatchedByTitle,
+            SongsMatchedByAlias = songsMatchedByAlias,
+            AllSongs = allSongs
+        };
+    }
+
+    public StringBuilder GetMultiSearchResults(SearchResult searchResult)
+    {
+        var songAliasDict = searchResult.SongsMatchedByAlias;
+        var songsMatchedByArtist = searchResult.SongsMatchedByArtist;
+        var songs = searchResult.SongsMatchedByTitle;
+
         var stringBuilder = new StringBuilder();
+
         stringBuilder.AppendLine("找到了以下歌曲：");
 
         if (songs.Count > 0)
@@ -65,25 +150,38 @@ public class SearchCommand : MaiCommandBase
                                          $"] （通过别称 {aliasStringBuilder}匹配）");
             }
 
-        var id = 0;
-        if (songs.Count > 0 && songAliasDict.Count == 0)
-            id = songs[0].Id;
-        if (songs.Count == 0 && songAliasDict.Count > 0)
-            id = songAliasDict.Keys.ToArray()[0].Id;
-        if (songs.Count > 0 && songAliasDict.Count > 0)
-            id = songs[0].Id;
-        if (songs.Count == 0 && songAliasDict.Count == 0)
-            id = -1;
+        if (songsMatchedByArtist.Count > 0)
+            foreach (var song in songsMatchedByArtist)
+                stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过曲师名匹配）");
 
-        if (id != -1)
+        return stringBuilder;
+    }
+
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    {
+        var searchResult = Search(command);
+
+        var stringBuilder = new StringBuilder();
+
+        if (searchResult.AllSongs.Count >= 30)
         {
-            stringBuilder.Append($"*发送 \"lps mai info ID {id}\" 指令即可查询歌曲 {
-                maiCommand.GetSong(id).Title} [{maiCommand.GetSong(id).Type}] 的信息");
+            stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
         }
         else
         {
-            stringBuilder.Clear();
-            stringBuilder = new StringBuilder("未找到歌曲");
+            stringBuilder = GetMultiSearchResults(searchResult);
+
+            if (searchResult.AllSongs.Count != 0)
+            {
+                var exampleSong = searchResult.AllSongs[0];
+                stringBuilder.Append($"*发送 \"lps mai info ID {exampleSong.Id}\" 指令即可查询歌曲 {
+                    MaiCommandInstance.GetSong(exampleSong.Id).Title} [{MaiCommandInstance.GetSong(exampleSong.Id).Type}] 的信息");
+            }
+            else
+            {
+                stringBuilder.Clear();
+                stringBuilder = new StringBuilder("未找到该歌曲");
+            }
         }
 
         SendMessage(source,
@@ -91,5 +189,13 @@ public class SearchCommand : MaiCommandBase
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(stringBuilder.ToString())
         ]);
+    }
+
+    public class SearchResult
+    {
+        public List<SongDto> AllSongs = new();
+        public Dictionary<SongDto, List<string>> SongsMatchedByAlias = new();
+        public List<SongDto> SongsMatchedByArtist = new();
+        public List<SongDto> SongsMatchedByTitle = new();
     }
 }

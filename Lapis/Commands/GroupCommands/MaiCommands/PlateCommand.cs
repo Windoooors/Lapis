@@ -242,7 +242,7 @@ public class PlateCommand : MaiCommandBase
         foreach (var score in scores.ScoreDtos)
         {
             var song = MaiCommandInstance.GetSong(score.Id);
-            if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.6f)
+            if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.5f)
             {
                 var scoreDto = new ScoresDto.ScoreDto();
                 foreach (var realScore in scoresInReality.ScoreDtos)
@@ -344,7 +344,7 @@ public class PlateCommand : MaiCommandBase
             HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }
-    
+
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))

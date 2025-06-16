@@ -1,8 +1,9 @@
 {
-    "Address": "localhost:3000",
-    "AdministratorQqNumber": 0,
-    "BotQqNumber": 0,
-    "AliasUrl": "https://api.yuzuchan.moe/maimaidx/maimaidxalias",
-    "DivingFishUrl": "https://www.diving-fish.com",
-    "WahlapConnectiveKitsUrl": ""
+  "Address": "localhost:3000",
+  "AdministratorQqNumber": 0,
+  "BotQqNumber": 0,
+  "BotName": "",
+  "AliasUrl": "https://maimai.lxns.net/api/v0/maimai/alias/list",
+  "DivingFishUrl": "https://www.diving-fish.com",
+  "WahlapConnectiveKitsUrl": ""
 }

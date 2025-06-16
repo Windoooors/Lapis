@@ -83,6 +83,67 @@ public abstract class MaiCommandBase : GroupCommand
         return stringBuilder.ToString();
     }
 
+    public string GetMultiSearchResultInformationString(string keyword, string command, string functionString)
+    {
+        var searchResult = SearchCommand.SearchCommandInstance.Search(keyword);
+
+        var stringBuilder = new StringBuilder();
+
+        if (searchResult.AllSongs.Count >= 30)
+        {
+            stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
+        }
+        else
+        {
+            stringBuilder = SearchCommand.SearchCommandInstance.GetMultiSearchResults(searchResult);
+
+            if (searchResult.AllSongs.Count != 0)
+            {
+                var exampleSong = searchResult.AllSongs[0];
+                stringBuilder.Append(
+                    $"*发送 \"lps mai {command} ID {exampleSong.Id}\" 指令即可查询歌曲 {exampleSong.Title} [{exampleSong.Type}] 的{functionString}");
+            }
+            else
+            {
+                stringBuilder.Clear();
+                stringBuilder = new StringBuilder("未找到该歌曲");
+            }
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    public string GetMultiSearchResultInformationString(string keyword, string command, string commandParameter,
+        string functionString)
+    {
+        var searchResult = SearchCommand.SearchCommandInstance.Search(keyword);
+
+        var stringBuilder = new StringBuilder();
+
+        if (searchResult.AllSongs.Count >= 30)
+        {
+            stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
+        }
+        else
+        {
+            stringBuilder = SearchCommand.SearchCommandInstance.GetMultiSearchResults(searchResult);
+
+            if (searchResult.AllSongs.Count != 0)
+            {
+                var exampleSong = searchResult.AllSongs[0];
+                stringBuilder.Append(
+                    $"*发送 \"lps mai {command} ID {exampleSong.Id} {commandParameter}\" 指令即可为歌曲 {exampleSong.Title} [{exampleSong.Type}] {functionString}");
+            }
+            else
+            {
+                stringBuilder.Clear();
+                stringBuilder = new StringBuilder("未找到该歌曲");
+            }
+        }
+
+        return stringBuilder.ToString();
+    }
+
     public static string GetSongPath(int id)
     {
         return AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3";
@@ -126,8 +187,8 @@ public abstract class MaiCommandBase : GroupCommand
 
     public class Alias
     {
-        [JsonProperty("Alias")] public List<string> Aliases;
-        [JsonProperty("SongID")] public int Id;
+        [JsonProperty("aliases")] public List<string> Aliases;
+        [JsonProperty("song_id")] public int Id;
     }
 }
 
@@ -184,6 +245,16 @@ public class SongDto
 
     [JsonProperty("type")] public string Type;
 
+    public override bool Equals(object obj)
+    {
+        return obj is SongDto other && Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
+
     public class ChartDto
     {
         [JsonProperty("charter")] public string Charter;
@@ -213,7 +284,7 @@ public class ChartStatisticsDto
 
 public class AliasDto
 {
-    [JsonProperty("content")] public MaiCommandBase.Alias[] Content;
+    [JsonProperty("aliases")] public MaiCommandBase.Alias[] Content;
 }
 
 public class MaiCommand : MaiCommandBase
@@ -286,6 +357,8 @@ public class MaiCommand : MaiCommandBase
         foreach (var e1 in localAlias.GetIds())
         {
             var a = LocalAlias.Instance.Get(e1);
+            if (a == null)
+                continue;
             foreach (var aliasString in a)
                 if (aliasString.ToLower() == alias)
                 {
@@ -362,7 +435,8 @@ public class MaiCommand : MaiCommandBase
                     songsList.Add(Songs[GetSongIndexById(alias.Id)]);
             }
 
-            return songsList.ToArray();
+            if (songsList.Count != 0)
+                return songsList.ToArray();
         }
 
         var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
@@ -384,6 +458,28 @@ public class MaiCommand : MaiCommandBase
         var songIndex = GetSongIndexByTitle(inputString);
         if (songIndex != -1) return [Songs[songIndex]];
 
+        var searchedSongsList = SearchCommand.SearchCommandInstance.Search(inputString).AllSongs;
+
+        var searchedSongsHashSet = new HashSet<SongDto>();
+        foreach (var searchedSong in searchedSongsList) searchedSongsHashSet.Add(searchedSong);
+
+        var dereplicatedSearchedSongsList = searchedSongsHashSet.ToList();
+
+        var utageRegex = new Regex(@"\[[\u4e00-\u9fa5]|[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]\]");
+
+        if (dereplicatedSearchedSongsList.Count > 1)
+        {
+            var utageSongsList = new List<SongDto>();
+            foreach (var searchedSong in dereplicatedSearchedSongsList)
+                if (utageRegex.IsMatch(searchedSong.Title))
+                    utageSongsList.Add(searchedSong);
+
+            foreach (var utageSong in utageSongsList) dereplicatedSearchedSongsList.Remove(utageSong);
+        }
+
+        if (dereplicatedSearchedSongsList.Count == 1)
+            return dereplicatedSearchedSongsList.ToArray();
+
         return null;
     }
 
@@ -402,6 +498,10 @@ public class MaiCommand : MaiCommandBase
         foreach (var e1 in localAlias.GetIds())
         {
             var a = LocalAlias.Instance.Get(e1);
+
+            if (a == null)
+                continue;
+
             foreach (var aliasString in a)
                 if (inputString.ToLower().StartsWith(aliasString.ToLower()))
                     tempAlias.Add(aliasString.ToLower());
@@ -433,6 +533,29 @@ public class MaiCommand : MaiCommandBase
             if (inputString.ToLower().StartsWith(title + " ") || inputString.ToLower() == title)
                 return title;
 
+        var splitInputStrings = inputString.Split(" ");
+
+        var regexStringBuilder = new StringBuilder();
+        var i = 0;
+        foreach (var splitInputString in splitInputStrings)
+        {
+            i++;
+            regexStringBuilder.Append(splitInputString + ' ');
+
+            if (splitInputStrings.Length == 1)
+                return regexStringBuilder.ToString().TrimEnd();
+
+            if (SearchCommand.SearchCommandInstance.Search(regexStringBuilder.ToString().TrimEnd()).AllSongs.Count == 0)
+            {
+                regexStringBuilder.Remove(regexStringBuilder.Length - 1 - splitInputString.Length,
+                    splitInputString.Length);
+                return regexStringBuilder.ToString().TrimEnd();
+            }
+
+            if (i == splitInputStrings.Length)
+                return regexStringBuilder.ToString().TrimEnd();
+        }
+
         return null;
     }
 
@@ -444,42 +567,7 @@ public class MaiCommand : MaiCommandBase
         if (songIndicator == null)
             return null;
 
-        var aliases = GetAliasByAliasString(songIndicator);
-
-        if (aliases.Length != 0)
-        {
-            var songsList = new List<SongDto>();
-            foreach (var alias in aliases)
-            {
-                if (GetSongIndexById(alias.Id) == -1)
-                    continue;
-                if (!songsList.Contains(Songs[GetSongIndexById(alias.Id)]))
-                    songsList.Add(Songs[GetSongIndexById(alias.Id)]);
-            }
-
-            return songsList.Count == 0 ? null : songsList.ToArray();
-        }
-
-        var idRegex = new Regex(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
-        var idHeadRegex = new Regex(@"^id\s|^id|^ID\s|^ID");
-        if (idRegex.IsMatch(songIndicator))
-            try
-            {
-                var id = int.Parse(idHeadRegex.Replace(songIndicator, string.Empty));
-                var index = GetSongIndexById(id);
-                if (index != -1)
-                    return [Songs[index]];
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-
-        var songIndex = GetSongIndexByTitle(songIndicator);
-        if (songIndex != -1) return [Songs[songIndex]];
-
-        return null;
+        return GetSongs(songIndicator);
     }
 
     private void Reload(object sender, EventArgs e)
@@ -532,7 +620,7 @@ public class MaiCommand : MaiCommandBase
             return;
         }
 
-        AliasDto aliasDto;
+        AliasDto aliasDto = new() { Content = [] };
 
         try
         {
@@ -544,10 +632,10 @@ public class MaiCommand : MaiCommandBase
         {
             Program.Logger.LogWarning(
                 ex.InnerException is TaskCanceledException or HttpRequestException
-                    ? "Error occurred when trying to get alias data from SakuraBot, check if alias URL is correct."
-                    : "Unknown error occurred when trying to get alias data from SakuraBot."
+                    ? "Error occurred when trying to get alias data from Lxns, check if alias URL is correct."
+                    : "Unknown error occurred when trying to get alias data from Lxns."
             );
-            
+
             Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
             Start();
             return;

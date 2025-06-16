@@ -19,14 +19,14 @@ namespace Lapis;
 public class BotConfiguration
 {
     public static BotConfiguration Instance;
-    
+
     [JsonProperty] public string Address;
-    
+
     [JsonProperty] public long AdministratorQqNumber;
-    [JsonProperty] public long BotQqNumber;
-    [JsonProperty] public string BotName;
-    
+
     [JsonProperty] public string AliasUrl;
+    [JsonProperty] public string BotName;
+    [JsonProperty] public long BotQqNumber;
     [JsonProperty] public string DivingFishUrl;
     [JsonProperty] public string WahlapConnectiveKitsUrl;
 }
@@ -158,7 +158,10 @@ public class Program
     {
         Thread.Sleep(3000);
         Session.SendPrivateMessageAsync(userId,
-            [new CqTextMsg($"感谢使用！请邀请 {BotConfiguration.Instance.BotName} 进入您的群聊！\n若要保存表情，请直接将表情发送给 {BotConfiguration.Instance.BotName}")]);
+        [
+            new CqTextMsg(
+                $"感谢使用！请邀请 {BotConfiguration.Instance.BotName} 进入您的群聊！\n若要保存表情，请直接将表情发送给 {BotConfiguration.Instance.BotName}")
+        ]);
     }
 
     private static void SaveDate()

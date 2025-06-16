@@ -195,7 +195,8 @@ public class LettersCommand : MaiCommandBase
             excludedCharacterInformation = "本次开字母游戏中的谜底均不包含中、日文字符\n";
 
         var titleStringBuilder = new StringBuilder();
-        titleStringBuilder.AppendLine($"{excludedCharacterInformation}{BotConfiguration.Instance.BotName} 将在 20mins 后公布答案！");
+        titleStringBuilder.AppendLine(
+            $"{excludedCharacterInformation}{BotConfiguration.Instance.BotName} 将在 20mins 后公布答案！");
         titleStringBuilder.AppendLine("要开字母 a，请发送指令 \"开 a\"");
         titleStringBuilder.AppendLine("要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"");
 

@@ -66,10 +66,9 @@ public class AliasCommand : AliasCommandBase
 
         if (songs == null)
         {
-            SendMessage(source,
-            [
+            SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg("不存在该歌曲")
+                GetMultiSearchResultInformationString(MaiCommandInstance.GetSongIndicatorString(command), "alias", "别称")
             ]);
             return;
         }

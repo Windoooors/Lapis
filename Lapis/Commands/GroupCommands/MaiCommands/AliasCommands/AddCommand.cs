@@ -70,6 +70,27 @@ public class AddCommand : AliasCommandBase
             if (intendedAliasString != "")
                 intendedAliasString = intendedAliasString.Substring(1, intendedAliasString.Length - 1);
 
+            if (intendedAliasString == "")
+            {
+                SendMessage(source,
+                [
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("没有别名吗...那我怎么知道要添加什么啊喵！") //喵
+                ]);
+                return;
+            }
+
+            if (matchedSongs == null)
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    GetMultiSearchResultInformationString(MaiCommandInstance.GetSongIndicatorString(command),
+                        "alias add",
+                        intendedAliasString, "添加别名")
+                ]);
+                return;
+            }
+
             if (matchedSongs.Length > 1)
             {
                 SendMessage(source, [
@@ -81,86 +102,76 @@ public class AddCommand : AliasCommandBase
                 return;
             }
 
-            if (intendedAliasString == "")
+            if (matchedSongs.Length == 0)
             {
-                SendMessage(source,
-                [
+                SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("没有别名吗...那我怎么知道要添加什么啊喵！") //喵
+                    GetMultiSearchResultInformationString(MaiCommandInstance.GetSongIndicatorString(command),
+                        "alias add",
+                        intendedAliasString, "添加别名")
+                ]);
+            }
+            else if (matchedSongs.Length > 1)
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg(GetMultiAliasesMatchedInformationString(matchedSongs, "alias add",
+                        intendedAliasString, "添加别名"))
                 ]);
             }
             else
             {
-                if (matchedSongs.Length == 0)
+                var action = () =>
                 {
+                    var id = matchedSongs[0].Id;
+
+                    var success = !MaiCommandInstance.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
+                                  LocalAlias.Instance.Add(id, intendedAliasString);
+                    if (success)
+                    {
+                        SendMessage(source,
+                        [
+                            new CqReplyMsg(source.MessageId),
+                            new CqTextMsg("添加成功！")
+                        ]);
+                        Save();
+                    }
+                    else
+                    {
+                        SendMessage(source,
+                        [
+                            new CqReplyMsg(source.MessageId),
+                            new CqTextMsg("已存在此别名")
+                        ]);
+                    }
+                };
+                TaskHandleQueue.HandlableTask task = new();
+                task.whenConfirm = action;
+                task.whenCancel = () =>
+                {
+                    SendMessage(source,
+                        new CqMessage
+                        {
+                            new CqReplyMsg(source.MessageId),
+                            new CqTextMsg("别名添加已取消！")
+                        });
+                };
+                var success = TaskHandleQueue.Singleton.AddTask(task);
+
+                if (success)
                     SendMessage(source,
                     [
                         new CqReplyMsg(source.MessageId),
-                        new CqTextMsg("添加失败！找不到歌曲！")
+                        new CqTextMsg(
+                            $"你正在尝试为歌曲 \"{matchedSongs[0].Title} [{matchedSongs[0].Type}]\" 添加别名 \"{intendedAliasString}\""
+                            + "\n发送 \"lps handle confirm\" 以确认，发送 \"lps handle cancel\" 以取消")
                     ]);
-                }
-                else if (matchedSongs.Length > 1)
-                {
-                    SendMessage(source, [
-                        new CqReplyMsg(source.MessageId),
-                        new CqTextMsg(GetMultiAliasesMatchedInformationString(matchedSongs, "alias add",
-                            intendedAliasString, "添加别名"))
-                    ]);
-                }
                 else
-                {
-                    var action = () =>
-                    {
-                        var id = matchedSongs[0].Id;
-
-                        var success = !MaiCommandInstance.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
-                                      LocalAlias.Instance.Add(id, intendedAliasString);
-                        if (success)
-                        {
-                            SendMessage(source,
-                            [
-                                new CqReplyMsg(source.MessageId),
-                                new CqTextMsg("添加成功！")
-                            ]);
-                            Save();
-                        }
-                        else
-                        {
-                            SendMessage(source,
-                            [
-                                new CqReplyMsg(source.MessageId),
-                                new CqTextMsg("已存在此别名")
-                            ]);
-                        }
-                    };
-                    TaskHandleQueue.HandlableTask task = new();
-                    task.whenConfirm = action;
-                    task.whenCancel = () =>
-                    {
-                        SendMessage(source,
-                            new CqMessage
-                            {
-                                new CqReplyMsg(source.MessageId),
-                                new CqTextMsg("别名添加已取消！")
-                            });
-                    };
-                    var success = TaskHandleQueue.Singleton.AddTask(task);
-
-                    if (success)
-                        SendMessage(source,
-                        [
-                            new CqReplyMsg(source.MessageId),
-                            new CqTextMsg(
-                                $"你正在尝试为歌曲 \"{matchedSongs[0].Title}\" [{matchedSongs[0].Type}] 添加别名 \"{intendedAliasString}\""
-                                + "\n发送 \"l handle confirm\" 以确认，发送 \"l handle cancel\" 以取消")
-                        ]);
-                    else
-                        SendMessage(source,
-                        [
-                            new CqReplyMsg(source.MessageId),
-                            new CqTextMsg("当前已有代办事项！请处理后再试！")
-                        ]);
-                }
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("当前已有代办事项！请处理后再试！")
+                    ]);
             }
         }
         else
