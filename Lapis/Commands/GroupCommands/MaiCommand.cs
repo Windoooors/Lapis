@@ -491,7 +491,7 @@ public class MaiCommand : MaiCommandBase
 
         foreach (var alias in SongAliases)
         foreach (var aliasString in alias.Aliases)
-            if (inputString.ToLower().StartsWith(aliasString.ToLower()))
+            if (inputString.ToLower().StartsWith(aliasString.ToLower()) && MaiCommandInstance.GetSongIndexById(alias.Id) != -1)
                 tempAlias.Add(aliasString.ToLower());
 
         var localAlias = LocalAlias.Instance;
@@ -543,17 +543,17 @@ public class MaiCommand : MaiCommandBase
             regexStringBuilder.Append(splitInputString + ' ');
 
             if (splitInputStrings.Length == 1)
-                return regexStringBuilder.ToString().TrimEnd();
+                return regexStringBuilder.ToString().TrimEnd().ToLower();
 
             if (SearchCommand.SearchCommandInstance.Search(regexStringBuilder.ToString().TrimEnd()).AllSongs.Count == 0)
             {
                 regexStringBuilder.Remove(regexStringBuilder.Length - 1 - splitInputString.Length,
                     splitInputString.Length);
-                return regexStringBuilder.ToString().TrimEnd();
+                return regexStringBuilder.ToString().TrimEnd().ToLower();
             }
 
             if (i == splitInputStrings.Length)
-                return regexStringBuilder.ToString().TrimEnd();
+                return regexStringBuilder.ToString().TrimEnd().ToLower();
         }
 
         return null;
@@ -644,6 +644,10 @@ public class MaiCommand : MaiCommandBase
         SongAliases = aliasDto.Content.ToList();
 
         foreach (var alias in SongAliases)
+        {
+            if (GetSongIndexById(alias.Id) == -1)
+                alias.Id += 10000;
+
             if (alias.Id == 11422)
             {
                 var invalidAliasStrings = new List<string>();
@@ -655,6 +659,7 @@ public class MaiCommand : MaiCommandBase
 
                 foreach (var invalidAlias in invalidAliasStrings) alias.Aliases.Remove(invalidAlias);
             }
+        }
 
         foreach (var song in Songs)
         {

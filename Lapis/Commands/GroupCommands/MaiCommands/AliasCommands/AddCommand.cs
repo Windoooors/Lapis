@@ -55,7 +55,7 @@ public class AddCommand : AliasCommandBase
         {
             var songIndicatorString = MaiCommandInstance.GetSongIndicatorString(command);
 
-            if (songIndicatorString == null)
+            if (string.IsNullOrEmpty(songIndicatorString))
             {
                 SendMessage(source,
                 [

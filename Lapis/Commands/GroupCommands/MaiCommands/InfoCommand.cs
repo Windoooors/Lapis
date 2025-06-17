@@ -40,17 +40,25 @@ public class InfoCommand : MaiCommandBase
     public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
     {
         var songs = MaiCommandInstance.GetSongsUsingStartsWith(command);
-
+        
+        var indicatorString = MaiCommandInstance.GetSongIndicatorString(command);
+        
         if (songs == null)
         {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                GetMultiSearchResultInformationString(MaiCommandInstance.GetSongIndicatorString(command), "info", "信息")
-            ]);
+            if (!string.IsNullOrEmpty(indicatorString))
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    GetMultiSearchResultInformationString(indicatorString, "info", "信息")
+                ]);
+            else
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    "未找到该歌曲"
+                ]);
+            }
             return;
         }
-
-        var indicatorString = MaiCommandInstance.GetSongIndicatorString(command);
 
         if (songs.Length != 1)
         {

@@ -68,7 +68,7 @@ public class AliasCommand : AliasCommandBase
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                GetMultiSearchResultInformationString(MaiCommandInstance.GetSongIndicatorString(command), "alias", "别称")
+                GetMultiSearchResultInformationString(command, "alias", "别称")
             ]);
             return;
         }
