@@ -40,9 +40,9 @@ public class InfoCommand : MaiCommandBase
     public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
     {
         var songs = MaiCommandInstance.GetSongsUsingStartsWith(command);
-        
+
         var indicatorString = MaiCommandInstance.GetSongIndicatorString(command);
-        
+
         if (songs == null)
         {
             if (!string.IsNullOrEmpty(indicatorString))
@@ -51,12 +51,10 @@ public class InfoCommand : MaiCommandBase
                     GetMultiSearchResultInformationString(indicatorString, "info", "信息")
                 ]);
             else
-            {
                 SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
                     "未找到该歌曲"
                 ]);
-            }
             return;
         }
 

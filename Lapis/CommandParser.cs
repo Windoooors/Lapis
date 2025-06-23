@@ -38,7 +38,7 @@ public class CommandParser
             if (!_headCommandRegex.IsMatch(commandString))
                 return;
 
-            commandString = _headCommandRegex.Replace(commandString, string.Empty);
+            commandString = _headCommandRegex.Replace(commandString, string.Empty, 1);
 
             if (!Parse(source, commandString, Program.Commands))
                 HelpCommand.Instance.Parse(source);
@@ -68,7 +68,7 @@ public class CommandParser
         foreach (var command in commands)
             if (command.CommandHead != null)
             {
-                var commandReplaced = command.CommandHead.Replace(commandString, string.Empty);
+                var commandReplaced = command.CommandHead.Replace(commandString, string.Empty, 1);
 
                 if (commandReplaced.StartsWith(' ') && command.CommandHead.IsMatch(commandString))
                 {
@@ -86,7 +86,7 @@ public class CommandParser
 
                 if (command.CommandHead.IsMatch(commandString))
                 {
-                    commandString = command.CommandHead.Replace(commandString, string.Empty);
+                    commandString = command.CommandHead.Replace(commandString, string.Empty, 1);
 
                     if (commandString != string.Empty)
                         return false;
@@ -124,7 +124,7 @@ public class CommandParser
             if (command.DirectCommandHead == null)
                 continue;
 
-            var commandReplaced = command.DirectCommandHead.Replace(commandString, string.Empty);
+            var commandReplaced = command.DirectCommandHead.Replace(commandString, string.Empty, 1);
 
             if (command.DirectCommandHead.IsMatch(commandString) && commandReplaced.StartsWith(' '))
             {
@@ -137,7 +137,7 @@ public class CommandParser
 
             if (command.DirectCommandHead.IsMatch(commandString))
             {
-                commandString = command.DirectCommandHead.Replace(commandString, string.Empty);
+                commandString = command.DirectCommandHead.Replace(commandString, string.Empty, 1);
                 if (commandString != string.Empty)
                     continue;
 

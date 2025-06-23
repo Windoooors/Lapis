@@ -45,13 +45,13 @@ public class BindCommand : UniversalCommand
         var divingFishArgumentRegex = new Regex(@"divingfish\s");
         if (wechatArgumentRegex.IsMatch(command.ToLower()))
         {
-            BindWeChat(wechatArgumentRegex.Replace(command, string.Empty), source);
+            BindWeChat(wechatArgumentRegex.Replace(command, string.Empty, 1), source);
             return;
         }
 
         if (divingFishArgumentRegex.IsMatch(command.ToLower()))
         {
-            BindDivingFish(divingFishArgumentRegex.Replace(command, string.Empty), source);
+            BindDivingFish(divingFishArgumentRegex.Replace(command, string.Empty, 1), source);
             return;
         }
 

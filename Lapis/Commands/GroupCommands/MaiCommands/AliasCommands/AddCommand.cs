@@ -66,7 +66,8 @@ public class AddCommand : AliasCommandBase
             }
 
             var matchedSongs = MaiCommandInstance.GetSongs(songIndicatorString);
-            var intendedAliasString = Regex.Replace(command, songIndicatorString, "", RegexOptions.IgnoreCase);
+            var intendedAliasString =
+                new Regex(songIndicatorString, RegexOptions.IgnoreCase).Replace(command, string.Empty, 1);
             if (intendedAliasString != "")
                 intendedAliasString = intendedAliasString.Substring(1, intendedAliasString.Length - 1);
 

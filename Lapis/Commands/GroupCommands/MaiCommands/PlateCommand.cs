@@ -138,7 +138,9 @@ public class PlateCommand : MaiCommandBase
         }
 
         var versionCharacter =
-            wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, ""), ""), ""), "");
+            wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, "", 1), "", 1), "", 1), "",
+                1);
+        ;
 
         Characters.TryGetValue(versionCharacter, out var versionCharacterInJapanese);
 

@@ -31,11 +31,11 @@ public class ObituaryCommand : StickerCommandBase
             if (_fontSizeCommand.IsMatch(command))
             {
                 fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
-                command = _fontSizeCommand.Replace(command, string.Empty);
+                command = _fontSizeCommand.Replace(command, string.Empty, 1);
                 if (_topCommand.IsMatch(command))
                 {
                     top = int.Parse(_topCommand.Match(command).ToString().Substring(3));
-                    command = _topCommand.Replace(command, string.Empty);
+                    command = _topCommand.Replace(command, string.Empty, 1);
                 }
             }
             else
@@ -43,18 +43,18 @@ public class ObituaryCommand : StickerCommandBase
                 if (_topCommand.IsMatch(command))
                 {
                     top = int.Parse(_topCommand.Match(command).ToString().Substring(3));
-                    command = _topCommand.Replace(command, string.Empty);
+                    command = _topCommand.Replace(command, string.Empty, 1);
                 }
             }
 
             if (_topCommand.IsMatch(command))
             {
                 top = int.Parse(_topCommand.Match(command).ToString().Substring(3));
-                command = _topCommand.Replace(command, string.Empty);
+                command = _topCommand.Replace(command, string.Empty, 1);
                 if (_fontSizeCommand.IsMatch(command))
                 {
                     fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
-                    command = _fontSizeCommand.Replace(command, string.Empty);
+                    command = _fontSizeCommand.Replace(command, string.Empty, 1);
                 }
             }
             else
@@ -62,7 +62,7 @@ public class ObituaryCommand : StickerCommandBase
                 if (_fontSizeCommand.IsMatch(command))
                 {
                     fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
-                    command = _fontSizeCommand.Replace(command, string.Empty);
+                    command = _fontSizeCommand.Replace(command, string.Empty, 1);
                 }
             }
 

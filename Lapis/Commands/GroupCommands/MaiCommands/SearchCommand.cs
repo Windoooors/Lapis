@@ -147,7 +147,7 @@ public class SearchCommand : MaiCommandBase
                 foreach (var alias in pair.Value) aliasStringBuilder.AppendJoin(' ', $"\"{alias}\"");
 
                 stringBuilder.AppendLine("ID " + pair.Key.Id + " - " + pair.Key.Title + " [" + pair.Key.Type +
-                                         $"] （通过别称 {aliasStringBuilder}匹配）");
+                                         $"] （通过别称 {aliasStringBuilder} 匹配）");
             }
 
         if (songsMatchedByArtist.Count > 0)

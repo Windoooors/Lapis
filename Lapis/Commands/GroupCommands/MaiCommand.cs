@@ -444,7 +444,7 @@ public class MaiCommand : MaiCommandBase
         if (idRegex.IsMatch(inputString.ToLower()))
             try
             {
-                var id = int.Parse(idHeadRegex.Replace(inputString.ToLower(), string.Empty));
+                var id = int.Parse(idHeadRegex.Replace(inputString.ToLower(), string.Empty, 1));
                 var index = GetSongIndexById(id);
                 if (index != -1)
                     return [Songs[index]];
@@ -491,7 +491,8 @@ public class MaiCommand : MaiCommandBase
 
         foreach (var alias in SongAliases)
         foreach (var aliasString in alias.Aliases)
-            if (inputString.ToLower().StartsWith(aliasString.ToLower()) && MaiCommandInstance.GetSongIndexById(alias.Id) != -1)
+            if (inputString.ToLower().StartsWith(aliasString.ToLower()) &&
+                MaiCommandInstance.GetSongIndexById(alias.Id) != -1)
                 tempAlias.Add(aliasString.ToLower());
 
         var localAlias = LocalAlias.Instance;

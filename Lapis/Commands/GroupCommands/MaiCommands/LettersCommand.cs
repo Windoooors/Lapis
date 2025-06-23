@@ -315,7 +315,7 @@ public class LettersCommand : MaiCommandBase
             return;
         }
 
-        var songIndicator = indexPattern.Replace(command, "");
+        var songIndicator = indexPattern.Replace(command, "", 1);
         if (songIndicator == "")
         {
             SendMessage(source, [new CqReplyMsg(source.MessageId), "不支持的参数类型"]);
