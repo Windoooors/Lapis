@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.ImageGenerators;
@@ -11,8 +10,8 @@ public class RandomCommand : MaiCommandBase
 {
     public RandomCommand()
     {
-        CommandHead = new Regex("^random");
-        DirectCommandHead = new Regex("^random|^随个");
+        CommandHead = "random";
+        DirectCommandHead = "random|随个";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("random", "1");
     }
 

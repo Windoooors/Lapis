@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
@@ -16,8 +15,8 @@ public class AbuseCommand : GroupCommand
 
     public AbuseCommand()
     {
-        CommandHead = new Regex("^骂我|^夸我");
-        DirectCommandHead = new Regex("^骂我|^夸我");
+        CommandHead = "骂我|夸我";
+        DirectCommandHead = "骂我|夸我";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("abuse", "1");
     }
 

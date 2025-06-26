@@ -15,8 +15,8 @@ public class FortuneCommand : StickerCommandBase
 
     public FortuneCommand()
     {
-        CommandHead = new Regex("^喜报");
-        DirectCommandHead = new Regex("^喜报");
+        CommandHead = "喜报";
+        DirectCommandHead = "喜报";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("fortune", "1");
     }
 

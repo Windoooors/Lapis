@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 
@@ -10,8 +9,8 @@ public class TaskHandleQueueCommand : GroupCommand
 {
     public TaskHandleQueueCommand()
     {
-        CommandHead = new Regex("^handle");
-        DirectCommandHead = new Regex("^待处理");
+        CommandHead = "handle";
+        DirectCommandHead = "待处理";
     }
 
     public override void ParseWithArgument(string command, CqGroupMessagePostContext source)

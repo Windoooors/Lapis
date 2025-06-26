@@ -13,8 +13,8 @@ public class SettingsCommand : GroupCommand
 
     public SettingsCommand()
     {
-        CommandHead = new Regex("^settings");
-        DirectCommandHead = new Regex("^settings");
+        CommandHead = "settings";
+        DirectCommandHead = "settings";
         Instance = this;
     }
 

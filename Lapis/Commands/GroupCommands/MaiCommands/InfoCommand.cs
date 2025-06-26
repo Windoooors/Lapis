@@ -16,8 +16,8 @@ public class InfoCommand : MaiCommandBase
 {
     public InfoCommand()
     {
-        CommandHead = new Regex("^info");
-        DirectCommandHead = new Regex("^info|^查歌");
+        CommandHead = "info";
+        DirectCommandHead = "info|查歌";
 
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("info", "1");
     }

@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using EleCho.GoCqHttpSdk.Message;
+﻿using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
 
@@ -9,8 +8,8 @@ public class DictionaryCommand : VocabularyCommandBase
 {
     public DictionaryCommand()
     {
-        CommandHead = new Regex("^dictionary|^dict|^查词|^词典|^inquiry");
-        DirectCommandHead = new Regex("^dictionary|^dict|^查词|^词典|^inquiry");
+        CommandHead = "dictionary|dict|查词|词典|inquiry";
+        DirectCommandHead = "dictionary|dict|查词|词典|inquiry";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("dictionary", "1");
     }
 

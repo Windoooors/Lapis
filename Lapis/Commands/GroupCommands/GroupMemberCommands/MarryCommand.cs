@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
@@ -18,8 +17,8 @@ public class MarryCommand : GroupMemberCommandBase
 {
     public MarryCommand()
     {
-        CommandHead = new Regex("^娶|^嫁");
-        DirectCommandHead = new Regex("^娶|^嫁");
+        CommandHead = "娶|嫁";
+        DirectCommandHead = "娶|嫁";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("marry", "1");
     }
 

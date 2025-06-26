@@ -317,7 +317,7 @@ public class MaiCommand : MaiCommandBase
     public MaiCommand()
     {
         MaiCommandInstance = this;
-        CommandHead = new Regex("^mai");
+        CommandHead = "mai";
         SubCommands =
         [
             new RandomCommand(),

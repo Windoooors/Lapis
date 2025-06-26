@@ -26,8 +26,8 @@ public class BindCommand : UniversalCommand
 
     public BindCommand()
     {
-        CommandHead = new Regex("^bind");
-        DirectCommandHead = new Regex("^bind|^绑定");
+        CommandHead = "bind";
+        DirectCommandHead = "bind|绑定";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("bind", "1");
     }
 

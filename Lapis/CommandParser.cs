@@ -68,12 +68,10 @@ public class CommandParser
         foreach (var command in commands)
             if (command.CommandHead != null)
             {
-                var commandReplaced = command.CommandHead.Replace(commandString, string.Empty, 1);
-
-                if (commandReplaced.StartsWith(' ') && command.CommandHead.IsMatch(commandString))
+                var commandHeadMatchingEndingSpace = new Regex(@$"^({command.CommandHead})\s");
+                if (commandHeadMatchingEndingSpace.IsMatch(commandString))
                 {
-                    commandString = commandReplaced;
-                    commandString = commandString.Substring(1);
+                    commandString = commandHeadMatchingEndingSpace.Replace(commandString, string.Empty, 1);
 
                     if (command.SubCommands.Length != 0)
                         parsed = Parse(source, commandString, command.SubCommands);
@@ -84,13 +82,9 @@ public class CommandParser
                     return StartParsingWithArgumentTask(command, source, commandString);
                 }
 
-                if (command.CommandHead.IsMatch(commandString))
+                var commandHeadMatchingEndOfString = new Regex($"^({command.CommandHead})$");
+                if (commandHeadMatchingEndOfString.IsMatch(commandString))
                 {
-                    commandString = command.CommandHead.Replace(commandString, string.Empty, 1);
-
-                    if (commandString != string.Empty)
-                        return false;
-
                     if (command.SubCommands.Length != 0)
                         parsed = Parse(source, commandString, command.SubCommands);
 
@@ -124,23 +118,20 @@ public class CommandParser
             if (command.DirectCommandHead == null)
                 continue;
 
-            var commandReplaced = command.DirectCommandHead.Replace(commandString, string.Empty, 1);
+            var directCommandHeadMatchingEndingSpace = new Regex(@$"^({command.DirectCommandHead})\s");
 
-            if (command.DirectCommandHead.IsMatch(commandString) && commandReplaced.StartsWith(' '))
+            if (directCommandHeadMatchingEndingSpace.IsMatch(commandString))
             {
-                commandString = commandReplaced;
-                commandString = commandString.Substring(1);
+                commandString = directCommandHeadMatchingEndingSpace.Replace(commandString, string.Empty, 1);
 
                 StartParsingWithArgumentTask(command, source, commandString);
                 return;
             }
 
-            if (command.DirectCommandHead.IsMatch(commandString))
-            {
-                commandString = command.DirectCommandHead.Replace(commandString, string.Empty, 1);
-                if (commandString != string.Empty)
-                    continue;
+            var directCommandHeadMatchingEndOfString = new Regex($"^({command.DirectCommandHead})$");
 
+            if (directCommandHeadMatchingEndOfString.IsMatch(commandString))
+            {
                 StartParsingTask(command, source);
                 return;
             }

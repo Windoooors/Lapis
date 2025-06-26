@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -17,8 +16,8 @@ public class UpdateCommand : MaiCommandBase
 {
     public UpdateCommand()
     {
-        CommandHead = new Regex("^update");
-        DirectCommandHead = new Regex("^update|^更新");
+        CommandHead = "update";
+        DirectCommandHead = "update|更新";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("update", "1");
     }
 

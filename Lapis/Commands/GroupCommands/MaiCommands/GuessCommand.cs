@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
@@ -66,8 +65,8 @@ public class GuessCommand : MaiCommandBase
 
     public GuessCommand()
     {
-        CommandHead = new Regex("^guess");
-        DirectCommandHead = new Regex("^songs|^猜歌|^song");
+        CommandHead = "guess";
+        DirectCommandHead = "songs|猜歌|song";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("song", "1");
     }
 

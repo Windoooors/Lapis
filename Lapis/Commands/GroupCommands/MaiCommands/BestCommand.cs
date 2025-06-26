@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -16,8 +15,8 @@ public class BestCommand : MaiCommandBase
 {
     public BestCommand()
     {
-        CommandHead = new Regex("^b50");
-        DirectCommandHead = new Regex("^b50|^逼五零");
+        CommandHead = "b50";
+        DirectCommandHead = "b50|逼五零";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("b50", "1");
     }
 

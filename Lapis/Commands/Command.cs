@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -8,8 +7,8 @@ namespace Lapis.Commands;
 
 public abstract class Command
 {
-    public Regex CommandHead;
-    public Regex DirectCommandHead;
+    public string CommandHead;
+    public string DirectCommandHead;
     public Command[] SubCommands = [];
     public SettingsIdentifierPair ActivationSettingsSettingsIdentifier { get; protected init; } = new();
 

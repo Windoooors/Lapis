@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Commands.UniversalCommands;
 using Lapis.Operations.ApiOperation;
 using Lapis.Settings;
 
@@ -14,8 +14,8 @@ public class RapeCommand : GroupMemberCommandBase
 {
     public RapeCommand()
     {
-        CommandHead = new Regex("^透|^日|^操|^干|^日批");
-        DirectCommandHead = new Regex("^透|^日|^操|^干|^日批");
+        CommandHead = "透|日|操|干|日批";
+        DirectCommandHead = "透|日|操|干|日批";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("rape", "1");
     }
 
@@ -45,7 +45,12 @@ public class RapeCommand : GroupMemberCommandBase
 
     public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
     {
-        var id = long.Parse(command);
+        var parsed = long.TryParse(command, out var id);
+        if (!parsed)
+        {
+            HelpCommand.Instance.ArgumentErrorHelp(source);
+            return;
+        }
 
         if (id == source.Sender.UserId)
         {
@@ -112,6 +117,7 @@ public class RapeCommand : GroupMemberCommandBase
             case "日空老师":
                 ParseWithArgument("3522656010", source);
                 break;
+            case "日全家不死老师":
             case "日草老师":
                 ParseWithArgument("1792975423", source);
                 break;
@@ -121,6 +127,10 @@ public class RapeCommand : GroupMemberCommandBase
             case "日乐家君":
                 ParseWithArgument("2575663823", source);
                 break;
+            case "日秋招老师":
+                ParseWithArgument("1306717258", source);
+                break;
+            case "日保研老师":
             case "日笑老师":
                 ParseWithArgument("1837582042", source);
                 break;
@@ -132,6 +142,13 @@ public class RapeCommand : GroupMemberCommandBase
                 break;
             case "日烤学妹":
                 ParseWithArgument("1684931081", source);
+                break;
+            case "日柴老师":
+                ParseWithArgument("2039151191", source);
+                break;
+            case "日小礼":
+            case "日群主":
+                ParseWithArgument("1281502717", source);
                 break;
         }
     }

@@ -23,8 +23,8 @@ public class SearchCommand : MaiCommandBase
 
     public SearchCommand()
     {
-        CommandHead = new Regex("^search");
-        DirectCommandHead = new Regex("^search|^查歌|^搜歌|^搜索|^索引");
+        CommandHead = "search";
+        DirectCommandHead = "search|查歌|搜歌|搜索|索引";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("search", "1");
     }
 

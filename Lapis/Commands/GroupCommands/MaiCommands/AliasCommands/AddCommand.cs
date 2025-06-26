@@ -14,8 +14,8 @@ public class AddCommand : AliasCommandBase
 {
     public AddCommand()
     {
-        CommandHead = new Regex("^add");
-        DirectCommandHead = new Regex("^添加别名");
+        CommandHead = "add";
+        DirectCommandHead = "添加别名";
 
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("aliasadd", "1");
     }

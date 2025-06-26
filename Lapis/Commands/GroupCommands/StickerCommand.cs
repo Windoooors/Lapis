@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Lapis.Commands.GroupCommands.StickerCommands;
+﻿using Lapis.Commands.GroupCommands.StickerCommands;
 
 namespace Lapis.Commands.GroupCommands;
 
@@ -12,7 +11,7 @@ public class StickerCommand : StickerCommandBase
 {
     public StickerCommand()
     {
-        CommandHead = new Regex("^sticker");
+        CommandHead = "sticker";
         SubCommands =
         [
             new FortuneCommand(),

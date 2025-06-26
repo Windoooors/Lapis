@@ -95,8 +95,8 @@ public class PlateCommand : MaiCommandBase
 
     public PlateCommand()
     {
-        CommandHead = new Regex("^plate");
-        DirectCommandHead = new Regex("^plate");
+        CommandHead = "plate";
+        DirectCommandHead = "plate";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("plate", "1");
     }
 

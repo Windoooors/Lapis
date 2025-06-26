@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Operations.ImageOperation;
@@ -13,8 +12,8 @@ public class AboutCommand : GroupCommand
 {
     public AboutCommand()
     {
-        CommandHead = new Regex("^about|^关于");
-        DirectCommandHead = new Regex("^about|^关于");
+        CommandHead = "about|关于";
+        DirectCommandHead = "about|关于";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("about", "1");
     }
 

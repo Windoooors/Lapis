@@ -19,8 +19,8 @@ public class GuessWordsCommand : VocabularyCommandBase
 
     public GuessWordsCommand()
     {
-        CommandHead = new Regex("^word|^words|^猜词");
-        DirectCommandHead = new Regex("^word|^words|^猜词");
+        CommandHead = "word|words|猜词";
+        DirectCommandHead = "word|words|猜词";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("word", "1");
     }
 

@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using EleCho.GoCqHttpSdk.Message;
+﻿using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
 
@@ -9,8 +8,8 @@ public class RepeatCommand : GroupCommand
 {
     public RepeatCommand()
     {
-        CommandHead = new Regex("^repeat");
-        DirectCommandHead = new Regex("^repeat");
+        CommandHead = "repeat";
+        DirectCommandHead = "repeat";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("repeat", "1");
     }
 

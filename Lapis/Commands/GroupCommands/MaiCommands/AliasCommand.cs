@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.MaiCommands.AliasCommands;
@@ -18,8 +17,8 @@ public class AliasCommand : AliasCommandBase
     public AliasCommand()
     {
         AliasCommandInstance = this;
-        CommandHead = new Regex("^alias");
-        DirectCommandHead = new Regex("^alias|^别名|^查看别名");
+        CommandHead = "alias";
+        DirectCommandHead = "alias|别名|查看别名";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("alias", "1");
         SubCommands = [new AddCommand()];
     }

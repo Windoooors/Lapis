@@ -15,8 +15,8 @@ public class ObituaryCommand : StickerCommandBase
 
     public ObituaryCommand()
     {
-        CommandHead = new Regex("^悲报");
-        DirectCommandHead = new Regex("^悲报");
+        CommandHead = "悲报";
+        DirectCommandHead = "悲报";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("obituary", "1");
     }
 

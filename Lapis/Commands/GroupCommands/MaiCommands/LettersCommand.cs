@@ -18,8 +18,8 @@ public class LettersCommand : MaiCommandBase
 
     public LettersCommand()
     {
-        CommandHead = new Regex("^letters");
-        DirectCommandHead = new Regex("^letters|^开字母");
+        CommandHead = "letters";
+        DirectCommandHead = "letters|开字母";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("letter", "1");
     }
 

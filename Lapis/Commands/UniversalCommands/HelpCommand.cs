@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using EleCho.GoCqHttpSdk.Message;
+﻿using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
 
@@ -11,8 +10,8 @@ public class HelpCommand : UniversalCommand
 
     public HelpCommand()
     {
-        CommandHead = new Regex("^help");
-        DirectCommandHead = new Regex("^help");
+        CommandHead = "help";
+        DirectCommandHead = "help";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("help", "1");
         Instance = this;
     }
