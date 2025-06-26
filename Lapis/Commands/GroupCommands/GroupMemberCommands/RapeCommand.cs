@@ -119,12 +119,14 @@ public class RapeCommand : GroupMemberCommandBase
                 break;
             case "日全家不死老师":
             case "日草老师":
+            case "日撸着":
                 ParseWithArgument("1792975423", source);
                 break;
             case "日慧敏姐":
                 ParseWithArgument("1784234439", source);
                 break;
             case "日乐家君":
+            case "日管理员":
                 ParseWithArgument("2575663823", source);
                 break;
             case "日秋招老师":
@@ -132,6 +134,7 @@ public class RapeCommand : GroupMemberCommandBase
                 break;
             case "日保研老师":
             case "日笑老师":
+            case "日薛先生":
                 ParseWithArgument("1837582042", source);
                 break;
             case "日Asagi":
