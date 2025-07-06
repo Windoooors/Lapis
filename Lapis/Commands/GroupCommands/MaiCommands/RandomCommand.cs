@@ -15,7 +15,8 @@ public class RandomCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("random", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         var songs = MaiCommandInstance.GetSongsUsingDifficultyString(command);
         if (songs.Length == 0)
@@ -34,7 +35,7 @@ public class RandomCommand : MaiCommandBase
             var j = random.Next(0, songs.Length);
 
             var isCompressed =
-                SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
+                SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
             SendMessage(source,
             [
@@ -43,7 +44,7 @@ public class RandomCommand : MaiCommandBase
                     isCompressed))
             ]);
 
-            if (SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("random", "2"), source.GroupId))
+            if (SettingsPool.GetValue(new SettingsIdentifierPair("random", "2"), source.GroupId))
                 SendMessage(source,
                 [
                     new CqRecordMsg("file:///" + GetSongPath(songs[j].Id))
@@ -51,9 +52,10 @@ public class RandomCommand : MaiCommandBase
         }
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        if (!SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
 
         if (command.StartsWith("随个") && !command.Replace("随个", "").StartsWith(' '))
@@ -61,6 +63,6 @@ public class RandomCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument(command, source);
+        ParseWithArgument(command, source, mentionedUserIds);
     }
 }

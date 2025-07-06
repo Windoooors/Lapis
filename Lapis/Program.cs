@@ -168,7 +168,7 @@ public class Program
     {
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "data/date.json"),
             JsonConvert.SerializeObject(_lastDateTime));
-        Logger.LogInformation("Date data has been saved.");
+        Logger.LogInformation("Date data have been saved.");
     }
 
     private static void CountTime()

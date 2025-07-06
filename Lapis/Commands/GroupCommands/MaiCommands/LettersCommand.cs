@@ -230,12 +230,13 @@ public class LettersCommand : MaiCommandBase
             (songs, DateTime.Now.Add(new TimeSpan(0, 0, 20, 0))));
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         StartGuessing(source, SpecialCharactersToBeIncluded.Both);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         var specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
 
@@ -279,7 +280,8 @@ public class LettersCommand : MaiCommandBase
         StartGuessing(source, specialCharactersToBeIncluded);
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out var keyValuePair);
 

@@ -20,7 +20,7 @@ public class FortuneCommand : StickerCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("fortune", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         if (command != string.Empty)
         {

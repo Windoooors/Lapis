@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Operations.ApiOperation;
@@ -32,7 +30,7 @@ public class MarryCommand : GroupMemberCommandBase
         CouplesOperator.Refresh();
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
         if (couple == null)
@@ -56,28 +54,21 @@ public class MarryCommand : GroupMemberCommandBase
             var memberId = memberArray[i].Id;
             CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
 
-            Parse(source);
+            Parse(source, mentionedUserIds);
             return;
         }
 
         if (!SendMessage(couple.BrideId, source))
-            Parse(source);
+            Parse(source, mentionedUserIds);
     }
 
     private bool SendMessage(long memberId, CqGroupMessagePostContext source)
     {
-        var memberInformation = Program.Session.GetGroupMemberInformation(source.GroupId, memberId);
-
-        if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
+        if (!TryGetNickname(memberId, source.GroupId, out var nickname))
         {
-            GroupMemberCommandInstance.RemoveMember(memberId, source.GroupId);
             CouplesOperator.RemoveCouple(memberId, source.GroupId);
             return false;
         }
-
-        var nickname = memberInformation.GroupNickname == ""
-            ? memberInformation.Nickname
-            : memberInformation.GroupNickname;
 
         SendMessage(source,
         [

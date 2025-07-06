@@ -46,7 +46,8 @@ public class GuessWordsCommand : VocabularyCommandBase
         }
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             return;
@@ -122,7 +123,7 @@ public class GuessWordsCommand : VocabularyCommandBase
             ]);
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         var text = $"{BotConfiguration.Instance.BotName} 可从以下词库选取词语猜词\n";
         var i = 0;
@@ -148,7 +149,8 @@ public class GuessWordsCommand : VocabularyCommandBase
         ]);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         if (command == "answer")
         {

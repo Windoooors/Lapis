@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -22,9 +21,10 @@ public class InfoCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("info", "1");
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        if (!SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
 
         if (command.EndsWith(" 是什么歌"))
@@ -34,27 +34,22 @@ public class InfoCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument(command, source);
+        ParseWithArgument(command, source, mentionedUserIds);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        var songs = MaiCommandInstance.GetSongsUsingStartsWith(command);
+        command = command.Trim();
 
-        var indicatorString = MaiCommandInstance.GetSongIndicatorString(command);
+        var songs = MaiCommandInstance.GetSongs(command);
 
         if (songs == null)
         {
-            if (!string.IsNullOrEmpty(indicatorString))
-                SendMessage(source, [
-                    new CqReplyMsg(source.MessageId),
-                    GetMultiSearchResultInformationString(indicatorString, "info", "信息")
-                ]);
-            else
-                SendMessage(source, [
-                    new CqReplyMsg(source.MessageId),
-                    "未找到该歌曲"
-                ]);
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId),
+                GetMultiSearchResultInformationString(command, "info", "信息")
+            ]);
             return;
         }
 
@@ -70,60 +65,29 @@ public class InfoCommand : MaiCommandBase
 
         GetScore.ScoreData scoreData;
 
-        var indicatorRegex = new Regex(indicatorString);
-        var userName = indicatorRegex.Replace(command.ToLower(), "", 1);
-        userName = userName.TrimStart();
-        userName = userName.TrimEnd();
-        if (userName != string.Empty)
+        var id = mentionedUserIds.Length == 0 ? source.Sender.UserId : mentionedUserIds[0];
+        try
         {
-            try
-            {
-                var conversionSucceeded = long.TryParse(userName, out var userId);
-                scoreData = GetScore.Get(conversionSucceeded ? userId : userName, songs[0]);
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException is TaskCanceledException or HttpRequestException)
-                    DivingFishErrorHelp(source);
-                else
-                    SendMessage(source, [
-                        new CqReplyMsg(source.MessageId),
-                        "未找到该用户的游玩数据"
-                    ]);
-
-                scoreData = new GetScore.ScoreData
-                {
-                    Levels = [],
-                    UserExists = false
-                };
-            }
+            scoreData = GetScore.Get(id, songs[0]);
         }
-        else
+        catch (Exception ex)
         {
-            var id = source.Sender.UserId;
-            try
-            {
-                scoreData = GetScore.Get(id, songs[0]);
-            }
-            catch (Exception ex)
-            {
-                if (ex.InnerException is TaskCanceledException or HttpRequestException)
-                    DivingFishErrorHelp(source);
-                else
-                    UnboundErrorHelp(source);
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+                DivingFishErrorHelp(source);
+            else
+                UnboundErrorHelp(source);
 
-                scoreData = new GetScore.ScoreData
-                {
-                    Levels = [],
-                    UserExists = false
-                };
-            }
+            scoreData = new GetScore.ScoreData
+            {
+                Levels = [],
+                UserExists = false
+            };
         }
 
         var generator = new InfoImageGenerator();
 
         var isCompressed =
-            SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
+            SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
         var image = new CqImageMsg("base64://" + generator.Generate(songs[0], "歌曲信息",
             scoreData.Levels,
@@ -131,7 +95,7 @@ public class InfoCommand : MaiCommandBase
 
         SendMessage(source, [new CqReplyMsg(source.MessageId), image]);
 
-        if (SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("info", "2"), source.GroupId))
+        if (SettingsPool.GetValue(new SettingsIdentifierPair("info", "2"), source.GroupId))
             SendMessage(source,
                 [new CqRecordMsg("file:///" + GetSongPath(songs[0].Id))]);
     }

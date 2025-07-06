@@ -1,10 +1,8 @@
 using System;
 using System.Linq;
-using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Action;
+using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using Lapis.Commands.UniversalCommands;
 using Lapis.Operations.ApiOperation;
 using Lapis.Settings;
 
@@ -21,17 +19,7 @@ public class RapeCommand : GroupMemberCommandBase
 
     private bool SendMessage(long memberId, CqGroupMessagePostContext source)
     {
-        var memberInformation = Program.Session.GetGroupMemberInformation(source.GroupId, memberId);
-
-        if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
-        {
-            GroupMemberCommandInstance.RemoveMember(memberId, source.GroupId);
-            return false;
-        }
-
-        var nickname = memberInformation.GroupNickname == ""
-            ? memberInformation.Nickname
-            : memberInformation.GroupNickname;
+        if (!TryGetNickname(memberId, source.GroupId, out var nickname)) return false;
 
         SendMessage(source,
         [
@@ -43,24 +31,13 @@ public class RapeCommand : GroupMemberCommandBase
         return true;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        var parsed = long.TryParse(command, out var id);
-        if (!parsed)
-        {
-            HelpCommand.Instance.ArgumentErrorHelp(source);
-            return;
-        }
+        GroupMemberCommand.GroupMember[] members = [];
 
-        if (id == source.Sender.UserId)
-        {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId), "哇 还有水仙"
-            ]);
-            return;
-        }
-
-        if (id == BotConfiguration.Instance.BotQqNumber)
+        if ((mentionedUserIds.Length == 1 && mentionedUserIds[0] == BotConfiguration.Instance.BotQqNumber) ||
+            (long.TryParse(command, out var id) && id == BotConfiguration.Instance.BotQqNumber))
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId), "🥺"
@@ -68,22 +45,56 @@ public class RapeCommand : GroupMemberCommandBase
             return;
         }
 
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
-                out var group))
-            return;
-
-        if (group.Members.Contains(new GroupMemberCommand.GroupMember(id)))
+        if (mentionedUserIds.Length == 1)
         {
-            if (!SendMessage(id, source)) ParseWithArgument(command, source);
+            members = [new GroupMemberCommand.GroupMember(mentionedUserIds[0])];
         }
         else
         {
-            MemberNotHaveChatErrorHelp(source);
+            var memberFound = GroupMemberCommandInstance.TryGetMember(command, source.GroupId, out members);
+
+            if (!memberFound)
+            {
+                SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(command, "日", "逼", source.GroupId)
+                    ]
+                );
+                return;
+            }
+
+            if (members.Length != 1)
+            {
+                SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiAliasesMatchedInformationString(members, "日", "逼", source.GroupId)
+                    ]
+                );
+                return;
+            }
         }
+
+        if (members[0].Id == source.Sender.UserId)
+        {
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId), "哇 还有水仙"
+            ]);
+            return;
+        }
+
+        if (!SendMessage(members[0].Id, source)) ParseWithArgument(command, source, mentionedUserIds);
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
+        if (mentionedUserIds.Length == 1)
+        {
+            ParseWithArgument("", source, mentionedUserIds);
+            return;
+        }
+
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                 out var group) || group.Members.Count <= 1)
         {
@@ -101,58 +112,19 @@ public class RapeCommand : GroupMemberCommandBase
         var memberId = memberArray[i].Id;
 
         if (!SendMessage(memberId, source))
-            Parse(source);
+            Parse(source, mentionedUserIds);
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        switch (command) //私货
-        {
-            case "日小乌":
-                ParseWithArgument("200509301", source);
-                break;
-            case "日色老师":
-                ParseWithArgument("2794813909", source);
-                break;
-            case "日空老师":
-                ParseWithArgument("3522656010", source);
-                break;
-            case "日全家不死老师":
-            case "日草老师":
-            case "日撸着":
-                ParseWithArgument("1792975423", source);
-                break;
-            case "日慧敏姐":
-                ParseWithArgument("1784234439", source);
-                break;
-            case "日乐家君":
-            case "日管理员":
-                ParseWithArgument("2575663823", source);
-                break;
-            case "日秋招老师":
-                ParseWithArgument("1306717258", source);
-                break;
-            case "日保研老师":
-            case "日笑老师":
-            case "日薛先生":
-                ParseWithArgument("1837582042", source);
-                break;
-            case "日Asagi":
-            case "日 Asagi":
-            case "日 asagi":
-            case "日asagi":
-                ParseWithArgument("2975985647", source);
-                break;
-            case "日烤学妹":
-                ParseWithArgument("1684931081", source);
-                break;
-            case "日柴老师":
-                ParseWithArgument("2039151191", source);
-                break;
-            case "日小礼":
-            case "日群主":
-                ParseWithArgument("1281502717", source);
-                break;
-        }
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+            return;
+
+        var regex = new Regex($"^({DirectCommandHead})");
+        var regexWithEndingSpace = new Regex(@$"^({DirectCommandHead})\s");
+        if (regex.IsMatch(command) && !regexWithEndingSpace.IsMatch(command) &&
+            regex.Replace(command, "", 1).Trim() != "")
+            ParseWithArgument(regex.Replace(command, "", 1), source, mentionedUserIds);
     }
 }

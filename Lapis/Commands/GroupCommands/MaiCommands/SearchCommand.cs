@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Miscellaneous;
@@ -10,78 +9,15 @@ namespace Lapis.Commands.GroupCommands.MaiCommands;
 
 public class SearchCommand : MaiCommandBase
 {
-    private readonly string[] _specialCharacters =
-    [
-        ".", ",", ";", ":", "?", "!", "\"", "'",
-        "(", ")", "[", "]", "{", "}", "<", ">",
-        "~", "-", "=", "+", "*", "/", "\\",
-        "%", "&", "#", "@", "$", "。", "，", "；", "：", "？", "！", "“”", "‘’",
-        "（", "）", "［", "］", "｛", "｝", "〈", "〉",
-        "～", "－", "＝", "＋", "×", "／", "＼",
-        "％", "＆", "＃", "＠", "＄"
-    ];
-
     public SearchCommand()
     {
         CommandHead = "search";
         DirectCommandHead = "search|查歌|搜歌|搜索|索引";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("search", "1");
+        SearchCommandInstance = this;
     }
 
-    public static SearchCommand SearchCommandInstance { get; } = new();
-
-    private bool IsSameKeywords(string[] keywords)
-    {
-        var firstKeyword = keywords[0];
-        foreach (var keyword in keywords)
-            if (keyword != firstKeyword)
-                return false;
-
-        return true;
-    }
-
-    private bool IsMatch(string keyword, string input)
-    {
-        var inputWithNoSpecialCharacters = input;
-        foreach (var specialCharacter in _specialCharacters)
-            inputWithNoSpecialCharacters = inputWithNoSpecialCharacters.Replace(specialCharacter, string.Empty);
-
-        var kanjiKeyword = HanziToKanjiConverter.Convert(keyword);
-
-        return IsMatchBase(keyword, input) ||
-               IsMatchBase(keyword, inputWithNoSpecialCharacters) ||
-               IsMatchBase(kanjiKeyword, input) ||
-               IsMatchBase(kanjiKeyword, inputWithNoSpecialCharacters);
-    }
-
-    private bool IsMatchBase(string pattern, string input)
-    {
-        if (pattern.ToLower() == input.ToLower())
-            return true;
-
-        var splitResult = pattern.ToLower().Split(' ');
-        var patterns = splitResult.Length == 0 ? [pattern.ToLower()] : splitResult;
-        var allMatched = true;
-
-        if (patterns.Length > 1 && IsSameKeywords(patterns))
-        {
-            var regex = new Regex(patterns[0]);
-            var matches = regex.Matches(input.ToLower());
-            if (matches.Count > 1)
-                return true;
-            return false;
-        } // 处理例如通过 break break break 的关键词匹配歌曲 BREaK! BREaK! BREaK! 的情况
-
-        foreach (var regexString in patterns)
-        {
-            var regex = new Regex(regexString);
-
-            if (!regex.IsMatch(input.ToLower()))
-                allMatched = false;
-        }
-
-        return allMatched;
-    }
+    public static SearchCommand SearchCommandInstance { get; private set; }
 
     public SearchResult Search(string keyWord)
     {
@@ -95,7 +31,7 @@ public class SearchCommand : MaiCommandBase
             var aliases = MaiCommandInstance.GetAliasById(song.Id).Aliases;
 
             foreach (var alias in aliases)
-                if (IsMatch(keyWord, alias))
+                if (Searcher.Instance.IsMatch(keyWord, alias))
                 {
                     if (!songsMatchedByAlias.ContainsKey(song))
                     {
@@ -106,10 +42,10 @@ public class SearchCommand : MaiCommandBase
                     songsMatchedByAlias[song].Add(alias);
                 }
 
-            if (IsMatch(keyWord, song.BasicInfo.Artist) && !songsMatchedByArtist.Contains(song))
+            if (Searcher.Instance.IsMatch(keyWord, song.BasicInfo.Artist) && !songsMatchedByArtist.Contains(song))
                 songsMatchedByArtist.Add(song);
 
-            if (IsMatch(keyWord, song.Title) && !songsMatchedByTitle.Contains(song))
+            if (Searcher.Instance.IsMatch(keyWord, song.Title) && !songsMatchedByTitle.Contains(song))
                 songsMatchedByTitle.Add(song);
         }
 
@@ -157,7 +93,8 @@ public class SearchCommand : MaiCommandBase
         return stringBuilder;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         var searchResult = Search(command);
 

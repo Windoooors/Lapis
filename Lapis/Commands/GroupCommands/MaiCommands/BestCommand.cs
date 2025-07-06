@@ -30,19 +30,30 @@ public class BestCommand : MaiCommandBase
         }
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    {
+        if (command == "" && mentionedUserIds.Length != 0)
+            Parse(source, mentionedUserIds);
+    }
+
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         string content;
-
         try
         {
             content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/query/player",
-                new { username = command, b50 = true });
+                new
+                {
+                    qq = mentionedUserIds.Length == 0
+                        ? source.Sender.UserId.ToString()
+                        : mentionedUserIds[0].ToString(),
+                    b50 = true
+                });
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            if (e is TaskCanceledException or HttpRequestException)
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
             {
                 DivingFishErrorHelp(source);
                 return;
@@ -55,80 +66,19 @@ public class BestCommand : MaiCommandBase
         var best = JsonConvert.DeserializeObject<BestDto>(content);
 
         if (best.Charts == null)
-            try
-            {
-                content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                    "api/maimaidxprober/query/player",
-                    new { qq = command, b50 = true });
-            }
-            catch (Exception e)
-            {
-                if (e is TaskCanceledException or HttpRequestException)
-                {
-                    DivingFishErrorHelp(source);
-                    return;
-                }
-
-                HelpCommand.Instance.UnexpectedErrorHelp(source);
-                return;
-            }
-
-        best = JsonConvert.DeserializeObject<BestDto>(content);
-
-        if (best.Charts == null)
         {
-            SendMessage(source,
-            [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("未找到该玩家")
-            ]);
-            return;
-        }
-
-        TagRatingByScore(best.Charts.SdCharts);
-        TagRatingByScore(best.Charts.DxCharts);
-
-        var isCompressed =
-            SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
-
-        var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), false,
-            isCompressed);
-
-        SendMessage(source,
-        [
-            new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + image)
-        ]);
-    }
-
-    public override void Parse(CqGroupMessagePostContext source)
-    {
-        string content;
-        try
-        {
-            content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/player",
-                new { qq = source.Sender.UserId.ToString(), b50 = true });
-        }
-        catch (Exception ex)
-        {
-            if (ex.InnerException is TaskCanceledException or HttpRequestException)
-            {
-                DivingFishErrorHelp(source);
-                return;
-            }
-
             UnboundErrorHelp(source);
             return;
         }
 
-        var best = JsonConvert.DeserializeObject<BestDto>(content);
         TagRatingByScore(best.Charts.SdCharts);
         TagRatingByScore(best.Charts.DxCharts);
 
         try
         {
-            var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), true,
+            var image = new BestImageGenerator().Generate(best, mentionedUserIds.Length == 0
+                    ? source.Sender.UserId.ToString()
+                    : mentionedUserIds[0].ToString(), true,
                 true);
 
             SendMessage(source,

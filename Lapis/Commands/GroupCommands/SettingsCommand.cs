@@ -9,39 +9,22 @@ namespace Lapis.Commands.GroupCommands;
 
 public class SettingsCommand : GroupCommand
 {
-    public static SettingsCommand Instance;
-
     public SettingsCommand()
     {
         CommandHead = "settings";
         DirectCommandHead = "settings";
-        Instance = this;
     }
 
-    public bool GetValue(SettingsIdentifierPair identifierPair, long groupId)
-    {
-        var defaultValue = true;
-
-        foreach (var category in SettingsItems.Categories)
-        foreach (var itemsOfACommand in category.Items)
-            if (itemsOfACommand.Identifier == identifierPair.PrimeIdentifier)
-                foreach (var item in itemsOfACommand.Items)
-                    if (item.Identifier == identifierPair.Identifier)
-                        defaultValue = item.DefaultValue;
-
-        return SettingsPool.GetValue(identifierPair.ToString(), groupId, defaultValue);
-    }
-
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         Program.Session.SendGroupMessageAsync(source.GroupId, [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + new BotSettingsImageGenerator().Generate(source.GroupId,
-                GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId)))
+                SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId)))
         ]);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         if (!(source.Sender.Role is CqRole.Admin or CqRole.Owner ||
               source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber))
@@ -68,7 +51,7 @@ public class SettingsCommand : GroupCommand
         var valueString = command.Split(" ")[1];
         var value = valueString.Equals("true");
 
-        SettingsPool.SetValue(identifierPair.ToString(), source.GroupId, value);
+        SettingsPool.SetValue(identifierPair, source.GroupId, value);
 
         Program.Session.SendGroupMessageAsync(source.GroupId,
             [new CqReplyMsg(source.MessageId), new CqTextMsg("设置变更成功！")]);

@@ -21,7 +21,7 @@ public class UpdateCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("update", "1");
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         var matchedUserBindData = BindCommand.UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
 
@@ -205,9 +205,9 @@ public class UpdateCommand : MaiCommandBase
 
     private class RawMusicDataDto
     {
-        [JsonProperty("Code")] public int Code;
+        [JsonProperty("Code")] public int Code { get; set; }
 
-        [JsonProperty("MusicData")] public RawMusicDataDetailDto[] RawMusicDataDetailArray;
+        [JsonProperty("MusicData")] public RawMusicDataDetailDto[] RawMusicDataDetailArray { get; set; }
     }
 
     private class RawMusicDataDetailDto

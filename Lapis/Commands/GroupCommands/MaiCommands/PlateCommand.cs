@@ -100,7 +100,8 @@ public class PlateCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("plate", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         if (command == "真将" || command == "")
         {
@@ -316,7 +317,7 @@ public class PlateCommand : MaiCommandBase
             category = PlateCategories.Bazhe;
 
         var isCompressed =
-            SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
+            SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
         try
         {
@@ -347,9 +348,10 @@ public class PlateCommand : MaiCommandBase
         }
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        if (!SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
 
         if (command.EndsWith(" 进度"))
@@ -363,7 +365,7 @@ public class PlateCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument(command, source);
+        ParseWithArgument(command, source, mentionedUserIds);
     }
 
     public class UsernameDto

@@ -92,7 +92,7 @@ public class GuessCommand : MaiCommandBase
         }
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         StartGuessing(source);
     }
@@ -158,7 +158,7 @@ public class GuessCommand : MaiCommandBase
         var text = won ? "Bingo! 答案是：" : "游戏结束啦！ 答案是：";
 
         var isCompressed =
-            SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("compress", "1"), long.Parse(groupId));
+            SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), long.Parse(groupId));
 
         var image = new InfoImageGenerator().Generate(MaiCommandInstance.GetSong(keyIdDateTimePair.Item1),
             "谜底", null, isCompressed);
@@ -171,7 +171,8 @@ public class GuessCommand : MaiCommandBase
                 [new CqReplyMsg(messageId), new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         if (command == "answer")
         {
@@ -208,7 +209,8 @@ public class GuessCommand : MaiCommandBase
         StartGuessing(source, songs);
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         var passed = false;
 

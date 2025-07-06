@@ -13,7 +13,7 @@ public class RepeatCommand : GroupCommand
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("repeat", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         SendMessage(source, new CqMessage
             { command });

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Lapis.Commands.GroupCommands;
 using Lapis.Operations.ImageOperation;
 using Lapis.Settings;
 
@@ -50,7 +49,7 @@ public class BotSettingsImageGenerator
                 foreach (var item in commandItem.Items)
                 {
                     var itemValue =
-                        SettingsCommand.Instance.GetValue(
+                        SettingsPool.GetValue(
                             new SettingsIdentifierPair(commandItem.Identifier, item.Identifier), groupId);
 
                     var itemImagePath = Path.Combine(Environment.CurrentDirectory,

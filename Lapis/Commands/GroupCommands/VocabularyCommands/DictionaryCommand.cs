@@ -13,7 +13,7 @@ public class DictionaryCommand : VocabularyCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("dictionary", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         WordDto targetWordItem = null;
         foreach (var vocabulary in VocabularyCommandInstance.Vocabularies)

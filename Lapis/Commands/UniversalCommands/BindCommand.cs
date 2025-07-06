@@ -62,7 +62,7 @@ public class BindCommand : UniversalCommand
     {
         var matchedUserBindData = UserBindDataList.Find(data => data.QqId == source.UserId);
 
-        if (matchedUserBindData == null)
+        if (matchedUserBindData == null || matchedUserBindData.QqId == 0)
         {
             matchedUserBindData = new UserBindData();
             matchedUserBindData.QqId = source.UserId;
@@ -134,7 +134,7 @@ public class BindCommand : UniversalCommand
     {
         var matchedUserBindData = UserBindDataList.Find(data => data.QqId == source.UserId);
 
-        if (matchedUserBindData == null)
+        if (matchedUserBindData == null || matchedUserBindData.QqId == 0)
         {
             matchedUserBindData = new UserBindData();
             matchedUserBindData.QqId = source.UserId;
@@ -174,8 +174,8 @@ public class BindCommand : UniversalCommand
 
     private class AimeIdResponseDto
     {
-        [JsonProperty] public long AimeId;
+        [JsonProperty] public long AimeId { get; set; }
 
-        [JsonProperty] public int Code;
+        [JsonProperty] public int Code { get; set; }
     }
 }

@@ -244,6 +244,48 @@ public static class SettingsItems
                             DefaultValue = true
                         }
                     ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "群友搜索",
+                    Identifier = "msearch",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "群友别名查询",
+                    Identifier = "malias",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "群友别名添加",
+                    Identifier = "maliasadd",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
                 }
             ]
         },

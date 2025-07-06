@@ -20,7 +20,7 @@ public class ObituaryCommand : StickerCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("obituary", "1");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
     {
         if (command != string.Empty)
         {

@@ -3,6 +3,7 @@ using System.Text;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.MaiCommands.AliasCommands;
+using Lapis.Miscellaneous;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -23,9 +24,10 @@ public class AliasCommand : AliasCommandBase
         SubCommands = [new AddCommand()];
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
-        if (!SettingsCommand.Instance.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
 
         if (command.EndsWith(" 有什么别名"))
@@ -35,12 +37,12 @@ public class AliasCommand : AliasCommandBase
         else
             return;
 
-        ParseWithArgument(command, source);
+        ParseWithArgument(command, source, mentionedUserIds);
     }
 
     private string GetAliasesInText(Alias alias)
     {
-        var song = MaiCommandInstance.GetSong(alias.Id);
+        var song = MaiCommandInstance.GetSong((int)alias.Id);
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine($"歌曲 {song.Title} [{song.Type}] 有如下别称：");
         if (alias.Aliases.Count != 0)
@@ -59,7 +61,8 @@ public class AliasCommand : AliasCommandBase
         return stringBuilder.ToString();
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
+        long[] mentionedUserIds)
     {
         var songs = MaiCommandInstance.GetSongs(command);
 
