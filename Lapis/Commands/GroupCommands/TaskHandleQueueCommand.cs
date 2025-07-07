@@ -15,19 +15,18 @@ public class TaskHandleQueueCommand : GroupCommand
     {
         CommandHead = "handle";
         DirectCommandHead = "待处理";
+        IntendedArgumentCount = 1;
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (_argumentRegex.IsMatch(command) && !TaskHandleQueue.Instance.IsEmpty(source.GroupId))
-            ParseWithArgument(command, source, mentionedUserIds);
+            ParseWithArgument([command], source);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (!_argumentRegex.IsMatch(command))
+        if (!_argumentRegex.IsMatch(arguments[0]))
         {
             SendMessage(source,
             [
@@ -47,7 +46,7 @@ public class TaskHandleQueueCommand : GroupCommand
             return;
         }
 
-        var confirm = command.Equals("confirm") || command.Equals("确定");
+        var confirm = arguments[0].Equals("confirm") || arguments[0].Equals("确定");
 
         TaskHandleQueue.Instance.HandleTask(source.GroupId, confirm);
     }

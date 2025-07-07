@@ -16,6 +16,7 @@ public class SearchMemberCommand : GroupMemberCommandBase
         DirectCommandHead = "msearch|查群友";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("msearch", "1");
         SearchMemberCommandInstance = this;
+        IntendedArgumentCount = 1;
     }
 
     public static SearchMemberCommand SearchMemberCommandInstance { get; private set; }
@@ -78,10 +79,9 @@ public class SearchMemberCommand : GroupMemberCommandBase
         return stringBuilder;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        var searchResult = Search(command, source.GroupId);
+        var searchResult = Search(arguments[0], source.GroupId);
 
         var stringBuilder = new StringBuilder();
 

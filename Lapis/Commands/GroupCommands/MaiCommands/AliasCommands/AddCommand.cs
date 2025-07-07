@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Commands.UniversalCommands;
 using Lapis.Miscellaneous;
 using Lapis.Settings;
 using Microsoft.Extensions.Logging;
@@ -17,8 +18,8 @@ public class AddCommand : AliasCommandBase
     {
         CommandHead = "add";
         DirectCommandHead = "添加别名";
-
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("aliasadd", "1");
+        IntendedArgumentCount = 2;
     }
 
     public override void Initialize()
@@ -54,28 +55,42 @@ public class AddCommand : AliasCommandBase
         Program.Logger.LogInformation("Local aliases have been saved");
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        var isMatched = IdRegex.IsMatch(command);
+        if (arguments.Length < IntendedArgumentCount)
+        {
+            HelpCommand.Instance.ArgumentErrorHelp(source);
+            return;
+        }
 
-        if (!isMatched)
+        var songs = MaiCommandInstance.GetSongs(arguments[0]);
+
+        if (songs == null)
         {
             SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg("添加失败！找不到歌曲！\nTips: 请使用歌曲 ID 来索引歌曲\n您可以通过 search 指令来获取歌曲 ID，例如 \"search FFT\"")
+                new CqTextMsg(
+                    MaiCommandInstance.GetMultiSearchResultInformationString(arguments[0], "alias add", arguments[1],
+                        "添加别名"))
             ]);
             return;
         }
 
-        var match = IdRegex.Match(command).ToString();
-        var songId = int.Parse(IdHeadRegex.Replace(match, ""));
+        if (songs.Length > 1)
+        {
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(
+                    MaiCommandInstance.GetMultiAliasesMatchedInformationString(songs, "alias add", arguments[1],
+                        "添加别名"))
+            ]);
+            return;
+        }
 
-        command = IdRegex.Replace(command, "").Trim();
-
-        var matchedSong = MaiCommandInstance.GetSong(songId);
-        var intendedAliasString = command;
+        var matchedSong = songs[0];
+        var intendedAliasString = arguments[1];
         if (intendedAliasString == "")
         {
             SendMessage(source,

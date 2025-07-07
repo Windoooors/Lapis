@@ -15,6 +15,7 @@ public class SearchCommand : MaiCommandBase
         DirectCommandHead = "search|查歌|搜歌|搜索|索引";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("search", "1");
         SearchCommandInstance = this;
+        IntendedArgumentCount = 1;
     }
 
     public static SearchCommand SearchCommandInstance { get; private set; }
@@ -93,10 +94,9 @@ public class SearchCommand : MaiCommandBase
         return stringBuilder;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        var searchResult = Search(command);
+        var searchResult = Search(arguments[0]);
 
         var stringBuilder = new StringBuilder();
 

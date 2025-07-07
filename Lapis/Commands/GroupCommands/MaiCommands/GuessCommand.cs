@@ -68,6 +68,7 @@ public class GuessCommand : MaiCommandBase
         CommandHead = "guess";
         DirectCommandHead = "songs|猜歌|song";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("song", "1");
+        IntendedArgumentCount = 1;
     }
 
     public override void Initialize()
@@ -92,7 +93,7 @@ public class GuessCommand : MaiCommandBase
         }
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         StartGuessing(source);
     }
@@ -171,10 +172,9 @@ public class GuessCommand : MaiCommandBase
                 [new CqReplyMsg(messageId), new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (command == "answer")
+        if (arguments[0] == "answer")
         {
             if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
@@ -194,7 +194,7 @@ public class GuessCommand : MaiCommandBase
             return;
         }
 
-        var songs = MaiCommandInstance.GetSongsUsingDifficultyString(command);
+        var songs = MaiCommandInstance.GetSongsUsingDifficultyString(arguments[0]);
 
         if (songs.Length == 0)
         {
@@ -209,8 +209,7 @@ public class GuessCommand : MaiCommandBase
         StartGuessing(source, songs);
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         var passed = false;
 

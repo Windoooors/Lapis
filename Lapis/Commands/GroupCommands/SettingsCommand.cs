@@ -2,6 +2,7 @@
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Commands.UniversalCommands;
 using Lapis.ImageGenerators;
 using Lapis.Settings;
 
@@ -13,9 +14,10 @@ public class SettingsCommand : GroupCommand
     {
         CommandHead = "settings";
         DirectCommandHead = "settings";
+        IntendedArgumentCount = 2;
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         Program.Session.SendGroupMessageAsync(source.GroupId, [
             new CqReplyMsg(source.MessageId),
@@ -24,7 +26,7 @@ public class SettingsCommand : GroupCommand
         ]);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         if (!(source.Sender.Role is CqRole.Admin or CqRole.Owner ||
               source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber))
@@ -34,9 +36,15 @@ public class SettingsCommand : GroupCommand
             return;
         }
 
-        var operationRegex = new Regex(".*?(\\.)*\\s(true|false)");
+        if (arguments.Length < IntendedArgumentCount)
+        {
+            HelpCommand.Instance.ArgumentErrorHelp(source);
+            return;
+        }
 
-        if (!operationRegex.IsMatch(command))
+        var operationRegex = new Regex("true|false");
+
+        if (!operationRegex.IsMatch(arguments[1]))
         {
             Program.Session.SendGroupMessageAsync(source.GroupId, [
                 new CqReplyMsg(source.MessageId), new CqTextMsg("参数输入有误")
@@ -44,11 +52,11 @@ public class SettingsCommand : GroupCommand
             return;
         }
 
-        var identifiers = command.Split(" ")[0].Split(".");
+        var identifiers = arguments[0].Split(".");
 
         var identifierPair = new SettingsIdentifierPair(identifiers[0], identifiers[1]);
 
-        var valueString = command.Split(" ")[1];
+        var valueString = arguments[1];
         var value = valueString.Equals("true");
 
         SettingsPool.SetValue(identifierPair, source.GroupId, value);

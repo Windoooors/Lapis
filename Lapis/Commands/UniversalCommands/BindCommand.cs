@@ -29,6 +29,7 @@ public class BindCommand : UniversalCommand
         CommandHead = "bind";
         DirectCommandHead = "bind|绑定";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("bind", "1");
+        IntendedArgumentCount = 2;
     }
 
     public override void Initialize()
@@ -39,19 +40,25 @@ public class BindCommand : UniversalCommand
                     File.ReadAllText($"{AppContext.BaseDirectory}data/bind_data.json")).ToList();
     }
 
-    public override void ParseWithArgument(string command, CqMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, CqMessagePostContext source)
     {
-        var wechatArgumentRegex = new Regex(@"wechat\s");
-        var divingFishArgumentRegex = new Regex(@"divingfish\s");
-        if (wechatArgumentRegex.IsMatch(command.ToLower()))
+        if (arguments.Length < IntendedArgumentCount)
         {
-            BindWeChat(wechatArgumentRegex.Replace(command, string.Empty, 1), source);
+            HelpCommand.Instance.ArgumentErrorHelp(source);
+            return;
+        }
+        
+        var wechatArgumentRegex = new Regex("wechat");
+        var divingFishArgumentRegex = new Regex("divingfish");
+        if (wechatArgumentRegex.IsMatch(arguments[0].ToLower()))
+        {
+            BindWeChat(wechatArgumentRegex.Replace(arguments[1], string.Empty, 1), source);
             return;
         }
 
-        if (divingFishArgumentRegex.IsMatch(command.ToLower()))
+        if (divingFishArgumentRegex.IsMatch(arguments[0].ToLower()))
         {
-            BindDivingFish(divingFishArgumentRegex.Replace(command, string.Empty, 1), source);
+            BindDivingFish(divingFishArgumentRegex.Replace(arguments[1], string.Empty, 1), source);
             return;
         }
 

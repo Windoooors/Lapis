@@ -11,14 +11,15 @@ public class DictionaryCommand : VocabularyCommandBase
         CommandHead = "dictionary|dict|查词|词典|inquiry";
         DirectCommandHead = "dictionary|dict|查词|词典|inquiry";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("dictionary", "1");
+        IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         WordDto targetWordItem = null;
         foreach (var vocabulary in VocabularyCommandInstance.Vocabularies)
         foreach (var wordItem in vocabulary.Words)
-            if (wordItem.Word == command)
+            if (wordItem.Word == arguments[0])
             {
                 targetWordItem = wordItem;
                 break;

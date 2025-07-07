@@ -18,16 +18,18 @@ public class FortuneCommand : StickerCommandBase
         CommandHead = "喜报";
         DirectCommandHead = "喜报";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("fortune", "1");
+        IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (command != string.Empty)
+        if (arguments[0] != string.Empty)
         {
             var image = new Image(Environment.CurrentDirectory + "/resource/stickers/xibao.png");
             var fontSize = 36;
             var top = 200;
 
+            /*
             if (_fontSizeCommand.IsMatch(command))
             {
                 fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
@@ -64,9 +66,10 @@ public class FortuneCommand : StickerCommandBase
                     fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
                     command = _fontSizeCommand.Replace(command, string.Empty, 1);
                 }
-            }
+            } //May be implemented later.
+            */
 
-            image.DrawText(command, new Color(0.6f, 0, 0, 1), fontSize, FontWeight.Regular,
+            image.DrawText(arguments[0], new Color(0.6f, 0, 0, 1), fontSize, FontWeight.Regular,
                 HorizontalAlignment.Center, 233, top);
 
             SendMessage(source, new CqMessage

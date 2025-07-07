@@ -18,6 +18,7 @@ public class BestCommand : MaiCommandBase
         CommandHead = "b50";
         DirectCommandHead = "b50|逼五零";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("b50", "1");
+        IntendedArgumentCount = 1;
     }
 
     private void TagRatingByScore(BestDto.ScoreDto[] scores)
@@ -30,26 +31,53 @@ public class BestCommand : MaiCommandBase
         }
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (command == "" && mentionedUserIds.Length != 0)
-            Parse(source, mentionedUserIds);
-    }
-
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
-    {
-        string content;
+        var isQqId = long.TryParse(arguments[0], out _);
+        
         try
         {
-            content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/player",
-                new
+            if (isQqId)
+            {
+                var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/player",
+                    new
+                    {
+                        qq = arguments[0],
+                        b50 = true
+                    });
+                
+                var best = JsonConvert.DeserializeObject<BestDto>(content);
+
+                if (best.Charts == null)
                 {
-                    qq = mentionedUserIds.Length == 0
-                        ? source.Sender.UserId.ToString()
-                        : mentionedUserIds[0].ToString(),
-                    b50 = true
-                });
+                    ObjectUserUnboundErrorHelp(source);
+                    return;
+                }
+                
+                Process(source, best, false);
+            }
+            else
+            {
+                var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/player",
+                    new
+                    {
+                        username = arguments[0],
+                        b50 = true
+                    });
+                
+                var best = JsonConvert.DeserializeObject<BestDto>(content);
+
+                if (best.Charts == null)
+                {
+                    ObjectUserUnboundErrorHelp(source);
+                    return;
+                }
+                
+                Process(source, best, false);
+            }
+
         }
         catch (Exception ex)
         {
@@ -60,26 +88,52 @@ public class BestCommand : MaiCommandBase
             }
 
             HelpCommand.Instance.UnexpectedErrorHelp(source);
-            return;
         }
+    }
 
-        var best = JsonConvert.DeserializeObject<BestDto>(content);
-
-        if (best.Charts == null)
+    public override void Parse(CqGroupMessagePostContext source)
+    {
+        try
         {
-            UnboundErrorHelp(source);
-            return;
-        }
+            var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/query/player",
+                new
+                {
+                    qq = source.Sender.UserId.ToString(),
+                    b50 = true
+                });
 
+            var best = JsonConvert.DeserializeObject<BestDto>(content);
+
+            if (best.Charts == null)
+            {
+                UnboundErrorHelp(source);
+                return;
+            }
+            
+            Process(source, best, true);
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+            {
+                DivingFishErrorHelp(source);
+                return;
+            }
+
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
+        }
+    }
+
+    private void Process(CqGroupMessagePostContext source,BestDto best,bool useHead)
+    {
         TagRatingByScore(best.Charts.SdCharts);
         TagRatingByScore(best.Charts.DxCharts);
 
         try
         {
-            var image = new BestImageGenerator().Generate(best, mentionedUserIds.Length == 0
-                    ? source.Sender.UserId.ToString()
-                    : mentionedUserIds[0].ToString(), true,
-                true);
+            var image = new BestImageGenerator().Generate(best, source.Sender.UserId.ToString(), useHead,
+                SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId));
 
             SendMessage(source,
             [

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
@@ -21,23 +22,23 @@ public class CommandParser
         try
         {
             var commandString = source.Message.Text;
-            var mentionedUserIdsList = new List<long>();
+            /*var mentionedUserIdsList = new List<long>();
             foreach (var messageElement in source.Message)
                 if (messageElement is CqAtMsg atMessage && !atMessage.IsAtAll)
                     mentionedUserIdsList.Add(atMessage.Target);
-            var mentionedUserIds = mentionedUserIdsList.ToArray();
+            var mentionedUserIds = mentionedUserIdsList.ToArray();*/
 
-            RespondWithoutParsingCommand(source, commandString, Program.Commands, mentionedUserIds);
+            RespondWithoutParsingCommand(source, commandString, Program.Commands);
 
             switch (source)
             {
                 case CqGroupMessagePostContext groupSource:
                     if (SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"),
                             groupSource.GroupId))
-                        ParseDirectly(source, commandString, Program.Commands, mentionedUserIds);
+                        ParseDirectly(source, commandString, Program.Commands);
                     break;
                 case CqPrivateMessagePostContext:
-                    ParseDirectly(source, commandString, Program.Commands, mentionedUserIds);
+                    ParseDirectly(source, commandString, Program.Commands);
                     break;
             }
 
@@ -46,7 +47,7 @@ public class CommandParser
 
             commandString = _headCommandRegex.Replace(commandString, string.Empty, 1);
 
-            if (!Parse(source, commandString, Program.Commands, mentionedUserIds))
+            if (!Parse(source, commandString, Program.Commands))
                 HelpCommand.Instance.Parse(source);
         }
         catch (Exception ex)
@@ -57,19 +58,18 @@ public class CommandParser
     }
 
     private void RespondWithoutParsingCommand(CqMessagePostContext source, string commandString,
-        Command[] commands, long[] mentionedUserIds)
+        Command[] commands)
     {
         foreach (var command in commands)
         {
-            StartRespondWithoutParsingCommandTask(command, source, commandString, mentionedUserIds);
+            StartRespondWithoutParsingCommandTask(command, source, commandString);
 
             if (command.SubCommands.Length != 0)
-                RespondWithoutParsingCommand(source, commandString, command.SubCommands, mentionedUserIds);
+                RespondWithoutParsingCommand(source, commandString, command.SubCommands);
         }
     }
 
-    private bool Parse(CqMessagePostContext source, string commandString, Command[] commands,
-        long[] mentionedUserIds)
+    private bool Parse(CqMessagePostContext source, string commandString, Command[] commands)
     {
         commandString = commandString.Trim();
         var parsed = false;
@@ -82,24 +82,24 @@ public class CommandParser
                     commandString = commandHeadMatchingEndingSpace.Replace(commandString, string.Empty, 1);
 
                     if (command.SubCommands.Length != 0)
-                        parsed = Parse(source, commandString, command.SubCommands, mentionedUserIds);
+                        parsed = Parse(source, commandString, command.SubCommands);
 
                     if (parsed)
                         return true;
 
-                    return StartParsingWithArgumentTask(command, source, commandString, mentionedUserIds);
+                    return StartParsingWithArgumentTask(command, source, commandString);
                 }
 
                 var commandHeadMatchingEndOfString = new Regex($"^({command.CommandHead})$");
                 if (commandHeadMatchingEndOfString.IsMatch(commandString))
                 {
                     if (command.SubCommands.Length != 0)
-                        parsed = Parse(source, commandString, command.SubCommands, mentionedUserIds);
+                        parsed = Parse(source, commandString, command.SubCommands);
 
                     if (parsed)
                         return true;
 
-                    return StartParsingTask(command, source, mentionedUserIds);
+                    return StartParsingTask(command, source);
                 }
             }
             else
@@ -107,7 +107,7 @@ public class CommandParser
                 if (command.SubCommands.Length == 0)
                     continue;
 
-                parsed = Parse(source, commandString, command.SubCommands, mentionedUserIds);
+                parsed = Parse(source, commandString, command.SubCommands);
                 if (parsed)
                     return true;
             }
@@ -116,13 +116,13 @@ public class CommandParser
     }
 
     private void ParseDirectly(CqMessagePostContext source, string commandString,
-        Command[] commands, long[] mentionedUserIds)
+        Command[] commands)
     {
         commandString = commandString.Trim();
         foreach (var command in commands)
         {
             if (command.SubCommands.Length != 0)
-                ParseDirectly(source, commandString, command.SubCommands, mentionedUserIds);
+                ParseDirectly(source, commandString, command.SubCommands);
 
             if (command.DirectCommandHead == null)
                 continue;
@@ -133,7 +133,7 @@ public class CommandParser
             {
                 commandString = directCommandHeadMatchingEndingSpace.Replace(commandString, string.Empty, 1);
 
-                StartParsingWithArgumentTask(command, source, commandString, mentionedUserIds);
+                StartParsingWithArgumentTask(command, source, commandString);
                 return;
             }
 
@@ -141,16 +141,33 @@ public class CommandParser
 
             if (directCommandHeadMatchingEndOfString.IsMatch(commandString))
             {
-                StartParsingTask(command, source, mentionedUserIds);
+                StartParsingTask(command, source);
                 return;
             }
         }
     }
 
-    private bool StartParsingWithArgumentTask(Command command, CqMessagePostContext source, string commandString,
-        long[] mentionedUserIds)
+    private bool StartParsingWithArgumentTask(Command command, CqMessagePostContext source, string commandString)
     {
         Task taskParse = null;
+        
+        commandString = commandString.Trim();
+        
+        var quotationRegex = new Regex("\"([^\"]+)\"|(\\S+)");
+        
+        var argumentList = new List<string>();
+
+        var matches = quotationRegex.Matches(commandString);
+        
+        for (int i = 0 ; i < matches.Count ; i++)
+        {
+            var match = matches[i];
+            if (i < command.IntendedArgumentCount)
+                argumentList.Add((match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim());
+            else
+                argumentList[^1] +=
+                    " " + (match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim();
+        }
 
         switch (command)
         {
@@ -159,16 +176,16 @@ public class CommandParser
                     if (SettingsPool.GetValue(command.ActivationSettingsSettingsIdentifier,
                             groupSource.GroupId))
                         taskParse = new Task(() =>
-                            groupCommand.ParseWithArgument(commandString, groupSource, mentionedUserIds));
+                            groupCommand.ParseWithArgument(argumentList.ToArray(), groupSource));
 
                 break;
             case PrivateCommand privateCommand:
                 if (source is CqPrivateMessagePostContext privateSource)
-                    taskParse = new Task(() => privateCommand.ParseWithArgument(commandString, privateSource));
+                    taskParse = new Task(() => privateCommand.ParseWithArgument(argumentList.ToArray(), privateSource));
 
                 break;
             case UniversalCommand universalCommand:
-                taskParse = new Task(() => universalCommand.ParseWithArgument(commandString, source));
+                taskParse = new Task(() => universalCommand.ParseWithArgument(argumentList.ToArray(), source));
                 break;
         }
 
@@ -178,7 +195,7 @@ public class CommandParser
         return true;
     }
 
-    private bool StartParsingTask(Command command, CqMessagePostContext source, long[] mentionedUserIds)
+    private bool StartParsingTask(Command command, CqMessagePostContext source)
     {
         Task taskParse = null;
         switch (command)
@@ -187,7 +204,7 @@ public class CommandParser
                 if (source is CqGroupMessagePostContext groupSource)
                     if (SettingsPool.GetValue(command.ActivationSettingsSettingsIdentifier,
                             groupSource.GroupId))
-                        taskParse = new Task(() => groupCommand.Parse(groupSource, mentionedUserIds));
+                        taskParse = new Task(() => groupCommand.Parse(groupSource));
 
                 break;
             case PrivateCommand privateCommand:
@@ -207,7 +224,7 @@ public class CommandParser
     }
 
     private void StartRespondWithoutParsingCommandTask(Command command, CqMessagePostContext source,
-        string commandString, long[] mentionedUserIds)
+        string commandString)
     {
         Task taskParse = null;
         switch (command)
@@ -217,7 +234,7 @@ public class CommandParser
                     if (SettingsPool.GetValue(command.ActivationSettingsSettingsIdentifier,
                             groupSource.GroupId))
                         taskParse = new Task(() =>
-                            groupCommand.RespondWithoutParsingCommand(commandString, groupSource, mentionedUserIds));
+                            groupCommand.RespondWithoutParsingCommand(commandString, groupSource));
 
                 break;
             case PrivateCommand privateCommand:

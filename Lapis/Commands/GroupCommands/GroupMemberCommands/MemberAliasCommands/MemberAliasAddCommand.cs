@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Commands.UniversalCommands;
 using Lapis.Miscellaneous;
 using Lapis.Settings;
 using Microsoft.Extensions.Logging;
@@ -18,32 +19,59 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
         CommandHead = "add";
         DirectCommandHead = "添加群友别名";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("maliasadd", "1");
+        IntendedArgumentCount = 2;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (mentionedUserIds.Length == 0)
+        if (arguments.Length < IntendedArgumentCount)
+        {
+            HelpCommand.Instance.ArgumentErrorHelp(source);
+            return;
+        }
+
+        GroupMemberCommand.GroupMember[] members = [];
+        long intendedUserId = 0;
+
+        if (!GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out members))
+        {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                "未指定群友！请 @ 需要被添加别名的群友"
+                "未指定群友！"
             ]);
+            return;
+        }
 
-        command = command.Trim();
+        if (members.Length > 1)
+        {
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId),
+                "无法确定是哪个群友！"
+            ]);
+            return;
+        }
 
-        if (command == "")
+        if (members.Length == 1)
+            intendedUserId = members[0].Id;
+
+        if (arguments[1] == "")
+        {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
                 "未指定别名！"
             ]);
+            return;
+        }
+
+        var intendedAlias = arguments[1];
 
         var groupedMemberAliasManager = MemberAliasManager.Instance.GetMemberAliasManager(source.GroupId);
         var action = () =>
         {
-            var id = mentionedUserIds[0];
+            var id = intendedUserId;
 
             var success =
-                groupedMemberAliasManager.Add(id, command);
+                groupedMemberAliasManager.Add(id, intendedAlias);
             if (success)
             {
                 SendMessage(source,
@@ -75,7 +103,7 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
         };
         var success = TaskHandleQueue.Instance.AddTask(task, source.GroupId);
 
-        if (!TryGetNickname(mentionedUserIds[0], source.GroupId, out var nickname))
+        if (!TryGetNickname(intendedUserId, source.GroupId, out var nickname))
         {
             SendMessage(source,
             [
@@ -90,7 +118,7 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(
-                    $"你正在尝试为群友 \"{nickname}\" 添加别名 \"{command}\""
+                    $"你正在尝试为群友 \"{nickname}\" 添加别名 \"{intendedAlias}\""
                     + "\n发送 \"lps handle confirm\" 以确认，发送 \"lps handle cancel\" 以取消")
             ]);
         else

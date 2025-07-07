@@ -10,7 +10,7 @@ public class UniversalCommand : Command
         HelpCommand.Instance.Parse(source);
     }
 
-    public virtual void ParseWithArgument(string command, CqMessagePostContext source)
+    public virtual void ParseWithArgument(string[] arguments, CqMessagePostContext source)
     {
         HelpCommand.Instance.Parse(source);
     }

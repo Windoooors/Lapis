@@ -17,12 +17,11 @@ public class InfoCommand : MaiCommandBase
     {
         CommandHead = "info";
         DirectCommandHead = "info|查歌";
-
+        IntendedArgumentCount = 2;
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("info", "1");
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
@@ -34,21 +33,18 @@ public class InfoCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument(command, source, mentionedUserIds);
+        ParseWithArgument([command], source);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        command = command.Trim();
-
-        var songs = MaiCommandInstance.GetSongs(command);
+        var songs = MaiCommandInstance.GetSongs(arguments[0]);
 
         if (songs == null)
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                GetMultiSearchResultInformationString(command, "info", "信息")
+                GetMultiSearchResultInformationString(arguments[0], "info", "信息")
             ]);
             return;
         }
@@ -65,23 +61,47 @@ public class InfoCommand : MaiCommandBase
 
         GetScore.ScoreData scoreData;
 
-        var id = mentionedUserIds.Length == 0 ? source.Sender.UserId : mentionedUserIds[0];
-        try
+        if (arguments.Length > 1)
         {
-            scoreData = GetScore.Get(id, songs[0]);
-        }
-        catch (Exception ex)
-        {
-            if (ex.InnerException is TaskCanceledException or HttpRequestException)
-                DivingFishErrorHelp(source);
-            else
-                UnboundErrorHelp(source);
-
-            scoreData = new GetScore.ScoreData
+            var isQqId = long.TryParse(arguments[1], out var userQqId);
+            
+            try
             {
-                Levels = [],
-                UserExists = false
-            };
+                scoreData = isQqId ? GetScore.Get(userQqId, songs[0]) : GetScore.Get(arguments[1], songs[0]);
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException is TaskCanceledException or HttpRequestException)
+                    DivingFishErrorHelp(source);
+                else
+                    ObjectUserUnboundErrorHelp(source);
+
+                scoreData = new GetScore.ScoreData
+                {
+                    Levels = [],
+                    UserExists = false
+                };
+            }
+        }
+        else
+        {
+            try
+            {
+                scoreData = GetScore.Get(source.Sender.UserId, songs[0]);
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException is TaskCanceledException or HttpRequestException)
+                    DivingFishErrorHelp(source);
+                else
+                    UnboundErrorHelp(source);
+
+                scoreData = new GetScore.ScoreData
+                {
+                    Levels = [],
+                    UserExists = false
+                };
+            }
         }
 
         var generator = new InfoImageGenerator();

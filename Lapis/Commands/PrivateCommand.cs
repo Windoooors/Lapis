@@ -8,7 +8,7 @@ public class PrivateCommand : Command
     {
     }
 
-    public virtual void ParseWithArgument(string command, CqPrivateMessagePostContext source)
+    public virtual void ParseWithArgument(string[] arguments, CqPrivateMessagePostContext source)
     {
     }
 

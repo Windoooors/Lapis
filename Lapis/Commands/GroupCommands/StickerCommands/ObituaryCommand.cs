@@ -18,17 +18,18 @@ public class ObituaryCommand : StickerCommandBase
         CommandHead = "悲报";
         DirectCommandHead = "悲报";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("obituary", "1");
+        IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (command != string.Empty)
+        if (arguments[0] != string.Empty)
         {
             var image = new Image(Environment.CurrentDirectory + "/resource/stickers/beibao.png");
             var fontSize = 36;
             var top = 200;
 
-            if (_fontSizeCommand.IsMatch(command))
+            /*if (_fontSizeCommand.IsMatch(command))
             {
                 fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
                 command = _fontSizeCommand.Replace(command, string.Empty, 1);
@@ -64,9 +65,9 @@ public class ObituaryCommand : StickerCommandBase
                     fontSize = int.Parse(_fontSizeCommand.Match(command).ToString().Substring(3));
                     command = _fontSizeCommand.Replace(command, string.Empty, 1);
                 }
-            }
+            }*/
 
-            image.DrawText(command, new Color(0.3f, 0.3f, 0.3f, 1), fontSize, FontWeight.Regular,
+            image.DrawText(arguments[0], new Color(0.3f, 0.3f, 0.3f, 1), fontSize, FontWeight.Regular,
                 HorizontalAlignment.Center, 233, top);
 
             SendMessage(source, new CqMessage

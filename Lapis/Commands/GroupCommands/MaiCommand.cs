@@ -58,8 +58,17 @@ public abstract class MaiCommandBase : GroupCommand
             new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
         ]);
     }
+    
+    protected void ObjectUserUnboundErrorHelp(CqGroupMessagePostContext source)
+    {
+        SendMessage(source,
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg("未找到该用户")
+        ]);
+    }
 
-    protected string GetMultiAliasesMatchedInformationString(SongDto[] songs, string command, string functionString)
+    public string GetMultiAliasesMatchedInformationString(SongDto[] songs, string command, string functionString)
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("该别称有多首歌曲匹配：");
@@ -68,6 +77,20 @@ public abstract class MaiCommandBase : GroupCommand
 
         stringBuilder.Append(
             $"*发送 \"lps mai {command} ID {songs[0].Id}\" 指令即可查询歌曲 {songs[0].Title} [{songs[0].Type}] 的{functionString}");
+
+        return stringBuilder.ToString();
+    }
+
+    public string GetMultiAliasesMatchedInformationString(SongDto[] songs, string command, string commandParameter,
+        string functionString)
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine("该别称有多首歌曲匹配：");
+
+        foreach (var song in songs) stringBuilder.AppendLine($"ID {song.Id} - {song.Title} [{song.Type}]");
+
+        stringBuilder.Append(
+            $"*发送 \"lps mai {command} ID {songs[0].Id} {commandParameter}\" 指令即可为歌曲 {songs[0].Title} [{songs[0].Type}] {functionString}");
 
         return stringBuilder.ToString();
     }

@@ -11,11 +11,12 @@ public class RepeatCommand : GroupCommand
         CommandHead = "repeat";
         DirectCommandHead = "repeat";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("repeat", "1");
+        IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         SendMessage(source, new CqMessage
-            { command });
+            { arguments[0] });
     }
 }

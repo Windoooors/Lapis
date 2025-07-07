@@ -5,18 +5,17 @@ namespace Lapis.Commands;
 
 public class GroupCommand : Command
 {
-    public virtual void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public virtual void Parse(CqGroupMessagePostContext source)
     {
         HelpCommand.Instance.Parse(source);
     }
 
-    public virtual void ParseWithArgument(string command, CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public virtual void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         HelpCommand.Instance.Parse(source);
     }
 
-    public virtual void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public virtual void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
     }
 }

@@ -96,13 +96,15 @@ public class PlateCommand : MaiCommandBase
     public PlateCommand()
     {
         CommandHead = "plate";
-        DirectCommandHead = "plate";
+        DirectCommandHead = "plate|牌子";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("plate", "1");
+        IntendedArgumentCount = 2;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
+        var command = arguments[0];
+
         if (command == "真将" || command == "")
         {
             SendMessage(source, [
@@ -118,13 +120,34 @@ public class PlateCommand : MaiCommandBase
         var wuwuRegex = new Regex("舞舞$");
         var bazheRegex = new Regex("^霸者$");
 
+
         string userName;
         try
         {
-            userName = JsonConvert.DeserializeObject<BestDto>(ApiOperator.Instance.Post(
-                BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/player",
-                new { qq = source.Sender.UserId })).Username;
+            string content;
+
+            if (arguments.Length > 1)
+            {
+                var isQqId = long.TryParse(arguments[1], out _);
+                content = isQqId
+                    ? ApiOperator.Instance.Post(
+                        BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/player",
+                        new { qq = arguments[1] })
+                    : ApiOperator.Instance.Post(
+                        BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/player",
+                        new { username = arguments[1] });
+            }
+            else
+            {
+                content = ApiOperator.Instance.Post(
+                    BotConfiguration.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/player",
+                    new { qq = source.Sender.UserId });
+            }
+
+            userName = JsonConvert.DeserializeObject<BestDto>(content).Username;
         }
         catch (Exception ex)
         {
@@ -134,7 +157,10 @@ public class PlateCommand : MaiCommandBase
                 return;
             }
 
-            UnboundErrorHelp(source);
+            if (arguments.Length > 1)
+                ObjectUserUnboundErrorHelp(source);
+            else
+                UnboundErrorHelp(source);
             return;
         }
 
@@ -148,18 +174,9 @@ public class PlateCommand : MaiCommandBase
         if (versionCharacterInJapanese != null)
             versionCharacter = versionCharacterInJapanese;
 
-        _plateToVersion.TryGetValue(versionCharacter, out var singleVersion);
+        var singleVersionFound = _plateToVersion.TryGetValue(versionCharacter, out var singleVersion);
 
-        if (singleVersion == null)
-        {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("未找到该姓名框")
-            ]);
-            return;
-        }
-
-        string[] version = { singleVersion };
+        string[] version = singleVersionFound ? [singleVersion] : null;
 
         var plateVersionIndex = _plateToVersion.Keys.ToList().IndexOf(versionCharacter);
 
@@ -183,10 +200,19 @@ public class PlateCommand : MaiCommandBase
             ];
         }
 
+        if (version == null)
+        {
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("未找到该姓名框")
+            ]);
+            return;
+        }
+
         ScoresDto scores;
         if (!(command == "霸者" || command.StartsWith("舞")))
         {
-            var content = "";
+            string content;
             try
             {
                 content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
@@ -201,7 +227,10 @@ public class PlateCommand : MaiCommandBase
                     return;
                 }
 
-                UnboundErrorHelp(source);
+                if (arguments.Length > 1)
+                    ObjectUserUnboundErrorHelp(source);
+                else
+                    UnboundErrorHelp(source);
                 return;
             }
 
@@ -221,12 +250,31 @@ public class PlateCommand : MaiCommandBase
 
         ScoresDto scoresInReality;
 
+        bool useAvatar = true;
+
         try
         {
-            scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
-                BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/plate",
-                new { qq = source.Sender.UserId, version }));
+            if (arguments.Length > 1)
+            {
+                var isQqId = long.TryParse(arguments[1], out _);
+                scoresInReality = isQqId
+                    ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                        BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/plate",
+                        new { qq = arguments[1], version }))
+                    : JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                        BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/plate",
+                        new { username = arguments[1], version }));
+                useAvatar = false;
+            }
+            else
+            {
+                scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                    BotConfiguration.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/plate",
+                    new { qq = source.Sender.UserId, version }));
+            }
         }
         catch (Exception ex)
         {
@@ -236,7 +284,19 @@ public class PlateCommand : MaiCommandBase
                 return;
             }
 
-            UnboundErrorHelp(source);
+            if (arguments.Length > 1)
+                ObjectUserUnboundErrorHelp(source);
+            else
+                UnboundErrorHelp(source);
+            return;
+        }
+
+        if (scoresInReality.ScoreDtos == null)
+        {
+            if (arguments.Length > 1)
+                ObjectUserUnboundErrorHelp(source);
+            else
+                UnboundErrorHelp(source);
             return;
         }
 
@@ -323,7 +383,7 @@ public class PlateCommand : MaiCommandBase
         {
             var image = new PlateImageGenerator().Generate(songsToBeDisplayed, allSongs, userName,
                 MaiCommandInstance,
-                category, source.Sender.UserId.ToString(), true, plateVersionIndex,
+                category, source.Sender.UserId.ToString(), useAvatar, plateVersionIndex,
                 isCompressed);
 
             SendMessage(source,
@@ -348,8 +408,7 @@ public class PlateCommand : MaiCommandBase
         }
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
@@ -365,7 +424,7 @@ public class PlateCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument(command, source, mentionedUserIds);
+        ParseWithArgument([command], source);
     }
 
     public class UsernameDto

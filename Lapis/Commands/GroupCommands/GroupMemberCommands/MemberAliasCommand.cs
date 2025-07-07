@@ -22,25 +22,18 @@ public class MemberAliasCommand : MemberAliasCommandBase
         DirectCommandHead = "malias|群友别名|查群友别名";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("malias", "1");
         MemberAliasCommandInstance = this;
+        IntendedArgumentCount = 1;
     }
-
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        ParseWithArgument("", source, mentionedUserIds);
-    }
-
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
-    {
-        command = command.Trim();
-
         var memberFound =
-            GroupMemberCommandInstance.TryGetMember(command == "" ? mentionedUserIds[0].ToString() : command,
+            GroupMemberCommandInstance.TryGetMember(arguments[0],
                 source.GroupId, out var members);
         if (!memberFound)
         {
             var message =
-                GetMultiSearchResultInformationString(command, "alias", "别名", source.GroupId);
+                GetMultiSearchResultInformationString(arguments[0], "alias", "别名", source.GroupId);
 
             SendMessage(source,
                 [

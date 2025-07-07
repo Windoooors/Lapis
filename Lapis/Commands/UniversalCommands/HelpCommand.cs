@@ -27,7 +27,7 @@ public class HelpCommand : UniversalCommand
         SendMessage(source, message);
     }
 
-    public override void ParseWithArgument(string command, CqMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, CqMessagePostContext source)
     {
     } // 空重写以防 "help me" 导致触发帮助的情况发生
 

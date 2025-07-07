@@ -22,6 +22,7 @@ public class GuessWordsCommand : VocabularyCommandBase
         CommandHead = "word|words|猜词";
         DirectCommandHead = "word|words|猜词";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("word", "1");
+        IntendedArgumentCount = 1;
     }
 
     public override void Initialize()
@@ -46,8 +47,7 @@ public class GuessWordsCommand : VocabularyCommandBase
         }
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             return;
@@ -123,7 +123,7 @@ public class GuessWordsCommand : VocabularyCommandBase
             ]);
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         var text = $"{BotConfiguration.Instance.BotName} 可从以下词库选取词语猜词\n";
         var i = 0;
@@ -149,10 +149,9 @@ public class GuessWordsCommand : VocabularyCommandBase
         ]);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        if (command == "answer")
+        if (arguments[0] == "answer")
         {
             if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
             {
@@ -174,9 +173,9 @@ public class GuessWordsCommand : VocabularyCommandBase
 
         var count = Directory.GetFiles(AppContext.BaseDirectory + "resource/vocabulary/").Length;
         var indexRegex = new Regex("^[1-" + count + "]$");
-        if (indexRegex.IsMatch(command))
+        if (indexRegex.IsMatch(arguments[0]))
         {
-            StartGuessing(int.Parse(command) - 1, source);
+            StartGuessing(int.Parse(arguments[0]) - 1, source);
             return;
         }
 

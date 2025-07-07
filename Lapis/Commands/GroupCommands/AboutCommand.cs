@@ -17,7 +17,7 @@ public class AboutCommand : GroupCommand
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("about", "1");
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         var image = new Image(Environment.CurrentDirectory + "/resource/about.png");
         image.DrawText(BotConfiguration.Instance.BotName, Color.White, 32, FontWeight.Regular, 21.8f, 104);

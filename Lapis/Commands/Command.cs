@@ -11,6 +11,7 @@ public abstract class Command
     public string DirectCommandHead;
     public Command[] SubCommands = [];
     public SettingsIdentifierPair ActivationSettingsSettingsIdentifier { get; protected init; } = new();
+    public int IntendedArgumentCount { get; protected init; }
 
     public virtual void Unload()
     {

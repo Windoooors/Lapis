@@ -142,8 +142,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
         GroupMemberCommandInstance = this;
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         Groups.Add(new Group(source.GroupId));
         if (!Groups.TryGetValue(new Group(source.GroupId), out var group))
@@ -185,19 +184,21 @@ public class GroupMemberCommand : GroupMemberCommandBase
         SaveData();
     }
 
-    public bool TryGetMember(string userIdentificationString, long groupId, out GroupMember[] member)
+    public bool TryGetMember(string userIdentificationString, long groupId, out GroupMember[] members)
     {
+        members = [];
+        
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId),
                 out var group))
         {
-            member = null;
+            members = [];
             return false;
         }
 
         if (long.TryParse(userIdentificationString, out var userNumber) &&
             group.Members.TryGetValue(new GroupMember(userNumber), out var foundMember))
         {
-            member = [foundMember];
+            members = [foundMember];
             return true;
         }
 
@@ -217,7 +218,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
         if (memberHashset.Count != 0)
         {
-            member = memberHashset.ToArray();
+            members = memberHashset.ToArray();
             return true;
         }
 
@@ -227,11 +228,11 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
         if (searchedMembers.Count == 1)
         {
-            member = searchedMembers.ToArray();
+            members = searchedMembers.ToArray();
             return true;
         }
 
-        member = null;
+        members = [];
         return false;
     }
 

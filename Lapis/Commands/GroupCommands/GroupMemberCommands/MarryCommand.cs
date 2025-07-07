@@ -30,7 +30,7 @@ public class MarryCommand : GroupMemberCommandBase
         CouplesOperator.Refresh();
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
         if (couple == null)
@@ -54,12 +54,12 @@ public class MarryCommand : GroupMemberCommandBase
             var memberId = memberArray[i].Id;
             CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
 
-            Parse(source, mentionedUserIds);
+            Parse(source);
             return;
         }
 
         if (!SendMessage(couple.BrideId, source))
-            Parse(source, mentionedUserIds);
+            Parse(source);
     }
 
     private bool SendMessage(long memberId, CqGroupMessagePostContext source)

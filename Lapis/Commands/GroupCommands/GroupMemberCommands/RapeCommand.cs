@@ -15,6 +15,7 @@ public class RapeCommand : GroupMemberCommandBase
         CommandHead = "透|日|操|干|日批";
         DirectCommandHead = "透|日|操|干|日批";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("rape", "1");
+        IntendedArgumentCount = 1;
     }
 
     private bool SendMessage(long memberId, CqGroupMessagePostContext source)
@@ -31,50 +32,41 @@ public class RapeCommand : GroupMemberCommandBase
         return true;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        GroupMemberCommand.GroupMember[] members = [];
-
-        if ((mentionedUserIds.Length == 1 && mentionedUserIds[0] == BotConfiguration.Instance.BotQqNumber) ||
-            (long.TryParse(command, out var id) && id == BotConfiguration.Instance.BotQqNumber))
+        if
+            (long.TryParse(arguments[0], out var id) && id == BotConfiguration.Instance.BotQqNumber)
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId), "🥺"
             ]);
             return;
         }
+        
+        var memberFound = GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out var members);
 
-        if (mentionedUserIds.Length == 1)
+        if (!memberFound)
         {
-            members = [new GroupMemberCommand.GroupMember(mentionedUserIds[0])];
+            SendMessage(source,
+                [
+                    new CqReplyMsg(source.MessageId),
+                    GetMultiSearchResultInformationString(arguments[0], "日", "逼", source.GroupId)
+                ]
+            );
+            return;
         }
-        else
+
+        if (members.Length != 1)
         {
-            var memberFound = GroupMemberCommandInstance.TryGetMember(command, source.GroupId, out members);
-
-            if (!memberFound)
-            {
-                SendMessage(source,
-                    [
-                        new CqReplyMsg(source.MessageId),
-                        GetMultiSearchResultInformationString(command, "日", "逼", source.GroupId)
-                    ]
-                );
-                return;
-            }
-
-            if (members.Length != 1)
-            {
-                SendMessage(source,
-                    [
-                        new CqReplyMsg(source.MessageId),
-                        GetMultiAliasesMatchedInformationString(members, "日", "逼", source.GroupId)
-                    ]
-                );
-                return;
-            }
+            SendMessage(source,
+                [
+                    new CqReplyMsg(source.MessageId),
+                    GetMultiAliasesMatchedInformationString(members, "日", "逼", source.GroupId)
+                ]
+            );
+            return;
         }
+
 
         if (members[0].Id == source.Sender.UserId)
         {
@@ -84,17 +76,11 @@ public class RapeCommand : GroupMemberCommandBase
             return;
         }
 
-        if (!SendMessage(members[0].Id, source)) ParseWithArgument(command, source, mentionedUserIds);
+        if (!SendMessage(members[0].Id, source)) ParseWithArgument(arguments, source);
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
-        if (mentionedUserIds.Length == 1)
-        {
-            ParseWithArgument("", source, mentionedUserIds);
-            return;
-        }
-
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                 out var group) || group.Members.Count <= 1)
         {
@@ -112,11 +98,10 @@ public class RapeCommand : GroupMemberCommandBase
         var memberId = memberArray[i].Id;
 
         if (!SendMessage(memberId, source))
-            Parse(source, mentionedUserIds);
+            Parse(source);
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
@@ -125,6 +110,6 @@ public class RapeCommand : GroupMemberCommandBase
         var regexWithEndingSpace = new Regex(@$"^({DirectCommandHead})\s");
         if (regex.IsMatch(command) && !regexWithEndingSpace.IsMatch(command) &&
             regex.Replace(command, "", 1).Trim() != "")
-            ParseWithArgument(regex.Replace(command, "", 1), source, mentionedUserIds);
+            ParseWithArgument([regex.Replace(command, "", 1)], source);
     }
 }

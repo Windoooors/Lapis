@@ -13,11 +13,13 @@ public class RandomCommand : MaiCommandBase
         CommandHead = "random";
         DirectCommandHead = "random|随个";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("random", "1");
+        IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
+        var command = arguments[0];
+        
         var songs = MaiCommandInstance.GetSongsUsingDifficultyString(command);
         if (songs.Length == 0)
         {
@@ -52,8 +54,7 @@ public class RandomCommand : MaiCommandBase
         }
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
@@ -63,6 +64,6 @@ public class RandomCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument(command, source, mentionedUserIds);
+        ParseWithArgument([command], source);
     }
 }

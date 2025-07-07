@@ -20,7 +20,7 @@ public class AbuseCommand : GroupCommand
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("abuse", "1");
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         if (source.GroupId == 1078224429)
         {

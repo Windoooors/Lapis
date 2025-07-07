@@ -21,6 +21,7 @@ public class LettersCommand : MaiCommandBase
         CommandHead = "letters";
         DirectCommandHead = "letters|开字母";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("letter", "1");
+        IntendedArgumentCount = 1;
     }
 
     public override void Initialize()
@@ -230,14 +231,15 @@ public class LettersCommand : MaiCommandBase
             (songs, DateTime.Now.Add(new TimeSpan(0, 0, 20, 0))));
     }
 
-    public override void Parse(CqGroupMessagePostContext source, long[] mentionedUserIds)
+    public override void Parse(CqGroupMessagePostContext source)
     {
         StartGuessing(source, SpecialCharactersToBeIncluded.Both);
     }
 
-    public override void ParseWithArgument(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
+        var command = arguments[0];
+        
         var specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
 
         if (command.ToLower().StartsWith("both"))
@@ -280,8 +282,7 @@ public class LettersCommand : MaiCommandBase
         StartGuessing(source, specialCharactersToBeIncluded);
     }
 
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source,
-        long[] mentionedUserIds)
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
         _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out var keyValuePair);
 
