@@ -17,7 +17,7 @@ namespace Lapis.Commands.GroupCommands;
 
 public abstract class GroupMemberCommandBase : GroupCommand
 {
-    protected static GroupMemberCommand GroupMemberCommandInstance;
+    public static GroupMemberCommand GroupMemberCommandInstance;
 
     protected void MemberNotEnoughErrorHelp(CqGroupMessagePostContext source)
     {
@@ -138,7 +138,11 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
     public GroupMemberCommand()
     {
-        SubCommands = [new MarryCommand(), new RapeCommand(), new MemberAliasCommand(), new SearchMemberCommand()];
+        SubCommands =
+        [
+            new MarryCommand(), new RapeCommand(), new MemberAliasCommand(), new SearchMemberCommand(),
+            new BeingRapedCommand()
+        ];
         GroupMemberCommandInstance = this;
     }
 
@@ -187,7 +191,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
     public bool TryGetMember(string userIdentificationString, long groupId, out GroupMember[] members)
     {
         members = [];
-        
+
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId),
                 out var group))
         {
@@ -255,8 +259,6 @@ public class GroupMemberCommand : GroupMemberCommandBase
     {
         public long Id { get; } = id;
         public int ChatCount { get; set; }
-
-        public HashSet<string> Aliases { get; set; } = new();
 
         public override int GetHashCode()
         {

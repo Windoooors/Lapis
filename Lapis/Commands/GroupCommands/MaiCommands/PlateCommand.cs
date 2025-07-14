@@ -128,16 +128,24 @@ public class PlateCommand : MaiCommandBase
 
             if (arguments.Length > 1)
             {
+                var isGroupMember =
+                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1], source.GroupId,
+                        out var groupMembers) && groupMembers.Length == 1;
                 var isQqId = long.TryParse(arguments[1], out _);
-                content = isQqId
+                content = isGroupMember
                     ? ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/player",
-                        new { qq = arguments[1] })
-                    : ApiOperator.Instance.Post(
-                        BotConfiguration.Instance.DivingFishUrl,
-                        "api/maimaidxprober/query/player",
-                        new { username = arguments[1] });
+                        new { qq = groupMembers[0].Id.ToString() })
+                    : isQqId
+                        ? ApiOperator.Instance.Post(
+                            BotConfiguration.Instance.DivingFishUrl,
+                            "api/maimaidxprober/query/player",
+                            new { qq = arguments[1] })
+                        : ApiOperator.Instance.Post(
+                            BotConfiguration.Instance.DivingFishUrl,
+                            "api/maimaidxprober/query/player",
+                            new { username = arguments[1] });
             }
             else
             {
@@ -250,22 +258,30 @@ public class PlateCommand : MaiCommandBase
 
         ScoresDto scoresInReality;
 
-        bool useAvatar = true;
+        var useAvatar = true;
 
         try
         {
             if (arguments.Length > 1)
             {
+                var isGroupMember =
+                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1], source.GroupId,
+                        out var groupMembers) && groupMembers.Length == 1;
                 var isQqId = long.TryParse(arguments[1], out _);
-                scoresInReality = isQqId
+                scoresInReality = isGroupMember
                     ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/plate",
-                        new { qq = arguments[1], version }))
-                    : JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
-                        BotConfiguration.Instance.DivingFishUrl,
-                        "api/maimaidxprober/query/plate",
-                        new { username = arguments[1], version }));
+                        new { qq = groupMembers[0].Id.ToString(), version }))
+                    : isQqId
+                        ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                            BotConfiguration.Instance.DivingFishUrl,
+                            "api/maimaidxprober/query/plate",
+                            new { qq = arguments[1], version }))
+                        : JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                            BotConfiguration.Instance.DivingFishUrl,
+                            "api/maimaidxprober/query/plate",
+                            new { username = arguments[1], version }));
                 useAvatar = false;
             }
             else

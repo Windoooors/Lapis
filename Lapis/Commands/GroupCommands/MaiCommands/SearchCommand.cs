@@ -111,7 +111,7 @@ public class SearchCommand : MaiCommandBase
             if (searchResult.AllSongs.Count != 0)
             {
                 var exampleSong = searchResult.AllSongs[0];
-                stringBuilder.Append($"*发送 \"lps mai info ID {exampleSong.Id}\" 指令即可查询歌曲 {
+                stringBuilder.Append($"*发送 \"lps mai info ID{exampleSong.Id}\" 指令即可查询歌曲 {
                     MaiCommandInstance.GetSong(exampleSong.Id).Title} [{MaiCommandInstance.GetSong(exampleSong.Id).Type}] 的信息");
             }
             else

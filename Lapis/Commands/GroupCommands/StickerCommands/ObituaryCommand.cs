@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
@@ -25,7 +26,7 @@ public class ObituaryCommand : StickerCommandBase
     {
         if (arguments[0] != string.Empty)
         {
-            var image = new Image(Environment.CurrentDirectory + "/resource/stickers/beibao.png");
+            var image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/stickers/beibao.png"));
             var fontSize = 36;
             var top = 200;
 

@@ -63,11 +63,19 @@ public class InfoCommand : MaiCommandBase
 
         if (arguments.Length > 1)
         {
-            var isQqId = long.TryParse(arguments[1], out var userQqId);
-            
+            var isGroupMember =
+                GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1], source.GroupId,
+                    out var groupMembers) && groupMembers.Length == 1;
+
+            var isQqId = long.TryParse(arguments[1], out var qqId);
+
             try
             {
-                scoreData = isQqId ? GetScore.Get(userQqId, songs[0]) : GetScore.Get(arguments[1], songs[0]);
+                scoreData = isGroupMember
+                    ? GetScore.Get(groupMembers[0].Id, songs[0])
+                    : isQqId
+                        ? GetScore.Get(qqId, songs[0])
+                        : GetScore.Get(arguments[1], songs[0]);
             }
             catch (Exception ex)
             {

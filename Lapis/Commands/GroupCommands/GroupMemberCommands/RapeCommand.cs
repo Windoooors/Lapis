@@ -8,17 +8,69 @@ using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
 
-public class RapeCommand : GroupMemberCommandBase
+public class BeingRapedCommand : RapeCommandBase
+{
+    public BeingRapedCommand()
+    {
+        CommandHead = "被(群友)?透|被日(批)?|被操|被干";
+        DirectCommandHead = "被(群友)?透|被日(批)?|被操|被干";
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("beingraped", "1");
+        IntendedArgumentCount = 1;
+        BotReply = "😈";
+        CommandString = "被日";
+        FunctionString = "屌";
+    }
+
+    protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    {
+        if (!TryGetNickname(memberId, source.GroupId, out var nickname)) return false;
+
+        SendMessage(source,
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
+            $"您被 {nickname} ({memberId}) 狠狠地操了一顿"
+        ]);
+
+        return true;
+    }
+
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    {
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+            return;
+
+        var regex = new Regex("^(被(群友)?(.*)透|被(.*)日(批)?|被(.*)操|被(.*)干)$");
+
+        var match = regex.Match(command);
+
+        var targetedMemberName = "";
+
+        foreach (Group group in match.Groups)
+            if (!(group.Value.Equals(string.Empty) || group.Value.Equals(command)))
+                targetedMemberName = group.Value;
+
+        targetedMemberName = targetedMemberName.Trim();
+
+        if (!targetedMemberName.Equals(string.Empty))
+            ParseWithArgument([targetedMemberName], source);
+    }
+}
+
+public class RapeCommand : RapeCommandBase
 {
     public RapeCommand()
     {
-        CommandHead = "透|日|操|干|日批";
-        DirectCommandHead = "透|日|操|干|日批";
+        CommandHead = "透(群友)?|日(批)?|操|干";
+        DirectCommandHead = "透(群友)?|日(批)?|操|干";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("rape", "1");
         IntendedArgumentCount = 1;
+        BotReply = "🥺";
+        CommandString = "日";
+        FunctionString = "逼";
     }
 
-    private bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
     {
         if (!TryGetNickname(memberId, source.GroupId, out var nickname)) return false;
 
@@ -32,17 +84,42 @@ public class RapeCommand : GroupMemberCommandBase
         return true;
     }
 
+
+    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
+    {
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+            return;
+
+        var regex = new Regex($"^({DirectCommandHead})");
+        var regexWithEndingSpace = new Regex(@$"^({DirectCommandHead})\s");
+        if (regex.IsMatch(command) && !regexWithEndingSpace.IsMatch(command) &&
+            regex.Replace(command, "", 1).Trim() != "")
+            ParseWithArgument([regex.Replace(command, "", 1)], source);
+    }
+}
+
+public abstract class RapeCommandBase : GroupMemberCommandBase
+{
+    protected string BotReply;
+    protected string CommandString;
+    protected string FunctionString;
+
+    protected virtual bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    {
+        return false;
+    }
+
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         if
             (long.TryParse(arguments[0], out var id) && id == BotConfiguration.Instance.BotQqNumber)
         {
             SendMessage(source, [
-                new CqReplyMsg(source.MessageId), "🥺"
+                new CqReplyMsg(source.MessageId), BotReply
             ]);
             return;
         }
-        
+
         var memberFound = GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out var members);
 
         if (!memberFound)
@@ -50,7 +127,7 @@ public class RapeCommand : GroupMemberCommandBase
             SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
-                    GetMultiSearchResultInformationString(arguments[0], "日", "逼", source.GroupId)
+                    GetMultiSearchResultInformationString(arguments[0], CommandString, FunctionString, source.GroupId)
                 ]
             );
             return;
@@ -61,7 +138,7 @@ public class RapeCommand : GroupMemberCommandBase
             SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
-                    GetMultiAliasesMatchedInformationString(members, "日", "逼", source.GroupId)
+                    GetMultiAliasesMatchedInformationString(members, CommandString, FunctionString, source.GroupId)
                 ]
             );
             return;
@@ -99,17 +176,5 @@ public class RapeCommand : GroupMemberCommandBase
 
         if (!SendMessage(memberId, source))
             Parse(source);
-    }
-
-    public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
-    {
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
-            return;
-
-        var regex = new Regex($"^({DirectCommandHead})");
-        var regexWithEndingSpace = new Regex(@$"^({DirectCommandHead})\s");
-        if (regex.IsMatch(command) && !regexWithEndingSpace.IsMatch(command) &&
-            regex.Replace(command, "", 1).Trim() != "")
-            ParseWithArgument([regex.Replace(command, "", 1)], source);
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Lapis.Miscellaneous;
@@ -31,11 +32,11 @@ public class Searcher
                IsMatchBase(kanjiKeyword, inputWithNoSpecialCharacters);
     }
 
-    private bool IsSameKeywords(string[] keywords)
+    private bool IsSameKeywords(Match[] keywords)
     {
-        var firstKeyword = keywords[0];
+        var firstKeyword = keywords[0].Value;
         foreach (var keyword in keywords)
-            if (keyword != firstKeyword)
+            if (keyword.Value != firstKeyword)
                 return false;
 
         return true;
@@ -44,25 +45,30 @@ public class Searcher
 
     private bool IsMatchBase(string pattern, string input)
     {
-        if (pattern.ToLower() == input.ToLower())
+        if (pattern.ToLower().Equals(input.ToLower()))
             return true;
 
-        var splitResult = pattern.ToLower().Split(' ');
-        var patterns = splitResult.Length == 0 ? [pattern.ToLower()] : splitResult;
+        var matchResult =
+            new Regex(
+                    $"[a-zA-Z0-9]+|{SharedConsts.ChineseCharacterRegexString}|{SharedConsts.JapaneseCharacterRegexString}")
+                .Matches(pattern);
+
+        var patterns = matchResult.ToArray();
         var allMatched = true;
 
         if (patterns.Length > 1 && IsSameKeywords(patterns))
         {
-            var regex = new Regex(patterns[0]);
+            var regex = new Regex(patterns[0].Value);
+
             var matches = regex.Matches(input.ToLower());
-            if (matches.Count > 1)
+            if (matches.Count == patterns.Length)
                 return true;
             return false;
         } // 处理例如通过 break break break 的关键词匹配歌曲 BREaK! BREaK! BREaK! 的情况
 
-        foreach (var regexString in patterns)
+        foreach (var match in patterns)
         {
-            var regex = new Regex(regexString);
+            var regex = new Regex(match.Value);
 
             if (!regex.IsMatch(input.ToLower()))
                 allMatched = false;

@@ -247,6 +247,20 @@ public static class SettingsItems
                 },
                 new SettingsItemsOfACommand
                 {
+                    DisplayName = "被群友透",
+                    Identifier = "beingraped",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
                     DisplayName = "群友搜索",
                     Identifier = "msearch",
                     Items =

@@ -97,33 +97,33 @@ public class InfoImageGenerator
                     x = 104;
 
                 if (level.Rate == MaiCommandBase.Rate.Sss)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/sss.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/sss.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Sssp)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/sss_plus.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/sss_plus.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Ss)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/ss.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/ss.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Ssp)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/ss_plus.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/ss_plus.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Sp)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/s_plus.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/s_plus.png"));
                 else if (level.Rate == MaiCommandBase.Rate.S)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/s.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/s.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Aaa)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/aaa.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/aaa.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Aa)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/aa.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/aa.png"));
                 else if (level.Rate == MaiCommandBase.Rate.A)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/a.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/a.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Bbb)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/bbb.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/bbb.png"));
                 else if (level.Rate == MaiCommandBase.Rate.Bb)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/bb.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/bb.png"));
                 else if (level.Rate == MaiCommandBase.Rate.B)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/b.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/b.png"));
                 else if (level.Rate == MaiCommandBase.Rate.C)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/c.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/c.png"));
                 else if (level.Rate == MaiCommandBase.Rate.D)
-                    image = new Image(Environment.CurrentDirectory + "/resource/ratings/d.png");
+                    image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/d.png"));
                 if (image != null)
                 {
                     if (image.Height == 22 || image.Height == 23)
@@ -133,17 +133,11 @@ public class InfoImageGenerator
                     image.Dispose();
                 }
 
-                string fcIndicatorText;
-                string fsIndicatorText;
+                var fcIndicatorText = level.Fc.Length > 2
+                    ? level.Fc.Remove(level.Fc.Length - 1).ToUpper() + "+"
+                    : level.Fc.ToUpper();
 
-                if (level.Fc.Length > 2)
-                    fcIndicatorText = level.Fc.Substring(0, level.Fc.Length - 1).ToUpper() + "+";
-                else
-                    fcIndicatorText = level.Fc.ToUpper();
-                if (level.Fs.Length > 2)
-                    fsIndicatorText = level.Fs.Replace("p", "+").ToUpper();
-                else
-                    fsIndicatorText = level.Fs.ToUpper();
+                var fsIndicatorText = level.Fs.Length > 2 ? level.Fs.Replace("p", "+").ToUpper() : level.Fs.ToUpper();
 
                 var indicatorText = fcIndicatorText != string.Empty
                     ? fcIndicatorText + " " + fsIndicatorText
@@ -159,8 +153,8 @@ public class InfoImageGenerator
             }
         }
 
-        int[] difficultyFactorYPositions = { 170, 307, 444, 581, 718 };
-        int[] charterYPositions = { 124, 262, 399, 536, 673 };
+        int[] difficultyFactorYPositions = [170, 307, 444, 581, 718];
+        int[] charterYPositions = [124, 262, 399, 536, 673];
 
         for (var i = 0; i < song.Ratings.Length; i++)
         {
@@ -191,7 +185,8 @@ public class InfoImageGenerator
             image.DrawImage(difficultyLayer, 90, 305);
         }
 
-        using (var coverImageShadow = new Image(Environment.CurrentDirectory + "/resource/random/coverimage.png"))
+        using (var coverImageShadow =
+               new Image(Path.Combine(AppContext.BaseDirectory, "resource/random/coverimage.png")))
         {
             image.DrawImage(coverImageShadow, 0, 0);
         }
@@ -203,8 +198,8 @@ public class InfoImageGenerator
         }
 
         using (var foreImage = song.Id.ToString().Length == 6
-                   ? new Image(Environment.CurrentDirectory + "/resource/random/foreground_utage.png")
-                   : new Image(Environment.CurrentDirectory + "/resource/random/foreground.png"))
+                   ? new Image(Path.Combine(AppContext.BaseDirectory, "resource/random/foreground_utage.png"))
+                   : new Image(Path.Combine(AppContext.BaseDirectory, "resource/random/foreground.png")))
         {
             image.DrawImage(foreImage, 0, 0);
         }

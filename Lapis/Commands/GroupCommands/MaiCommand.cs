@@ -58,7 +58,7 @@ public abstract class MaiCommandBase : GroupCommand
             new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
         ]);
     }
-    
+
     protected void ObjectUserUnboundErrorHelp(CqGroupMessagePostContext source)
     {
         SendMessage(source,
@@ -76,7 +76,7 @@ public abstract class MaiCommandBase : GroupCommand
         foreach (var song in songs) stringBuilder.AppendLine($"ID {song.Id} - {song.Title} [{song.Type}]");
 
         stringBuilder.Append(
-            $"*发送 \"lps mai {command} ID {songs[0].Id}\" 指令即可查询歌曲 {songs[0].Title} [{songs[0].Type}] 的{functionString}");
+            $"*发送 \"lps mai {command} ID{songs[0].Id}\" 指令即可查询歌曲 {songs[0].Title} [{songs[0].Type}] 的{functionString}");
 
         return stringBuilder.ToString();
     }
@@ -90,7 +90,7 @@ public abstract class MaiCommandBase : GroupCommand
         foreach (var song in songs) stringBuilder.AppendLine($"ID {song.Id} - {song.Title} [{song.Type}]");
 
         stringBuilder.Append(
-            $"*发送 \"lps mai {command} ID {songs[0].Id} {commandParameter}\" 指令即可为歌曲 {songs[0].Title} [{songs[0].Type}] {functionString}");
+            $"*发送 \"lps mai {command} ID{songs[0].Id} {commandParameter}\" 指令即可为歌曲 {songs[0].Title} [{songs[0].Type}] {functionString}");
 
         return stringBuilder.ToString();
     }
@@ -113,7 +113,7 @@ public abstract class MaiCommandBase : GroupCommand
             {
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append(
-                    $"*发送 \"lps mai {command} ID {exampleSong.Id}\" 指令即可查询歌曲 {exampleSong.Title} [{exampleSong.Type}] 的{functionString}");
+                    $"*发送 \"lps mai {command} ID{exampleSong.Id}\" 指令即可查询歌曲 {exampleSong.Title} [{exampleSong.Type}] 的{functionString}");
             }
             else
             {
@@ -144,7 +144,7 @@ public abstract class MaiCommandBase : GroupCommand
             {
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append(
-                    $"*发送 \"lps mai {command} ID {exampleSong.Id} {commandParameter}\" 指令即可为歌曲 {exampleSong.Title} [{exampleSong.Type}] {functionString}");
+                    $"*发送 \"lps mai {command} ID{exampleSong.Id} {commandParameter}\" 指令即可为歌曲 {exampleSong.Title} [{exampleSong.Type}] {functionString}");
             }
             else
             {

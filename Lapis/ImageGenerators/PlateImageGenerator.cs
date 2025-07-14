@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.GroupCommands.MaiCommands;
@@ -177,8 +178,7 @@ public class PlateImageGenerator
         }
         else
         {
-            head = new Image(Environment.CurrentDirectory +
-                             "/resource/best50/best50_userhead_background.png");
+            head = new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/best50_userhead_background.png"));
 
             head.DrawText(username.Substring(0, 1),
                 new Color(0f, 0.8f, 1f, 0.1f),

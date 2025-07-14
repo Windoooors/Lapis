@@ -33,11 +33,35 @@ public class BestCommand : MaiCommandBase
 
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
+        var isGroupMember =
+            GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId,
+                out var groupMembers) && groupMembers.Length == 1;
+
         var isQqId = long.TryParse(arguments[0], out _);
-        
+
         try
         {
-            if (isQqId)
+            if (isGroupMember)
+            {
+                var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                    "api/maimaidxprober/query/player",
+                    new
+                    {
+                        qq = groupMembers[0].Id.ToString(),
+                        b50 = true
+                    });
+
+                var best = JsonConvert.DeserializeObject<BestDto>(content);
+
+                if (best.Charts == null)
+                {
+                    ObjectUserUnboundErrorHelp(source);
+                    return;
+                }
+
+                Process(source, best, false);
+            }
+            else if (isQqId)
             {
                 var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
@@ -46,7 +70,7 @@ public class BestCommand : MaiCommandBase
                         qq = arguments[0],
                         b50 = true
                     });
-                
+
                 var best = JsonConvert.DeserializeObject<BestDto>(content);
 
                 if (best.Charts == null)
@@ -54,7 +78,7 @@ public class BestCommand : MaiCommandBase
                     ObjectUserUnboundErrorHelp(source);
                     return;
                 }
-                
+
                 Process(source, best, false);
             }
             else
@@ -66,7 +90,7 @@ public class BestCommand : MaiCommandBase
                         username = arguments[0],
                         b50 = true
                     });
-                
+
                 var best = JsonConvert.DeserializeObject<BestDto>(content);
 
                 if (best.Charts == null)
@@ -74,10 +98,9 @@ public class BestCommand : MaiCommandBase
                     ObjectUserUnboundErrorHelp(source);
                     return;
                 }
-                
+
                 Process(source, best, false);
             }
-
         }
         catch (Exception ex)
         {
@@ -110,7 +133,7 @@ public class BestCommand : MaiCommandBase
                 UnboundErrorHelp(source);
                 return;
             }
-            
+
             Process(source, best, true);
         }
         catch (Exception ex)
@@ -125,7 +148,7 @@ public class BestCommand : MaiCommandBase
         }
     }
 
-    private void Process(CqGroupMessagePostContext source,BestDto best,bool useHead)
+    private void Process(CqGroupMessagePostContext source, BestDto best, bool useHead)
     {
         TagRatingByScore(best.Charts.SdCharts);
         TagRatingByScore(best.Charts.DxCharts);

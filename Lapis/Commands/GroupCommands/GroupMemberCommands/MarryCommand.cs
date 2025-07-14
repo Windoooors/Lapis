@@ -15,8 +15,8 @@ public class MarryCommand : GroupMemberCommandBase
 {
     public MarryCommand()
     {
-        CommandHead = "娶|嫁";
-        DirectCommandHead = "娶|嫁";
+        CommandHead = "娶(群友)?|嫁";
+        DirectCommandHead = "娶(群友)?|嫁";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("marry", "1");
     }
 

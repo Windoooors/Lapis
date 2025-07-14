@@ -854,7 +854,8 @@ public static class HanziToKanjiConverter
         { '鳄', '鰐' },
         { '诧', '詫' },
         { '干', '乾' },
-        { '机', '機' }
+        { '机', '機' },
+        { '的', 'の' }
     };
 
     public static string Convert(string input)

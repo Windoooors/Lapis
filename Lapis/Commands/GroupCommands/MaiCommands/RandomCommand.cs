@@ -19,7 +19,7 @@ public class RandomCommand : MaiCommandBase
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         var command = arguments[0];
-        
+
         var songs = MaiCommandInstance.GetSongsUsingDifficultyString(command);
         if (songs.Length == 0)
         {

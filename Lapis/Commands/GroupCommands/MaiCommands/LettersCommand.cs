@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Miscellaneous;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -35,13 +36,14 @@ public class LettersCommand : MaiCommandBase
         switch (specialCharactersToBeIncluded)
         {
             case SpecialCharactersToBeIncluded.Chinese:
-                pattern = new Regex(@"[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]");
+                pattern = new Regex(SharedConsts.JapaneseCharacterRegexString);
                 break;
             case SpecialCharactersToBeIncluded.Japanese:
-                pattern = new Regex(@"[\u4e00-\u9fa5]");
+                pattern = new Regex(SharedConsts.ChineseCharacterRegexString);
                 break;
             case SpecialCharactersToBeIncluded.Neither:
-                pattern = new Regex(@"[\u4e00-\u9fa5]|[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]");
+                pattern = new Regex(
+                    $"{SharedConsts.JapaneseCharacterRegexString}|{SharedConsts.ChineseCharacterRegexString}");
                 break;
         }
 
@@ -239,7 +241,7 @@ public class LettersCommand : MaiCommandBase
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         var command = arguments[0];
-        
+
         var specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
 
         if (command.ToLower().StartsWith("both"))

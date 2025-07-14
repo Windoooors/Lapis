@@ -47,7 +47,7 @@ public class BindCommand : UniversalCommand
             HelpCommand.Instance.ArgumentErrorHelp(source);
             return;
         }
-        
+
         var wechatArgumentRegex = new Regex("wechat");
         var divingFishArgumentRegex = new Regex("divingfish");
         if (wechatArgumentRegex.IsMatch(arguments[0].ToLower()))

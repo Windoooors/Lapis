@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands;
 using Lapis.Commands.UniversalCommands;
@@ -150,16 +148,16 @@ public class CommandParser
     private bool StartParsingWithArgumentTask(Command command, CqMessagePostContext source, string commandString)
     {
         Task taskParse = null;
-        
+
         commandString = commandString.Trim();
-        
+
         var quotationRegex = new Regex("\"([^\"]+)\"|(\\S+)");
-        
+
         var argumentList = new List<string>();
 
         var matches = quotationRegex.Matches(commandString);
-        
-        for (int i = 0 ; i < matches.Count ; i++)
+
+        for (var i = 0; i < matches.Count; i++)
         {
             var match = matches[i];
             if (i < command.IntendedArgumentCount)

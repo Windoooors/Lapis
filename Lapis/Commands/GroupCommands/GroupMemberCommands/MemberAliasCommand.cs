@@ -24,7 +24,7 @@ public class MemberAliasCommand : MemberAliasCommandBase
         MemberAliasCommandInstance = this;
         IntendedArgumentCount = 1;
     }
-    
+
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
         var memberFound =

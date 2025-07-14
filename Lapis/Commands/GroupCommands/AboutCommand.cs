@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using EleCho.GoCqHttpSdk.Message;
@@ -19,7 +20,7 @@ public class AboutCommand : GroupCommand
 
     public override void Parse(CqGroupMessagePostContext source)
     {
-        var image = new Image(Environment.CurrentDirectory + "/resource/about.png");
+        var image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/about.png"));
         image.DrawText(BotConfiguration.Instance.BotName, Color.White, 32, FontWeight.Regular, 21.8f, 104);
         image.DrawText(RuntimeInformation.OSDescription, Color.White, 22, FontWeight.Regular, 128.56f, 202.23f);
         image.DrawText(RuntimeInformation.FrameworkDescription, Color.White, 22, FontWeight.Regular, 128.56f, 231.67f);
