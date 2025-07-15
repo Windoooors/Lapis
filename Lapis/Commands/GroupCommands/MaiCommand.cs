@@ -543,7 +543,7 @@ public class MaiCommand : MaiCommandBase
             return;
         }
 
-        AliasDto aliasDto = new() { Content = [] };
+        AliasDto aliasDto;
 
         try
         {

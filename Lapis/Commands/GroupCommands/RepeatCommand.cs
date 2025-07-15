@@ -16,7 +16,6 @@ public class RepeatCommand : GroupCommand
 
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        SendMessage(source, new CqMessage
-            { arguments[0] });
+        SendMessage(source, [arguments[0]]);
     }
 }

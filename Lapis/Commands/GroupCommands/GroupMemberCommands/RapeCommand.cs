@@ -43,12 +43,14 @@ public class BeingRapedCommand : RapeCommandBase
         var regex = new Regex("^(被(群友)?(.*)透|被(.*)日(批)?|被(.*)操|被(.*)干)$");
 
         var match = regex.Match(command);
+        
+        var validGroups = match.Groups
+            .Cast<Group>()
+            .Skip(1)
+            .Where(g => g.Success)
+            .Select(g => g.Value).ToArray();
 
-        var targetedMemberName = "";
-
-        foreach (Group group in match.Groups)
-            if (!(group.Value.Equals(string.Empty) || group.Value.Equals(command)))
-                targetedMemberName = group.Value;
+        var targetedMemberName = validGroups[^1] == "批" ? validGroups[^2] : validGroups[^1];
 
         targetedMemberName = targetedMemberName.Trim();
 

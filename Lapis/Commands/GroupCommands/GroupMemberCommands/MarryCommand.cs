@@ -88,7 +88,7 @@ public class MarryCommand : GroupMemberCommandBase
 
     public static class CouplesOperator
     {
-        public static readonly HashSet<CouplesInGroup> CouplesInGroupSet =
+        private static readonly HashSet<CouplesInGroup> CouplesInGroupSet =
             File.Exists(Path.Combine(AppContext.BaseDirectory, "data/couples.json"))
                 ? JsonConvert.DeserializeObject<HashSet<CouplesInGroup>>(File.ReadAllText(Path.Combine(
                     AppContext.BaseDirectory,
@@ -192,10 +192,10 @@ public class MarryCommand : GroupMemberCommandBase
             }
         }
 
-        public class CouplesInGroup(long groupId)
+        private class CouplesInGroup(long groupId)
         {
             public readonly HashSet<Couple> Couples = [];
-            public long GroupId { get; } = groupId;
+            private long GroupId { get; } = groupId;
 
             public override bool Equals(object obj)
             {
