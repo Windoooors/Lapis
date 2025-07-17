@@ -195,7 +195,7 @@ public class MarryCommand : GroupMemberCommandBase
         private class CouplesInGroup(long groupId)
         {
             public readonly HashSet<Couple> Couples = [];
-            private long GroupId { get; } = groupId;
+            public long GroupId { get; } = groupId;
 
             public override bool Equals(object obj)
             {

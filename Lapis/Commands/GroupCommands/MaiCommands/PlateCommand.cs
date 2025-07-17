@@ -64,7 +64,9 @@ public class PlateCommand : MaiCommandBase
         { "星", "maimai でらっくす UNiVERSE" },
         { "祭", "maimai でらっくす FESTiVAL" },
         { "祝", "maimai でらっくす FESTiVAL" },
-        { "双", "maimai でらっくす BUDDiES" }
+        { "双", "maimai でらっくす BUDDiES" },
+        { "宴", "maimai でらっくす BUDDiES" },
+        { "镜", "maimai でらっくす PRiSM" }
     };
 
     public Dictionary<string, string> Categories = new()
@@ -331,6 +333,9 @@ public class PlateCommand : MaiCommandBase
                 if (_excludedSongs.Contains(song.Id))
                     if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
                         continue;
+
+                if (song.Id >= 100000)
+                    continue;
 
                 if (command == "霸者" || command.StartsWith("舞"))
                 {

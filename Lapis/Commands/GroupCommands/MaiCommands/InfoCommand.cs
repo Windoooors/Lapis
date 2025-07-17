@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
@@ -84,11 +85,7 @@ public class InfoCommand : MaiCommandBase
                 else
                     ObjectUserUnboundErrorHelp(source);
 
-                scoreData = new GetScore.ScoreData
-                {
-                    Levels = [],
-                    UserExists = false
-                };
+                scoreData = new GetScore.ScoreData([]);
             }
         }
         else
@@ -104,11 +101,7 @@ public class InfoCommand : MaiCommandBase
                 else
                     UnboundErrorHelp(source);
 
-                scoreData = new GetScore.ScoreData
-                {
-                    Levels = [],
-                    UserExists = false
-                };
+                scoreData = new GetScore.ScoreData([]);
             }
         }
 
@@ -143,57 +136,40 @@ public class InfoCommand : MaiCommandBase
         private static ScoreData Get(string name, SongDto song)
         {
             var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/plate",
-                new { username = name, version = new[] { song.BasicInfo.Version } });
-            var scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+                "api/maimaidxprober/dev/player/record",
+                new { username = name, music_id = song.Id.ToString() },
+                [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
-            return GetScoreData(scores, song);
+            return new ScoreData(
+                JsonConvert.DeserializeObject<Dictionary<string, Level[]>>(content).Values.ToArray()[0]);
         }
 
         private static ScoreData Get(long userId, SongDto song)
         {
             var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/query/plate",
-                new { qq = userId, version = new[] { song.BasicInfo.Version } });
-            var scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+                "api/maimaidxprober/dev/player/record",
+                new { qq = userId.ToString(), music_id = song.Id.ToString() },
+                [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
-            return GetScoreData(scores, song);
-        }
-
-        private static ScoreData GetScoreData(ScoresDto scores, SongDto song)
-        {
-            var levelList = new List<Level>();
-            foreach (var score in scores.ScoreDtos)
-                if (score.Id == song.Id)
-                    levelList.Add(new Level
-                    {
-                        Achievement = score.Achievements, Rate = GetRate(score.Achievements),
-                        LevelIndex = score.LevelIndex,
-                        Fc = score.Fc,
-                        Fs = score.Fs
-                    });
-
-            return new ScoreData
-            {
-                Levels = levelList.ToArray(),
-                UserExists = levelList.ToArray().Length > 0
-            };
+            return new ScoreData(
+                JsonConvert.DeserializeObject<Dictionary<string, Level[]>>(content).Values.ToArray()[0]);
         }
 
         public class Level
         {
-            public double Achievement;
-            public string Fc;
-            public string Fs;
-            public int LevelIndex;
-            public Rate Rate;
+            [JsonProperty("achievements")] public float Achievement;
+            [JsonProperty("fc")] public string Fc;
+            [JsonProperty("fs")] public string Fs;
+            [JsonProperty("level_index")] public int LevelIndex;
+            [JsonProperty("rate")] public Rate Rate;
+            [JsonProperty("ra")] public int Rating;
         }
 
-        public class ScoreData
+        public class ScoreData(Level[] levels)
         {
-            public Level[] Levels;
+            public readonly Level[] Levels = levels;
 
-            public bool UserExists;
+            public readonly bool UserExists = levels.Length > 0;
         }
     }
 }

@@ -189,8 +189,11 @@ public class PlateImageGenerator
 
         head.Resize(65, 65);
 
-        using var plateImage = new Image(AppContext.BaseDirectory + "resource/plate_images/" + plateVersionIndex + "/" +
-                                         (int)category + ".png");
+        var path = AppContext.BaseDirectory + "resource/plate_images/" + plateVersionIndex + "/" +
+                   (int)category + ".png";
+
+        using var plateImage =
+            new Image(File.Exists(path) ? path : AppContext.BaseDirectory + "resource/plate_images/0.png");
 
         plateImage.Resize(528, 85);
 

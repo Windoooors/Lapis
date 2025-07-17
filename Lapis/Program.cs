@@ -27,6 +27,7 @@ public class BotConfiguration
     [JsonProperty] public string AliasUrl;
     [JsonProperty] public string BotName;
     [JsonProperty] public long BotQqNumber;
+    [JsonProperty] public string DivingFishDevToken;
     [JsonProperty] public string DivingFishUrl;
     [JsonProperty] public string WahlapConnectiveKitsUrl;
 }

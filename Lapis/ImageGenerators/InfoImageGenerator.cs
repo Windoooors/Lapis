@@ -81,20 +81,17 @@ public class InfoImageGenerator
                         break;
                 }
 
-                var x = 0;
+                var achievementText = level.Achievement.ToString("0.0000") + "%";
 
-                difficultyLayerImage.DrawText(level.Achievement.ToString("0.0000") + "% ", Color.White, 24,
-                    FontWeight.Light, 0, y + 88);
+                var ratingText = $"·{level.Rating}";
 
-                if (level.Achievement.ToString("0.0000").Length ==
-                    8)
-                    x = 130;
-                if (level.Achievement.ToString("0.0000").Length ==
-                    7)
-                    x = 117;
-                if (level.Achievement.ToString("0.0000").Length ==
-                    6)
-                    x = 104;
+                difficultyLayerImage.DrawText(achievementText, Color.White, 24,
+                    FontWeight.Regular, 0, y + 120);
+
+                var x = (int)Image.MeasureString(achievementText, FontWeight.Regular, 24) + 4;
+
+                difficultyLayerImage.DrawText(ratingText, new Color(1, 1, 1, 0.5f), 18,
+                    FontWeight.Regular, x, y + 122);
 
                 if (level.Rate == MaiCommandBase.Rate.Sss)
                     image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/sss.png"));
@@ -126,52 +123,55 @@ public class InfoImageGenerator
                     image = new Image(Path.Combine(AppContext.BaseDirectory, "resource/ratings/d.png"));
                 if (image != null)
                 {
+                    var fcIndicatorText = level.Fc.Length > 2
+                        ? level.Fc.Remove(level.Fc.Length - 1).ToUpper() + "+"
+                        : level.Fc.ToUpper();
+
+                    var fsIndicatorText =
+                        level.Fs.Length > 2 ? level.Fs.Replace("p", "+").ToUpper() : level.Fs.ToUpper();
+
+                    var indicatorText = fcIndicatorText != string.Empty
+                        ? fcIndicatorText + " " + fsIndicatorText
+                        : fsIndicatorText;
+                    if (indicatorText.Length != 0)
+                        indicatorText = indicatorText.TrimEnd();
+
+                    if (indicatorText != string.Empty)
+                        difficultyLayerImage.DrawText(indicatorText, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+                            image.Width + 5,
+                            y + 95);
+
                     if (image.Height == 22 || image.Height == 23)
-                        difficultyLayerImage.DrawImage(image, x, y + 68);
+                        difficultyLayerImage.DrawImage(image, 0, y + 74);
                     if (image.Height == 19 || image.Height == 20 || image.Height == 18)
-                        difficultyLayerImage.DrawImage(image, x, y + 71);
+                        difficultyLayerImage.DrawImage(image, 0, y + 77);
                     image.Dispose();
                 }
-
-                var fcIndicatorText = level.Fc.Length > 2
-                    ? level.Fc.Remove(level.Fc.Length - 1).ToUpper() + "+"
-                    : level.Fc.ToUpper();
-
-                var fsIndicatorText = level.Fs.Length > 2 ? level.Fs.Replace("p", "+").ToUpper() : level.Fs.ToUpper();
-
-                var indicatorText = fcIndicatorText != string.Empty
-                    ? fcIndicatorText + " " + fsIndicatorText
-                    : fsIndicatorText;
-                if (indicatorText.Length != 0)
-                    indicatorText = indicatorText.TrimEnd();
-
-                if (indicatorText == string.Empty)
-                    continue;
-
-                difficultyLayerImage.DrawText(indicatorText, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular, 0,
-                    y + 63);
             }
         }
 
         int[] difficultyFactorYPositions = [170, 307, 444, 581, 718];
-        int[] charterYPositions = [124, 262, 399, 536, 673];
 
         for (var i = 0; i < song.Ratings.Length; i++)
         {
-            difficultyLayerImage.DrawText(song.Ratings[i].ToString("0.0"), Color.White, 24, FontWeight.Regular, 0,
+            var ratingText = song.Ratings[i].ToString("0.0");
+
+            difficultyLayerImage.DrawText(ratingText, Color.White, 24, FontWeight.Regular, 0,
                 difficultyFactorYPositions[i] - 24);
 
+            var x = Image.MeasureString(ratingText, FontWeight.Regular, 24) + 8;
+
             difficultyLayerImage.DrawText("fit " + song.FitRatings[i].ToString("0.00"), new Color(1, 1, 1, 0.5f),
-                18, FontWeight.Light, 0, difficultyFactorYPositions[i]);
+                18, FontWeight.Regular, x, difficultyFactorYPositions[i] - 24);
 
             difficultyLayerImage.DrawText(song.Charts[i].Charter == "-" ? "未知作谱者" : "by " + song.Charts[i].Charter,
                 new Color(1, 1, 1, 0.5f),
-                24, FontWeight.Light, 0, charterYPositions[i] - 10);
+                18, FontWeight.Regular, 0, difficultyFactorYPositions[i] - 3);
         }
 
         if (song.Ratings.Length == 4 && song.Id.ToString().Length != 6)
             difficultyLayerImage.DrawText("NaN", Color.White,
-                40, FontWeight.Light, 0, 718);
+                40, FontWeight.Regular, 0, 718);
 
         return difficultyLayerImage;
     }
@@ -209,7 +209,7 @@ public class InfoImageGenerator
             Color.White,
             55,
             FontWeight.Regular,
-            10, 190
+            10, 185
         );
 
         image.DrawText(
@@ -226,7 +226,7 @@ public class InfoImageGenerator
             90,
             FontWeight.Heavy,
             HorizontalAlignment.Right,
-            1393, 87
+            1393, 72
         );
 
         var songTypeLayer = new Image(128, 128);

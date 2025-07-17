@@ -38,8 +38,8 @@ public abstract class MaiCommandBase : GroupCommand
     }
 
     protected static MaiCommand MaiCommandInstance;
-    public Regex IdHeadRegex = new(@"^id\s|^id|^ID\s|^ID");
-    public Regex IdRegex = new(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
+    protected readonly Regex IdHeadRegex = new(@"^id\s|^id|^ID\s|^ID");
+    protected readonly Regex IdRegex = new(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
 
     protected void DivingFishErrorHelp(CqGroupMessagePostContext source)
     {

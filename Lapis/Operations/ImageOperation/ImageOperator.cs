@@ -13,7 +13,7 @@ namespace Lapis.Operations.ImageOperation;
 
 public static class FontFamilies
 {
-    public static readonly FontCollection Collection = new();
+    private static readonly FontCollection Collection = new();
 
     public static readonly FontFamily Regular =
         Collection.Add(Path.Combine(Environment.CurrentDirectory, "resource/font.otf"));
@@ -86,17 +86,7 @@ public class Image : IDisposable
         HorizontalAlignment horizontalAlignment,
         float left, float top)
     {
-        var font = FontFamilies.Regular.CreateFont(fontSize);
-
-        switch (fontWeight)
-        {
-            case FontWeight.Heavy:
-                font = FontFamilies.Heavy.CreateFont(fontSize);
-                break;
-            case FontWeight.Light:
-                font = FontFamilies.Light.CreateFont(fontSize);
-                break;
-        }
+        var font = GetFont(fontWeight, fontSize);
 
         var textOptions = new RichTextOptions(font)
         {
@@ -110,6 +100,23 @@ public class Image : IDisposable
 
         Width = _imageSharpImage.Width;
         Height = _imageSharpImage.Height;
+    }
+
+    private static Font GetFont(FontWeight fontWeight, float fontSize)
+    {
+        var font = FontFamilies.Regular.CreateFont(fontSize);
+
+        switch (fontWeight)
+        {
+            case FontWeight.Heavy:
+                font = FontFamilies.Heavy.CreateFont(fontSize);
+                break;
+            case FontWeight.Light:
+                font = FontFamilies.Light.CreateFont(fontSize);
+                break;
+        }
+
+        return font;
     }
 
     public void GaussianBlur(float radius)
@@ -256,22 +263,22 @@ public class Image : IDisposable
         return Rgba32ToColor(pickedColor);
     }
 
-    public string ToBase64(bool ToBeCompressed)
+    public static float MeasureString(string text, FontWeight fontWeight, float fontSize)
+    {
+        return TextMeasurer.MeasureSize(text, new TextOptions(GetFont(fontWeight, fontSize))).Width;
+    }
+
+    public string ToBase64(bool toBeCompressed = false)
     {
         using (var ms = new MemoryStream())
         {
-            if (ToBeCompressed)
+            if (toBeCompressed)
                 _imageSharpImage.Save(ms, new JpegEncoder { Quality = 90 });
             else
                 _imageSharpImage.SaveAsPng(ms);
 
             return Convert.ToBase64String(ms.ToArray());
         }
-    }
-
-    public string ToBase64()
-    {
-        return ToBase64(false);
     }
 }
 
