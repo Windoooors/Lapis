@@ -1,5 +1,4 @@
-﻿using EleCho.GoCqHttpSdk.Message;
-using EleCho.GoCqHttpSdk.Post;
+﻿using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands;

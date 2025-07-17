@@ -48,9 +48,13 @@ public class Searcher
         if (pattern.ToLower().Equals(input.ToLower()))
             return true;
 
+        var cjkChar = (SharedConsts.ChineseCharacterRegexString.TrimEnd(']') +
+                       SharedConsts.JapaneseCharacterRegexString.TrimStart('[')).TrimStart('[').TrimEnd(']');
+        var nonCjkChar = $"^{cjkChar}";
+        var regexPattern = @$"[{nonCjkChar}\s]+|[{cjkChar}]";
+
         var matchResult =
-            new Regex(
-                    $"[a-zA-Z0-9]+|{SharedConsts.ChineseCharacterRegexString}|{SharedConsts.JapaneseCharacterRegexString}")
+            new Regex(regexPattern)
                 .Matches(pattern);
 
         var patterns = matchResult.ToArray();
