@@ -53,7 +53,7 @@ public class InfoImageGenerator
         return image;
     }
 
-    private Image GenerateDifficultyLayer(SongDto song, InfoCommand.GetScore.Level[] levels)
+    private Image GenerateDifficultyLayer(SongDto song, InfoCommand.GetScore.LevelDto[] levels)
     {
         var difficultyLayerImage = new Image(6600, 1080, new Color(0, 0, 0, 0));
         if (levels != null)
@@ -176,7 +176,7 @@ public class InfoImageGenerator
         return difficultyLayerImage;
     }
 
-    public string Generate(SongDto song, string title, InfoCommand.GetScore.Level[] levels, bool isCompressed)
+    public string Generate(SongDto song, string title, InfoCommand.GetScore.LevelDto[] levels, bool isCompressed)
     {
         var image = GenerateBackground(song, title);
 

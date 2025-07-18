@@ -47,7 +47,7 @@ public class ApiOperator
         if (content == null) throw new ArgumentNullException(nameof(content));
 
         return PostCore(new UriBuilder(baseUrl) { Path = path }.Uri.AbsoluteUri,
-            JsonConvert.SerializeObject(content), headers, 10);
+            JsonConvert.SerializeObject(content), 10, headers);
     }
 
     public string Post(string baseUrl, string path, object content, KeyValuePair<string, string>[] headers, int timeOut)
@@ -55,7 +55,7 @@ public class ApiOperator
         if (content == null) throw new ArgumentNullException(nameof(content));
 
         return PostCore(new UriBuilder(baseUrl) { Path = path }.Uri.AbsoluteUri,
-            JsonConvert.SerializeObject(content), headers, timeOut);
+            JsonConvert.SerializeObject(content), timeOut, headers);
     }
 
     public string Post(string baseUrl, string path, object content)
@@ -83,28 +83,8 @@ public class ApiOperator
         client.Dispose();
         return outputImg;
     }
-
-    private string PostCore(string url, string content, int timeOut)
-    {
-        var httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(timeOut)
-        };
-        var stringContent = new StringContent(content);
-        stringContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        var httpResponseMessage = httpClient.PostAsync(new Uri(url), stringContent).Result;
-
-        var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
-        var result = reader.ReadToEnd();
-
-        httpClient.Dispose();
-        httpResponseMessage.Dispose();
-        reader.Dispose();
-
-        return result;
-    }
-
-    private string PostCore(string url, string content, KeyValuePair<string, string>[] headers, int timeOut)
+    
+    private string PostCore(string url, string content, int timeOut, KeyValuePair<string, string>[] headers = null)
     {
         var httpClient = new HttpClient
         {
@@ -113,18 +93,21 @@ public class ApiOperator
         var stringContent = new StringContent(content);
         stringContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-        foreach (var header in headers) stringContent.Headers.Add(header.Key, header.Value);
+        if (headers != null)
+            foreach (var header in headers)
+                stringContent.Headers.Add(header.Key, header.Value);
 
-        var httpResponseMessage = httpClient.PostAsync(new Uri(url), stringContent).Result;
+        var httpResponse = httpClient.PostAsync(new Uri(url), stringContent).Result;
 
-        if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-            throw new HttpRequestException();
+        if (httpResponse.StatusCode != HttpStatusCode.OK)
+            throw new HttpRequestException($"Unexpected status code: {httpResponse.StatusCode}", null,
+                httpResponse.StatusCode);
 
-        var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
+        var reader = new StreamReader(httpResponse.Content.ReadAsStream(), Encoding.UTF8);
         var result = reader.ReadToEnd();
 
         httpClient.Dispose();
-        httpResponseMessage.Dispose();
+        httpResponse.Dispose();
         reader.Dispose();
 
         return result;
@@ -136,16 +119,17 @@ public class ApiOperator
         {
             Timeout = TimeSpan.FromSeconds(timeOut)
         };
-        var httpResponseMessage = httpClient.GetAsync(new Uri(url)).Result;
+        var httpResponse = httpClient.GetAsync(new Uri(url)).Result;
 
-        if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-            throw new HttpRequestException();
+        if (httpResponse.StatusCode != HttpStatusCode.OK)
+            throw new HttpRequestException($"Unexpected status code: {httpResponse.StatusCode}", null,
+                httpResponse.StatusCode);
 
-        var reader = new StreamReader(httpResponseMessage.Content.ReadAsStream(), Encoding.UTF8);
+        var reader = new StreamReader(httpResponse.Content.ReadAsStream(), Encoding.UTF8);
         var result = reader.ReadToEnd();
 
         httpClient.Dispose();
-        httpResponseMessage.Dispose();
+        httpResponse.Dispose();
         reader.Dispose();
 
         return result;

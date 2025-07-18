@@ -58,7 +58,7 @@ public class BeingRapedCommand : RapeCommandBase
         targetedMemberName = targetedMemberName.Trim();
 
         if (!targetedMemberName.Equals(string.Empty))
-            ParseWithArgument([targetedMemberName], source);
+            ProcessRapeWithArguments([targetedMemberName], source, false);
     }
 }
 
@@ -99,7 +99,7 @@ public class RapeCommand : RapeCommandBase
         var regexWithEndingSpace = new Regex(@$"^({DirectCommandHead})\s");
         if (regex.IsMatch(command) && !regexWithEndingSpace.IsMatch(command) &&
             regex.Replace(command, "", 1).Trim() != "")
-            ParseWithArgument([regex.Replace(command, "", 1)], source);
+            ProcessRapeWithArguments([regex.Replace(command, "", 1)], source, false);
     }
 }
 
@@ -116,6 +116,12 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
+        ProcessRapeWithArguments(arguments, source, true);
+    }
+
+    protected void ProcessRapeWithArguments(string[] arguments, CqGroupMessagePostContext source,
+        bool sendNotFoundMessage)
+    {
         if
             (long.TryParse(arguments[0], out var id) && id == BotConfiguration.Instance.BotQqNumber)
         {
@@ -129,12 +135,14 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
         if (!memberFound)
         {
-            SendMessage(source,
-                [
-                    new CqReplyMsg(source.MessageId),
-                    GetMultiSearchResultInformationString(arguments[0], CommandString, FunctionString, source.GroupId)
-                ]
-            );
+            if (sendNotFoundMessage)
+                SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(arguments[0], CommandString, FunctionString,
+                            source.GroupId)
+                    ]
+                );
             return;
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
@@ -80,12 +81,12 @@ public class InfoCommand : MaiCommandBase
             }
             catch (Exception ex)
             {
-                if (ex.InnerException is TaskCanceledException or HttpRequestException)
-                    DivingFishErrorHelp(source);
-                else
+                if (ex is HttpRequestException {StatusCode: HttpStatusCode.BadRequest})
                     ObjectUserUnboundErrorHelp(source);
+                else if (ex.InnerException is TaskCanceledException)
+                    DivingFishErrorHelp(source);
 
-                scoreData = new GetScore.ScoreData([]);
+                return;
             }
         }
         else
@@ -96,10 +97,10 @@ public class InfoCommand : MaiCommandBase
             }
             catch (Exception ex)
             {
-                if (ex.InnerException is TaskCanceledException or HttpRequestException)
-                    DivingFishErrorHelp(source);
-                else
+                if (ex is HttpRequestException {StatusCode: HttpStatusCode.BadRequest})
                     UnboundErrorHelp(source);
+                else if (ex.InnerException is TaskCanceledException)
+                    DivingFishErrorHelp(source);
 
                 scoreData = new GetScore.ScoreData([]);
             }
@@ -141,7 +142,7 @@ public class InfoCommand : MaiCommandBase
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
             return new ScoreData(
-                JsonConvert.DeserializeObject<Dictionary<string, Level[]>>(content).Values.ToArray()[0]);
+                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content).Values.ToArray()[0]);
         }
 
         private static ScoreData Get(long userId, SongDto song)
@@ -152,10 +153,10 @@ public class InfoCommand : MaiCommandBase
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
             return new ScoreData(
-                JsonConvert.DeserializeObject<Dictionary<string, Level[]>>(content).Values.ToArray()[0]);
+                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content).Values.ToArray()[0]);
         }
 
-        public class Level
+        public class LevelDto
         {
             [JsonProperty("achievements")] public float Achievement;
             [JsonProperty("fc")] public string Fc;
@@ -165,11 +166,16 @@ public class InfoCommand : MaiCommandBase
             [JsonProperty("ra")] public int Rating;
         }
 
-        public class ScoreData(Level[] levels)
+        public class ScoreData(LevelDto[] levels)
         {
-            public readonly Level[] Levels = levels;
+            public readonly LevelDto[] Levels = levels;
 
             public readonly bool UserExists = levels.Length > 0;
+        }
+
+        public class MessageDto
+        {
+            [JsonProperty("message")] public string Message;
         }
     }
 }
