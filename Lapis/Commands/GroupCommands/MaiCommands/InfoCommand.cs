@@ -81,7 +81,7 @@ public class InfoCommand : MaiCommandBase
             }
             catch (Exception ex)
             {
-                if (ex is HttpRequestException {StatusCode: HttpStatusCode.BadRequest})
+                if (ex is HttpRequestException { StatusCode: HttpStatusCode.BadRequest })
                     ObjectUserUnboundErrorHelp(source);
                 else if (ex.InnerException is TaskCanceledException)
                     DivingFishErrorHelp(source);
@@ -97,7 +97,7 @@ public class InfoCommand : MaiCommandBase
             }
             catch (Exception ex)
             {
-                if (ex is HttpRequestException {StatusCode: HttpStatusCode.BadRequest})
+                if (ex is HttpRequestException { StatusCode: HttpStatusCode.BadRequest })
                     UnboundErrorHelp(source);
                 else if (ex.InnerException is TaskCanceledException)
                     DivingFishErrorHelp(source);

@@ -5,23 +5,12 @@ namespace Lapis.Miscellaneous;
 
 public class Searcher
 {
-    private readonly string[] _specialCharacters =
-    [
-        ".", ",", ";", ":", "?", "!", "\"", "'",
-        "(", ")", "[", "]", "{", "}", "<", ">",
-        "~", "-", "=", "+", "*", "/", "\\",
-        "%", "&", "#", "@", "$", "。", "，", "；", "：", "？", "！", "“”", "‘’",
-        "（", "）", "［", "］", "｛", "｝", "〈", "〉",
-        "～", "－", "＝", "＋", "×", "／", "＼",
-        "％", "＆", "＃", "＠", "＄"
-    ];
-
     public static Searcher Instance { get; } = new();
 
     public bool IsMatch(string keyword, string input)
     {
         var inputWithNoSpecialCharacters = input;
-        foreach (var specialCharacter in _specialCharacters)
+        foreach (var specialCharacter in SharedConsts.SpecialCharacters)
             inputWithNoSpecialCharacters = inputWithNoSpecialCharacters.Replace(specialCharacter, string.Empty);
 
         var kanjiKeyword = HanziToKanjiConverter.Convert(keyword);
@@ -54,7 +43,7 @@ public class Searcher
         var regexPattern = @$"[{nonCjkChar}\s]+|[{cjkChar}]";
 
         var matchResult =
-            new Regex(regexPattern)
+            new Regex(regexPattern, RegexOptions.IgnoreCase)
                 .Matches(pattern);
 
         var patterns = matchResult.ToArray();
@@ -62,9 +51,9 @@ public class Searcher
 
         if (patterns.Length > 1 && IsSameKeywords(patterns))
         {
-            var regex = new Regex(patterns[0].Value);
+            var regex = new Regex(patterns[0].Value, RegexOptions.IgnoreCase);
 
-            var matches = regex.Matches(input.ToLower());
+            var matches = regex.Matches(input);
             if (matches.Count == patterns.Length)
                 return true;
             return false;
@@ -72,9 +61,9 @@ public class Searcher
 
         foreach (var match in patterns)
         {
-            var regex = new Regex(match.Value);
+            var regex = new Regex(match.Value, RegexOptions.IgnoreCase);
 
-            if (!regex.IsMatch(input.ToLower()))
+            if (!regex.IsMatch(input))
                 allMatched = false;
         }
 

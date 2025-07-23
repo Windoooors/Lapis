@@ -19,59 +19,55 @@ public class PlateImageGenerator
         foreach (var song in songsToBeDisplayed)
         {
             var rating = Math.Round(song.SongDto.Ratings[song.LevelIndex], 1);
-            if ((rating > 13.5) & (rating < 14.0))
+            if ((rating > 13.5m) & (rating < 14.0m))
             {
                 if (!difficulties.ContainsKey("13+"))
                 {
-                    difficulties.Add("13+", new List<PlateCommand.SongToBeDisplayed> { song });
+                    difficulties.Add("13+", [song]);
                 }
                 else
                 {
-                    var songs = new List<PlateCommand.SongToBeDisplayed>();
-                    difficulties.TryGetValue("13+", out songs);
-                    songs.Add(song);
+                    if (difficulties.TryGetValue("13+", out var songs))
+                        songs.Add(song);
                 }
             }
 
-            if ((rating > 13.9) & (rating < 14.6))
+            if ((rating > 13.9m) & (rating < 14.6m))
             {
                 if (!difficulties.ContainsKey("14"))
                 {
-                    difficulties.Add("14", new List<PlateCommand.SongToBeDisplayed> { song });
+                    difficulties.Add("14", [song]);
                 }
                 else
                 {
-                    var songs = new List<PlateCommand.SongToBeDisplayed>();
-                    difficulties.TryGetValue("14", out songs);
-                    songs.Add(song);
+                    if (difficulties.TryGetValue("14", out var songs))
+                        songs.Add(song);
                 }
             }
 
-            if ((rating > 14.5) & (rating < 15.0))
+            if ((rating > 14.5m) & (rating < 15.0m))
             {
                 if (!difficulties.ContainsKey("14+"))
                 {
-                    difficulties.Add("14+", new List<PlateCommand.SongToBeDisplayed> { song });
+                    difficulties.Add("14+", [song]);
                 }
                 else
                 {
-                    var songs = new List<PlateCommand.SongToBeDisplayed>();
-                    difficulties.TryGetValue("14+", out songs);
-                    songs.Add(song);
+                    if (difficulties.TryGetValue("14+", out var songs))
+                        songs.Add(song);
                 }
             }
 
-            if (rating > 14.9)
+            if (rating > 14.9m)
             {
                 if (!difficulties.ContainsKey("15"))
                 {
-                    difficulties.Add("15", new List<PlateCommand.SongToBeDisplayed> { song });
+                    difficulties.Add("15", [song]);
                 }
                 else
                 {
-                    var songs = new List<PlateCommand.SongToBeDisplayed>();
-                    difficulties.TryGetValue("15", out songs);
-                    songs.Add(song);
+                    if (difficulties.TryGetValue("15", out var songs))
+                        songs.Add(song);
                 }
             }
         }
@@ -79,32 +75,20 @@ public class PlateImageGenerator
         var totalHeight = 171;
 
         if (difficulties.ContainsKey("15"))
-        {
-            List<PlateCommand.SongToBeDisplayed> songs;
-            difficulties.TryGetValue("15", out songs);
-            totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
-        }
+            if (difficulties.TryGetValue("15", out var songs))
+                totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
 
         if (difficulties.ContainsKey("14+"))
-        {
-            List<PlateCommand.SongToBeDisplayed> songs;
-            difficulties.TryGetValue("14+", out songs);
-            totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
-        }
+            if (difficulties.TryGetValue("14+", out var songs))
+                totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
 
         if (difficulties.ContainsKey("14"))
-        {
-            List<PlateCommand.SongToBeDisplayed> songs;
-            difficulties.TryGetValue("14", out songs);
-            totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
-        }
+            if (difficulties.TryGetValue("14", out var songs))
+                totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
 
         if (difficulties.ContainsKey("13+"))
-        {
-            List<PlateCommand.SongToBeDisplayed> songs;
-            difficulties.TryGetValue("13+", out songs);
-            totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
-        }
+            if (difficulties.TryGetValue("13+", out var songs))
+                totalHeight += 100 * (int)Math.Ceiling((float)songs.Count / 7) + 75;
 
         var sortedDifficulties =
             difficulties.OrderByDescending(d =>

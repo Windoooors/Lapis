@@ -27,7 +27,7 @@ public class SearchMemberCommand : GroupMemberCommandBase
 
         var group = GroupMemberCommandInstance.Groups.ToList().Find(x => x.GroupId == groupId);
         if (group == null || group.GroupId == 0)
-            return new SearchResult();
+            return new SearchResult(null);
 
         foreach (var member in group.Members)
         {
@@ -52,9 +52,9 @@ public class SearchMemberCommand : GroupMemberCommandBase
         }
 
         return new SearchResult
-        {
-            MembersMatchedByAlias = membersMatchedByAlias
-        };
+        (
+            membersMatchedByAlias
+        );
     }
 
     public StringBuilder GetMultiSearchResults(SearchResult searchResult, long groupId)
@@ -107,8 +107,9 @@ public class SearchMemberCommand : GroupMemberCommandBase
         ]);
     }
 
-    public class SearchResult
+    public class SearchResult(Dictionary<GroupMemberCommand.GroupMember, List<string>> membersMatchedByAlias)
     {
-        public Dictionary<GroupMemberCommand.GroupMember, List<string>> MembersMatchedByAlias = new();
+        public readonly Dictionary<GroupMemberCommand.GroupMember, List<string>> MembersMatchedByAlias =
+            membersMatchedByAlias;
     }
 }

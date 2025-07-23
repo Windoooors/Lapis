@@ -4,7 +4,7 @@ namespace Lapis.Miscellaneous;
 
 public static class HanziToKanjiConverter
 {
-    private static readonly Dictionary<char, char> _table = new()
+    private static readonly Dictionary<char, char> Table = new()
     {
         { '藏', '蔵' },
         { '亚', '亜' },
@@ -862,7 +862,7 @@ public static class HanziToKanjiConverter
     {
         foreach (var character in input)
         {
-            _table.TryGetValue(character, out var value);
+            Table.TryGetValue(character, out var value);
 
             if (value != 0) input = input.Replace(character.ToString(), value.ToString());
         }

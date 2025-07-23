@@ -25,7 +25,7 @@ public class SearchCommand : MaiCommandBase
         var songsMatchedByAlias = new Dictionary<SongDto, List<string>>();
         var songsMatchedByArtist = new List<SongDto>();
         var songsMatchedByTitle = new List<SongDto>();
-        var allSongs = new List<SongDto>();
+        var songsMatchedByBpm = new List<SongDto>();
 
         foreach (var song in MaiCommandInstance.Songs)
         {
@@ -48,19 +48,13 @@ public class SearchCommand : MaiCommandBase
 
             if (Searcher.Instance.IsMatch(keyWord, song.Title) && !songsMatchedByTitle.Contains(song))
                 songsMatchedByTitle.Add(song);
+
+            if (decimal.TryParse(keyWord, out var bpm) && song.BasicInfo.Bpm == bpm)
+                songsMatchedByBpm.Add(song);
         }
 
-        allSongs.AddRange(songsMatchedByTitle);
-        allSongs.AddRange(songsMatchedByArtist);
-        allSongs.AddRange(songsMatchedByAlias.Keys);
-
-        return new SearchResult
-        {
-            SongsMatchedByArtist = songsMatchedByArtist,
-            SongsMatchedByTitle = songsMatchedByTitle,
-            SongsMatchedByAlias = songsMatchedByAlias,
-            AllSongs = allSongs
-        };
+        return new SearchResult(songsMatchedByArtist.ToArray(), songsMatchedByTitle.ToArray(),
+            songsMatchedByBpm.ToArray(), songsMatchedByAlias);
     }
 
     public StringBuilder GetMultiSearchResults(SearchResult searchResult)
@@ -73,7 +67,7 @@ public class SearchCommand : MaiCommandBase
 
         stringBuilder.AppendLine("找到了以下歌曲：");
 
-        if (songs.Count > 0)
+        if (songs.Length > 0)
             foreach (var song in songs)
                 stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过标题匹配）");
 
@@ -87,9 +81,13 @@ public class SearchCommand : MaiCommandBase
                                          $"] （通过别称 {aliasStringBuilder} 匹配）");
             }
 
-        if (songsMatchedByArtist.Count > 0)
+        if (songsMatchedByArtist.Length > 0)
             foreach (var song in songsMatchedByArtist)
                 stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过曲师名匹配）");
+
+        if (searchResult.SongsMatchedByBpm.Length > 0)
+            foreach (var song in searchResult.SongsMatchedByBpm)
+                stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过 BPM 匹配）");
 
         return stringBuilder;
     }
@@ -100,7 +98,7 @@ public class SearchCommand : MaiCommandBase
 
         var stringBuilder = new StringBuilder();
 
-        if (searchResult.AllSongs.Count >= 30)
+        if (searchResult.AllSongs.Length >= 100)
         {
             stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
         }
@@ -108,7 +106,7 @@ public class SearchCommand : MaiCommandBase
         {
             stringBuilder = GetMultiSearchResults(searchResult);
 
-            if (searchResult.AllSongs.Count != 0)
+            if (searchResult.AllSongs.Length != 0)
             {
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append($"*发送 \"lps mai info ID{exampleSong.Id}\" 指令即可查询歌曲 {
@@ -130,9 +128,25 @@ public class SearchCommand : MaiCommandBase
 
     public class SearchResult
     {
-        public List<SongDto> AllSongs = new();
-        public Dictionary<SongDto, List<string>> SongsMatchedByAlias = new();
-        public List<SongDto> SongsMatchedByArtist = new();
-        public List<SongDto> SongsMatchedByTitle = new();
+        public readonly SongDto[] AllSongs;
+        public readonly Dictionary<SongDto, List<string>> SongsMatchedByAlias;
+        public readonly SongDto[] SongsMatchedByArtist;
+        public readonly SongDto[] SongsMatchedByBpm;
+        public readonly SongDto[] SongsMatchedByTitle;
+
+        public SearchResult(SongDto[] songsMatchedByArtist, SongDto[] songsMatchedByTitle, SongDto[] songsMatchedByBpm,
+            Dictionary<SongDto, List<string>> songsMatchedByAlias)
+        {
+            SongsMatchedByAlias = songsMatchedByAlias;
+            SongsMatchedByTitle = songsMatchedByTitle;
+            SongsMatchedByArtist = songsMatchedByArtist;
+            SongsMatchedByBpm = songsMatchedByBpm;
+            var allSongsList = new List<SongDto>();
+            allSongsList.AddRange(songsMatchedByTitle);
+            allSongsList.AddRange(songsMatchedByBpm);
+            allSongsList.AddRange(songsMatchedByArtist);
+            allSongsList.AddRange(songsMatchedByAlias.Keys);
+            AllSongs = allSongsList.ToArray();
+        }
     }
 }

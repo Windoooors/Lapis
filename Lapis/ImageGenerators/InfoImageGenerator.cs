@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.GroupCommands.MaiCommands;
+using Lapis.Miscellaneous;
 using Lapis.Operations.ImageOperation;
 using HorizontalAlignment = Lapis.Operations.ImageOperation.HorizontalAlignment;
 
@@ -203,6 +205,50 @@ public class InfoImageGenerator
         {
             image.DrawImage(foreImage, 0, 0);
         }
+
+        image.DrawText(
+            "BPM",
+            new Color(1, 1, 1, 0.5f),
+            18,
+            FontWeight.Regular,
+            90,
+            311
+        );
+
+        image.DrawText(
+            song.BasicInfo.Bpm.ToString("N1"),
+            Color.White,
+            24,
+            FontWeight.Regular,
+            90,
+            334
+        );
+
+        var versionNames = SharedConsts.DxVersionToChineseVersionName
+            .Where(x => x.Key == song.BasicInfo.Version)
+            .Select(x => x.Value).ToArray();
+
+        image.DrawText("From ", new Color(1, 1, 1, 0.5f),
+            18,
+            FontWeight.Regular,
+            90,
+            271);
+
+        var plateVersionNames = SharedConsts.PlateVersionToVersionName
+            .Where(x => x.Value == song.BasicInfo.Version)
+            .Select(x => x.Key).ToArray();
+
+        image.DrawText(
+            (versionNames.Length > 0 ? versionNames[0] : song.BasicInfo.Version) +
+            "·" + (plateVersionNames.Length > 1
+                ? plateVersionNames[0] + "、" + plateVersionNames[1]
+                : plateVersionNames[0]),
+            Color.White,
+            18,
+            FontWeight.Regular,
+            90,
+            291
+        );
 
         image.DrawText(
             song.Title,

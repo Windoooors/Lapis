@@ -101,7 +101,7 @@ public abstract class MaiCommandBase : GroupCommand
 
         var stringBuilder = new StringBuilder();
 
-        if (searchResult.AllSongs.Count >= 30)
+        if (searchResult.AllSongs.Length >= 100)
         {
             stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
         }
@@ -109,7 +109,7 @@ public abstract class MaiCommandBase : GroupCommand
         {
             stringBuilder = SearchCommand.SearchCommandInstance.GetMultiSearchResults(searchResult);
 
-            if (searchResult.AllSongs.Count != 0)
+            if (searchResult.AllSongs.Length != 0)
             {
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append(
@@ -132,7 +132,7 @@ public abstract class MaiCommandBase : GroupCommand
 
         var stringBuilder = new StringBuilder();
 
-        if (searchResult.AllSongs.Count >= 30)
+        if (searchResult.AllSongs.Length >= 100)
         {
             stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
         }
@@ -140,7 +140,7 @@ public abstract class MaiCommandBase : GroupCommand
         {
             stringBuilder = SearchCommand.SearchCommandInstance.GetMultiSearchResults(searchResult);
 
-            if (searchResult.AllSongs.Count != 0)
+            if (searchResult.AllSongs.Length != 0)
             {
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append(
@@ -222,36 +222,19 @@ public class ScoresDto
     }
 }
 
-public class ExtraSongDto
-{
-    [JsonProperty("Artist")] public string Artist;
-
-    [JsonProperty("MapInformations")] public MapInfomationDto[] Charts;
-    [JsonProperty("Id")] public int Id;
-
-    [JsonProperty("Title")] public string Title;
-
-    [JsonProperty("Cabinet")] public string Type;
-
-    public class MapInfomationDto
-    {
-        [JsonProperty("Author")] public string Author;
-        [JsonProperty("Level")] public string Level;
-    }
-}
-
 public class SongDto
 {
     [JsonProperty("basic_info")] public BasicInfoDto BasicInfo;
 
     [JsonProperty("charts")] public ChartDto[] Charts;
 
-    public float[] FitRatings;
+    public decimal[] FitRatings;
+
     [JsonProperty("id")] public int Id;
 
     [JsonProperty("level")] public string[] Levels;
 
-    [JsonProperty("ds")] public float[] Ratings;
+    [JsonProperty("ds")] public decimal[] Ratings;
 
     [JsonProperty("title")] public string Title;
 
@@ -280,6 +263,8 @@ public class SongDto
     {
         [JsonProperty("artist")] public string Artist;
 
+        [JsonProperty("bpm")] public decimal Bpm;
+
         [JsonProperty("from")] public string Version;
     }
 }
@@ -290,7 +275,7 @@ public class ChartStatisticsDto
 
     public class ChartStatisticDto
     {
-        [JsonProperty("fit_diff")] public float FitRating;
+        [JsonProperty("fit_diff")] public decimal FitRating;
     }
 }
 
@@ -347,11 +332,13 @@ public class MaiCommand : MaiCommandBase
 
     public SongDto[] GetSongsUsingDifficultyString(string difficultyString)
     {
-        var songs = new List<SongDto>();
+        var isRating = float.TryParse(difficultyString, out _);
+        decimal.TryParse(difficultyString, out var rating);
 
-        foreach (var song in Songs)
-            if (song.Levels.Contains(difficultyString))
-                songs.Add(song);
+        var songs = Songs.Where(song =>
+                song.Levels.Contains(difficultyString) ||
+                (isRating && song.Ratings.Contains(rating) && song.Id < 100000))
+            .Select(song => song);
 
         return songs.ToArray();
     }
@@ -597,7 +584,7 @@ public class MaiCommand : MaiCommandBase
                 chart.MaxDxScore += notes * 3;
 
             _chartStatistics.Charts.TryGetValue(song.Id.ToString(), out var chartStatistics);
-            List<float> fitRatings = new();
+            List<decimal> fitRatings = new();
             if (chartStatistics != null)
                 foreach (var chartStatistic in chartStatistics)
                     fitRatings.Add(chartStatistic.FitRating);
