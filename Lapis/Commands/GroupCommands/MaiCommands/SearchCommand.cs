@@ -27,6 +27,10 @@ public class SearchCommand : MaiCommandBase
         var songsMatchedByTitle = new List<SongDto>();
         var songsMatchedByBpm = new List<SongDto>();
 
+        var bpm = 0m;
+        
+        var isBpm = float.TryParse(keyWord, out _) && decimal.TryParse(keyWord, out bpm);
+
         foreach (var song in MaiCommandInstance.Songs)
         {
             var aliases = MaiCommandInstance.GetAliasById(song.Id).Aliases;
@@ -49,7 +53,7 @@ public class SearchCommand : MaiCommandBase
             if (Searcher.Instance.IsMatch(keyWord, song.Title) && !songsMatchedByTitle.Contains(song))
                 songsMatchedByTitle.Add(song);
 
-            if (decimal.TryParse(keyWord, out var bpm) && song.BasicInfo.Bpm == bpm)
+            if (isBpm && song.BasicInfo.Bpm == bpm)
                 songsMatchedByBpm.Add(song);
         }
 

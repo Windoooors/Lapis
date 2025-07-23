@@ -34,7 +34,10 @@ public class Searcher
 
     private bool IsMatchBase(string pattern, string input)
     {
-        if (pattern.ToLower().Equals(input.ToLower()))
+        pattern = pattern.ToLower();
+        input = input.ToLower();
+        
+        if (pattern.Equals(input))
             return true;
 
         var cjkChar = (SharedConsts.ChineseCharacterRegexString.TrimEnd(']') +
@@ -43,7 +46,7 @@ public class Searcher
         var regexPattern = @$"[{nonCjkChar}\s]+|[{cjkChar}]";
 
         var matchResult =
-            new Regex(regexPattern, RegexOptions.IgnoreCase)
+            new Regex(regexPattern)
                 .Matches(pattern);
 
         var patterns = matchResult.ToArray();
@@ -51,7 +54,7 @@ public class Searcher
 
         if (patterns.Length > 1 && IsSameKeywords(patterns))
         {
-            var regex = new Regex(patterns[0].Value, RegexOptions.IgnoreCase);
+            var regex = new Regex(patterns[0].Value);
 
             var matches = regex.Matches(input);
             if (matches.Count == patterns.Length)
@@ -61,7 +64,7 @@ public class Searcher
 
         foreach (var match in patterns)
         {
-            var regex = new Regex(match.Value, RegexOptions.IgnoreCase);
+            var regex = new Regex(match.Value);
 
             if (!regex.IsMatch(input))
                 allMatched = false;
