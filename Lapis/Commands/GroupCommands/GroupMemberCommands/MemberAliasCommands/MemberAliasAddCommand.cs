@@ -90,18 +90,17 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
                 ]);
             }
         };
-        TaskHandleQueue.HandleableTask task = new();
-        task.WhenConfirm = action;
-        task.WhenCancel = () =>
+
+        TaskHandleQueue.HandleableTask task = new(intendedUserId, () =>
         {
             SendMessage(source,
-                new CqMessage
-                {
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("别名添加已取消！")
-                });
-        };
-        var success = TaskHandleQueue.Instance.AddTask(task, source.GroupId);
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("别名添加已取消！")
+            ]);
+        }, action);
+
+        var success = TaskHandleQueue.Instance.AddTask(task, source.GroupId, intendedUserId);
 
         if (!TryGetNickname(intendedUserId, source.GroupId, out var nickname))
         {
@@ -118,14 +117,14 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(
-                    $"你正在尝试为群友 \"{nickname}\" 添加别名 \"{intendedAlias}\""
-                    + "\n发送 \"lps handle confirm\" 以确认，发送 \"lps handle cancel\" 以取消")
+                    $"您正在尝试为群友 \"{nickname}\" 添加别名 \"{intendedAlias}\""
+                    + $"\n需要群友 \"{nickname}\" 发送 \"lps handle confirm\" 以确认，或者发送 \"lps handle cancel\" 以取消")
             ]);
         else
             SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg("当前已有代办事项！请处理后再试！")
+                new CqTextMsg("该群友当前已有代办事项！请待其处理后再试！")
             ]);
     }
 }

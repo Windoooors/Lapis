@@ -85,9 +85,9 @@ public abstract class GroupMemberCommandBase : GroupCommand
     }
 
     protected string GetMultiSearchResultInformationString(string keyword, string command, string functionString,
-        long groupId)
+        long groupId, bool findAgreedToUseRapeCommand, bool findAgreedToUseMarryCommand)
     {
-        var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId);
+        var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId, findAgreedToUseRapeCommand, findAgreedToUseMarryCommand);
 
         var stringBuilder = new StringBuilder();
 
@@ -155,8 +155,6 @@ public class GroupMemberCommand : GroupMemberCommandBase
         group.Members.Add(new GroupMember(source.UserId));
         if (!group.Members.TryGetValue(new GroupMember(source.UserId), out var member))
             return;
-
-        member.ChatCount++;
     }
 
     public bool RemoveMember(long id, long groupId)
@@ -188,7 +186,38 @@ public class GroupMemberCommand : GroupMemberCommandBase
         SaveData();
     }
 
-    public bool TryGetMember(string userIdentificationString, long groupId, out GroupMember[] members)
+    public bool AgreeToUseMarryCommand(long userId, long groupId)
+    {
+        if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId), out var group))
+            return false;
+
+        foreach (var groupMember in group.Members)
+            if (groupMember.Id == userId)
+            {
+                groupMember.AgreedToUseMarryCommand = true;
+                return true;
+            }
+
+        return false;
+    }
+
+    public bool AgreeToUseRapeCommand(long userId, long groupId)
+    {
+        if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId), out var group))
+            return false;
+
+        foreach (var groupMember in group.Members)
+            if (groupMember.Id == userId)
+            {
+                groupMember.AgreedToUseRapeCommand = true;
+                return true;
+            }
+
+        return false;
+    }
+
+    public bool TryGetMember(string userIdentificationString, long groupId, out GroupMember[] members,
+        bool findAgreedToUseRape = false, bool findAgreedToUseMarry = false)
     {
         members = [];
 
@@ -203,7 +232,14 @@ public class GroupMemberCommand : GroupMemberCommandBase
             group.Members.TryGetValue(new GroupMember(userNumber), out var foundMember))
         {
             members = [foundMember];
-            return true;
+
+            if (findAgreedToUseRape)
+                members = members.Where(x => x.AgreedToUseRapeCommand).Select(x => x).ToArray();
+
+            if (findAgreedToUseMarry)
+                members = members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray();
+
+            return members.Length > 0;
         }
 
         var memberHashset = new HashSet<GroupMember>();
@@ -223,7 +259,14 @@ public class GroupMemberCommand : GroupMemberCommandBase
         if (memberHashset.Count != 0)
         {
             members = memberHashset.ToArray();
-            return true;
+
+            if (findAgreedToUseRape)
+                members = members.Where(x => x.AgreedToUseRapeCommand).Select(x => x).ToArray();
+
+            if (findAgreedToUseMarry)
+                members = members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray();
+
+            return members.Length > 0;
         }
 
         var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(userIdentificationString, groupId);
@@ -233,7 +276,14 @@ public class GroupMemberCommand : GroupMemberCommandBase
         if (searchedMembers.Count == 1)
         {
             members = searchedMembers.ToArray();
-            return true;
+
+            if (findAgreedToUseRape)
+                members = members.Where(x => x.AgreedToUseRapeCommand).Select(x => x).ToArray();
+
+            if (findAgreedToUseMarry)
+                members = members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray();
+
+            return members.Length > 0;
         }
 
         members = [];
@@ -257,8 +307,9 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
     public class GroupMember(long id)
     {
+        public bool AgreedToUseMarryCommand;
+        public bool AgreedToUseRapeCommand;
         public long Id { get; } = id;
-        public int ChatCount { get; set; }
 
         public override int GetHashCode()
         {
@@ -273,8 +324,8 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
     public class Group(long groupId)
     {
-        public readonly long GroupId = groupId;
-        public readonly HashSet<GroupMember> Members = [];
+        public long GroupId = groupId;
+        public HashSet<GroupMember> Members = [];
 
         public override int GetHashCode()
         {

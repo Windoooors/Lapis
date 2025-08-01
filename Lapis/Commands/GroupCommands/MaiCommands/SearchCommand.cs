@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Miscellaneous;
@@ -28,15 +29,22 @@ public class SearchCommand : MaiCommandBase
         var songsMatchedByBpm = new List<SongDto>();
 
         var bpm = 0m;
-        
+
         var isBpm = float.TryParse(keyWord, out _) && decimal.TryParse(keyWord, out bpm);
 
         foreach (var song in MaiCommandInstance.Songs)
         {
             var aliases = MaiCommandInstance.GetAliasById(song.Id).Aliases;
+            var utageSignMatch = new Regex(@"\[(.*)\]").Match(song.Title);
 
             foreach (var alias in aliases)
-                if (Searcher.Instance.IsMatch(keyWord, alias))
+                if (Searcher.Instance.IsMatch(keyWord,
+                        (song.Id >= 100000
+                            ? utageSignMatch.Success ? "宴" + utageSignMatch.Groups[1].Value : "宴"
+                            : song.Type == "SD"
+                                ? "标准"
+                                : "DX") +
+                        alias))
                 {
                     if (!songsMatchedByAlias.ContainsKey(song))
                     {
@@ -50,7 +58,14 @@ public class SearchCommand : MaiCommandBase
             if (Searcher.Instance.IsMatch(keyWord, song.BasicInfo.Artist) && !songsMatchedByArtist.Contains(song))
                 songsMatchedByArtist.Add(song);
 
-            if (Searcher.Instance.IsMatch(keyWord, song.Title) && !songsMatchedByTitle.Contains(song))
+            if (Searcher.Instance.IsMatch(keyWord,
+                    (song.Id >= 100000
+                        ? utageSignMatch.Success ? "宴" + utageSignMatch.Groups[1].Value : "宴"
+                        : song.Type == "SD"
+                            ? "标准"
+                            : "DX") +
+                    song.Title) &&
+                !songsMatchedByTitle.Contains(song))
                 songsMatchedByTitle.Add(song);
 
             if (isBpm && song.BasicInfo.Bpm == bpm)

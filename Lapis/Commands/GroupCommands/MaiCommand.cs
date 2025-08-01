@@ -418,7 +418,7 @@ public class MaiCommand : MaiCommandBase
         return Songs[GetSongIndexById(id)];
     }
 
-    public SongDto[] GetSongs(string inputString)
+    public SongDto[] GetSongs(string inputString, bool noUtage = false)
     {
         inputString = inputString.ToLower();
         var aliases = GetAliasByAliasString(inputString);
@@ -432,6 +432,19 @@ public class MaiCommand : MaiCommandBase
                     continue;
                 if (!songsList.Contains(Songs[GetSongIndexById((int)alias.Id)]))
                     songsList.Add(Songs[GetSongIndexById((int)alias.Id)]);
+            }
+
+            var utageSongs = songsList.Where(x => x.Id > 100000).Select(x => x).ToArray();
+
+            if (utageSongs.Length != 0)
+            {
+                var standardSongs = songsList
+                    .Where(x => utageSongs[0].Title.Contains(x.Title) && utageSongs[0].Title != x.Title)
+                    .Select(x => x)
+                    .ToArray();
+
+                if (standardSongs.Length != 0 && noUtage)
+                    return standardSongs;
             }
 
             if (songsList.Count != 0)
@@ -530,6 +543,15 @@ public class MaiCommand : MaiCommandBase
             return;
         }
 
+        foreach (var song in Songs)
+        {
+            if (song.Id < 100000)
+                continue;
+            for (var i = 0; i < song.Levels.Length; i++)
+                if (!song.Levels[i].Contains('?'))
+                    song.Levels[i] += '?';
+        }
+
         AliasDto aliasDto;
 
         try
@@ -569,6 +591,21 @@ public class MaiCommand : MaiCommandBase
 
                 foreach (var invalidAlias in invalidAliasStrings) aliasItemDto.Aliases.Remove(invalidAlias);
             }
+
+            if (GetSongIndexById(aliasItemDto.Id + 10000) != -1)
+                SongAliases.Add(new Alias
+                {
+                    Id = aliasItemDto.Id + 10000,
+                    Aliases = aliasItemDto.Aliases.ToHashSet()
+                });
+
+            for (var i = 0; i < 10; i++)
+                if (GetSongIndexById(aliasItemDto.Id + 100000 + i * 10000) != -1)
+                    SongAliases.Add(new Alias
+                    {
+                        Id = aliasItemDto.Id + 100000 + i * 10000,
+                        Aliases = aliasItemDto.Aliases.ToHashSet()
+                    });
 
             SongAliases.Add(new Alias
             {

@@ -18,9 +18,14 @@ public class TaskHandleQueueCommand : GroupCommand
         IntendedArgumentCount = 1;
     }
 
+    public override void Initialize()
+    {
+        Program.TimeChanged += TaskHandleQueue.Instance.DueCheck;
+    }
+
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        if (_argumentRegex.IsMatch(command) && !TaskHandleQueue.Instance.IsEmpty(source.GroupId))
+        if (_argumentRegex.IsMatch(command) && !TaskHandleQueue.Instance.IsEmpty(source.GroupId, source.Sender.UserId))
             ParseWithArgument([command], source);
     }
 
@@ -36,7 +41,7 @@ public class TaskHandleQueueCommand : GroupCommand
             return;
         }
 
-        if (TaskHandleQueue.Instance.IsEmpty(source.GroupId))
+        if (TaskHandleQueue.Instance.IsEmpty(source.GroupId, source.Sender.UserId))
         {
             SendMessage(source,
             [
@@ -48,7 +53,16 @@ public class TaskHandleQueueCommand : GroupCommand
 
         var confirm = arguments[0].Equals("confirm") || arguments[0].Equals("确定");
 
-        TaskHandleQueue.Instance.HandleTask(source.GroupId, confirm);
+        var done = TaskHandleQueue.Instance.HandleTask(source.GroupId, confirm, source.Sender.UserId);
+
+        if (done)
+            return;
+
+        SendMessage(source,
+        [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg("处理失败！")
+        ]);
     }
 }
 
@@ -63,24 +77,25 @@ internal class TaskHandleQueue
 
     public static TaskHandleQueue Instance { get; } = new();
 
-    public bool AddTask(HandleableTask task, long groupId)
+    public bool AddTask(HandleableTask task, long groupId, long userToBeAsked)
     {
         if (!FindTaskList(groupId, out var taskList))
         {
             AddTaskList(groupId);
-            return AddTask(task, groupId);
+            return AddTask(task, groupId, userToBeAsked);
         }
 
-        if (IsFull(taskList)) return false;
+        if (IsFull(taskList, userToBeAsked)) return false;
 
         taskList.Tasks.Add(task);
 
         return true;
     }
 
-    private bool IsFull(TaskList taskList)
+    private bool IsFull(TaskList taskList, long userToBeAsked)
     {
-        return taskList.Tasks.Count >= MaxTaskCount;
+        return taskList.Tasks.Where(x => x.UserToBeAsked == userToBeAsked).Select(x => x).ToArray().Length >=
+               MaxTaskCount;
     }
 
     private void AddTaskList(long groupId)
@@ -96,24 +111,35 @@ internal class TaskHandleQueue
         return true;
     }
 
-    public bool HandleTask(long groupId, bool confirm = true, int index = 0)
+    public bool HandleTask(long groupId, bool confirm, long userToBeAsked)
     {
         if (!FindTaskList(groupId, out var taskList))
             return false;
 
-        if (taskList.Tasks.Count <= index) return false;
-        if (confirm) taskList.Tasks[index].WhenConfirm();
-        else taskList.Tasks[index].WhenCancel();
-        taskList.Tasks.RemoveAt(index);
+        var targetedTasks = taskList.Tasks.Where(x => x.UserToBeAsked == userToBeAsked).Select(x => x).ToArray();
+
+        if (targetedTasks.Length == 0) return false;
+        if (confirm) targetedTasks[0].WhenConfirm();
+        else targetedTasks[0].WhenCancel();
+        taskList.Tasks.Remove(targetedTasks[0]);
         return true;
     }
 
-    public bool IsEmpty(long groupId)
+    public bool IsEmpty(long groupId, long userToBeAsked)
     {
         if (!FindTaskList(groupId, out var taskList))
             return true;
 
-        return taskList.Tasks.Count == 0;
+        return taskList.Tasks.Where(x => x.UserToBeAsked == userToBeAsked).Select(x => x).ToArray().Length <
+               MaxTaskCount;
+    }
+
+    public void DueCheck(object sender, EventArgs e)
+    {
+        foreach (var taskList in _taskLists)
+        foreach (var task in taskList.Tasks)
+            if (task.DueTime <= DateTime.Now)
+                HandleTask(taskList.GroupId, false, task.UserToBeAsked);
     }
 
     private class TaskList(long groupId)
@@ -133,9 +159,11 @@ internal class TaskHandleQueue
     }
 
 
-    public class HandleableTask
+    public class HandleableTask(long userToBeAsked, Action whenCancel, Action whenConfirm)
     {
-        public Action WhenCancel = () => { };
-        public Action WhenConfirm = () => { };
+        public readonly DateTime DueTime = DateTime.Now + TimeSpan.FromMinutes(5);
+        public readonly long UserToBeAsked = userToBeAsked;
+        public readonly Action WhenCancel = whenCancel;
+        public readonly Action WhenConfirm = whenConfirm;
     }
 }

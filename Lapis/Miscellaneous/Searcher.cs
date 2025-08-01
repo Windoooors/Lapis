@@ -36,7 +36,7 @@ public class Searcher
     {
         pattern = pattern.ToLower();
         input = input.ToLower();
-        
+
         if (pattern.Equals(input))
             return true;
 

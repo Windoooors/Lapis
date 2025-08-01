@@ -20,6 +20,52 @@ public class MarryCommand : GroupMemberCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("marry", "1");
     }
 
+    private bool MemberAgreedToUse(CqGroupMessagePostContext source)
+    {
+        if (!GroupMemberCommandInstance.TryGetMember(source.Sender.UserId.ToString(), source.GroupId,
+                out var memberInvokingCommand))
+            return false;
+
+
+        if (memberInvokingCommand[0].AgreedToUseMarryCommand)
+            return true;
+
+        TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
+        {
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("您已拒绝！")
+            ]);
+        }, () =>
+        {
+            GroupMemberCommandInstance.AgreeToUseMarryCommand(source.Sender.UserId, source.GroupId);
+
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("您已同意！")
+            ]);
+        });
+        var success = TaskHandleQueue.Instance.AddTask(task, source.GroupId, source.Sender.UserId);
+
+        if (success)
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(
+                    "您需要同意才能使用娶群友功能（您同意后，其他同意使用该功能的群友也能娶到您。如果您是本群第一个同意该功能的，您需要等待下一位群友同意使用该功能）" +
+                    "\n 发送 \"lps handle confirm\" 以同意，或者发送 \"lps handle cancel\" 以拒绝")
+            ]);
+        else
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("您当前已有代办事项！请处理后再试！")
+            ]);
+        return false;
+    }
+
     public override void Initialize()
     {
         Program.DateChanged += Refresh;
@@ -32,24 +78,28 @@ public class MarryCommand : GroupMemberCommandBase
 
     public override void Parse(CqGroupMessagePostContext source)
     {
+        if (!MemberAgreedToUse(source))
+            return;
+
         var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
         if (couple == null)
         {
             if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                     out var group) ||
-                group.Members.Count - CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
+                group.Members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray().Length -
+                CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
             {
                 MemberNotEnoughErrorHelp(source);
                 return;
             }
 
-            var memberArray = group.Members.ToArray();
+            var memberArray = group.Members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray();
 
-            var i = new Random().Next(0, group.Members.Count);
+            var i = new Random().Next(0, memberArray.Length);
 
             while (memberArray[i].Id == source.Sender.UserId ||
                    CouplesOperator.IsMarried(memberArray[i].Id, source.GroupId))
-                i = new Random().Next(0, group.Members.Count);
+                i = new Random().Next(0, memberArray.Length);
 
             var memberId = memberArray[i].Id;
             CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
@@ -74,7 +124,7 @@ public class MarryCommand : GroupMemberCommandBase
         [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
-            $"您的对象是 {nickname} ({memberId}) ！"
+            $"您今天的对象是 {nickname} ({memberId}) ！"
         ]);
 
         return true;

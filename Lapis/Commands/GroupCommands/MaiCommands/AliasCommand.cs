@@ -63,7 +63,7 @@ public class AliasCommand : AliasCommandBase
 
     public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
     {
-        var songs = MaiCommandInstance.GetSongs(arguments[0]);
+        var songs = MaiCommandInstance.GetSongs(arguments[0], true);
 
         if (songs == null)
         {

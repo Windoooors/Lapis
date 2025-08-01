@@ -29,7 +29,7 @@ public class BeingRapedCommand : RapeCommandBase
         [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
-            $"您被 {nickname} ({memberId}) 狠狠地操了一顿"
+            $"群友 {nickname} ({memberId}) 透到你啦(*¯︶¯*)"
         ]);
 
         return true;
@@ -83,7 +83,7 @@ public class RapeCommand : RapeCommandBase
         [
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
-            $"您把 {nickname} ({memberId}) 狠狠地操了一顿"
+            $"群友 {nickname} ({memberId}) 被你透啦(*¯︶¯*)"
         ]);
 
         return true;
@@ -119,9 +119,57 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         ProcessRapeWithArguments(arguments, source, true);
     }
 
+    private bool MemberAgreedToUse(CqGroupMessagePostContext source)
+    {
+        if (!GroupMemberCommandInstance.TryGetMember(source.Sender.UserId.ToString(), source.GroupId,
+                out var memberInvokingCommand))
+            return false;
+
+        if (memberInvokingCommand[0].AgreedToUseRapeCommand)
+            return true;
+
+        TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
+        {
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("您已拒绝！")
+            ]);
+        }, () =>
+        {
+            GroupMemberCommandInstance.AgreeToUseRapeCommand(source.Sender.UserId, source.GroupId);
+
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("您已同意！")
+            ]);
+        });
+        var success = TaskHandleQueue.Instance.AddTask(task, source.GroupId, source.Sender.UserId);
+
+        if (success)
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg(
+                    "您需要同意才能使用透群友功能（您同意后，其他同意使用该功能的群友也能透到您。如果您是本群第一个同意该功能的，您需要等待下一位群友同意使用该功能）" +
+                    "\n 发送 \"lps handle confirm\" 以同意，或者发送 \"lps handle cancel\" 以拒绝")
+            ]);
+        else
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("您当前已有代办事项！请处理后再试！")
+            ]);
+        return false;
+    }
+
     protected void ProcessRapeWithArguments(string[] arguments, CqGroupMessagePostContext source,
         bool sendNotFoundMessage)
     {
+        if (!MemberAgreedToUse(source))
+            return;
+
         if
             (long.TryParse(arguments[0], out var id) && id == BotConfiguration.Instance.BotQqNumber)
         {
@@ -131,7 +179,8 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             return;
         }
 
-        var memberFound = GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out var members);
+        var memberFound =
+            GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out var members, true);
 
         if (!memberFound)
         {
@@ -140,7 +189,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
                     [
                         new CqReplyMsg(source.MessageId),
                         GetMultiSearchResultInformationString(arguments[0], CommandString, FunctionString,
-                            source.GroupId)
+                            source.GroupId, true, false)
                     ]
                 );
             return;
@@ -157,7 +206,6 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             return;
         }
 
-
         if (members[0].Id == source.Sender.UserId)
         {
             SendMessage(source, [
@@ -171,19 +219,23 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
     public override void Parse(CqGroupMessagePostContext source)
     {
+        if (!MemberAgreedToUse(source))
+            return;
+
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
-                out var group) || group.Members.Count <= 1)
+                out var group) ||
+            group.Members.Where(x => x.AgreedToUseRapeCommand).Select(x => x).ToArray().Length <= 1)
         {
             MemberNotEnoughErrorHelp(source);
             return;
         }
 
-        var memberArray = group.Members.ToArray();
+        var memberArray = group.Members.Where(x => x.AgreedToUseRapeCommand).Select(x => x).ToArray();
 
-        var i = new Random().Next(0, group.Members.Count);
+        var i = new Random().Next(0, memberArray.Length);
 
         while (memberArray[i].Id == source.Sender.UserId)
-            i = new Random().Next(0, group.Members.Count);
+            i = new Random().Next(0, memberArray.Length);
 
         var memberId = memberArray[i].Id;
 

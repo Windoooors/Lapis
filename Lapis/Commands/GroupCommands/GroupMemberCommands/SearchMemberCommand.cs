@@ -21,7 +21,7 @@ public class SearchMemberCommand : GroupMemberCommandBase
 
     public static SearchMemberCommand SearchMemberCommandInstance { get; private set; }
 
-    public SearchResult Search(string keyWord, long groupId)
+    public SearchResult Search(string keyWord, long groupId, bool findAgreedToUseRapeCommand = false, bool findAgreedToUseMarryCommand = false)
     {
         var membersMatchedByAlias = new Dictionary<GroupMemberCommand.GroupMember, List<string>>();
 
@@ -51,9 +51,16 @@ public class SearchMemberCommand : GroupMemberCommandBase
                 }
         }
 
+        if (findAgreedToUseMarryCommand)
+            membersMatchedByAlias = membersMatchedByAlias.Where(x => x.Key.AgreedToUseMarryCommand).Select(x => x)
+                .ToDictionary();
+        if (findAgreedToUseRapeCommand)
+            membersMatchedByAlias = membersMatchedByAlias.Where(x => x.Key.AgreedToUseRapeCommand).Select(x => x)
+                .ToDictionary();
+        
         return new SearchResult
         (
-            membersMatchedByAlias
+             membersMatchedByAlias
         );
     }
 
