@@ -27,6 +27,8 @@ public class InfoCommand : MaiCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
+        
+        var originalCommandString = command;
 
         if (command.EndsWith(" 是什么歌"))
             command = command.Replace(" 是什么歌", "");
@@ -35,10 +37,11 @@ public class InfoCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument([command], source);
+        ParseWithArgument([command], originalCommandString, source);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var songs = MaiCommandInstance.GetSongs(arguments[0], true);
 
@@ -86,7 +89,7 @@ public class InfoCommand : MaiCommandBase
                 else if (ex.InnerException is TaskCanceledException)
                     DivingFishErrorHelp(source);
 
-                return;
+                scoreData = new GetScore.ScoreData([]);
             }
         }
         else

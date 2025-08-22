@@ -25,7 +25,8 @@ public class MemberAliasCommand : MemberAliasCommandBase
         IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var memberFound =
             GroupMemberCommandInstance.TryGetMember(arguments[0],
@@ -33,7 +34,7 @@ public class MemberAliasCommand : MemberAliasCommandBase
         if (!memberFound)
         {
             var message =
-                GetMultiSearchResultInformationString(arguments[0], "alias", "别名", source.GroupId, false, false);
+                GetMultiSearchResultInformationString(arguments[0], "alias", source.GroupId, false, false);
 
             SendMessage(source,
                 [
@@ -58,7 +59,7 @@ public class MemberAliasCommand : MemberAliasCommandBase
         SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
-                GetMultiAliasesMatchedInformationString(members, "alias", "别名", source.GroupId)
+                GetMultiAliasesMatchedInformationString(members, "alias", source.GroupId)
             ]
         );
     }

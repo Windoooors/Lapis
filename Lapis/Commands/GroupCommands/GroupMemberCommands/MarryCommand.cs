@@ -13,6 +13,8 @@ namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
 
 public class MarryCommand : GroupMemberCommandBase
 {
+    private SettingsIdentifierPair _eulaSettingsIdentifierPair = new SettingsIdentifierPair("marry", "2");
+    
     public MarryCommand()
     {
         CommandHead = "娶(群友)?|嫁";
@@ -76,9 +78,9 @@ public class MarryCommand : GroupMemberCommandBase
         CouplesOperator.Refresh();
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
-        if (!MemberAgreedToUse(source))
+        if (SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
             return;
 
         var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
@@ -86,14 +88,14 @@ public class MarryCommand : GroupMemberCommandBase
         {
             if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                     out var group) ||
-                group.Members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray().Length -
+                group.Members.Where(x => x.AgreedToUseMarryCommand || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray().Length -
                 CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
             {
                 MemberNotEnoughErrorHelp(source);
                 return;
             }
 
-            var memberArray = group.Members.Where(x => x.AgreedToUseMarryCommand).Select(x => x).ToArray();
+            var memberArray = group.Members.Where(x => x.AgreedToUseMarryCommand || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray();
 
             var i = new Random().Next(0, memberArray.Length);
 
@@ -104,12 +106,12 @@ public class MarryCommand : GroupMemberCommandBase
             var memberId = memberArray[i].Id;
             CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
 
-            Parse(source);
+            Parse(originalPlainMessage, source);
             return;
         }
 
         if (!SendMessage(couple.BrideId, source))
-            Parse(source);
+            Parse(originalPlainMessage, source);
     }
 
     private bool SendMessage(long memberId, CqGroupMessagePostContext source)

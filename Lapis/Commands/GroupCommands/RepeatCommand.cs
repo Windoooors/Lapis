@@ -13,7 +13,8 @@ public class RepeatCommand : GroupCommand
         IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         SendMessage(source, [arguments[0]]);
     }

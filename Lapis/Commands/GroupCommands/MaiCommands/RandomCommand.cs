@@ -16,7 +16,8 @@ public class RandomCommand : MaiCommandBase
         IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var command = arguments[0];
 
@@ -58,12 +59,14 @@ public class RandomCommand : MaiCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
+        
+        var originalCommandString = command;
 
         if (command.StartsWith("随个") && !command.Replace("随个", "").StartsWith(' '))
             command = command.Replace("随个", "");
         else
             return;
 
-        ParseWithArgument([command], source);
+        ParseWithArgument([command], originalCommandString, source);
     }
 }

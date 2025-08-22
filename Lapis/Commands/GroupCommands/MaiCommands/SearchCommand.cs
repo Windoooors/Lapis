@@ -111,7 +111,8 @@ public class SearchCommand : MaiCommandBase
         return stringBuilder;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var searchResult = Search(arguments[0]);
 

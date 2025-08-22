@@ -40,7 +40,7 @@ public class BindCommand : UniversalCommand
                     File.ReadAllText($"{AppContext.BaseDirectory}data/bind_data.json")).ToList();
     }
 
-    public override void ParseWithArgument(string[] arguments, CqMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage, CqMessagePostContext source)
     {
         if (arguments.Length < IntendedArgumentCount)
         {

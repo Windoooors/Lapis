@@ -8,6 +8,7 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.ImageGenerators;
 using Lapis.Settings;
+using Microsoft.Extensions.Logging;
 using Xabe.FFmpeg;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -82,7 +83,7 @@ public class GuessCommand : MaiCommandBase
             return;
         for (var i = 0; i < _guessingGroupsMap.Count; i++)
         {
-            if (_guessingGroupsMap.Values.ToArray()[i].Item2.Ticks > DateTime.Now.Ticks)
+            if (_guessingGroupsMap.Values.ToArray()[i].Item2 > DateTime.Now)
                 continue;
             var keyIdDateTimePair = _guessingGroupsMap.Values.ToArray()[i];
             var groupId = _guessingGroupsMap.Keys.ToArray()[i];
@@ -93,7 +94,7 @@ public class GuessCommand : MaiCommandBase
         }
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
         StartGuessing(source);
     }
@@ -172,7 +173,8 @@ public class GuessCommand : MaiCommandBase
                 [new CqReplyMsg(messageId), new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (arguments[0] == "answer")
         {

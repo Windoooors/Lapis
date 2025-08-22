@@ -55,7 +55,8 @@ public class AddCommand : AliasCommandBase
         Program.Logger.LogInformation("Local aliases have been saved");
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (arguments.Length < IntendedArgumentCount)
         {

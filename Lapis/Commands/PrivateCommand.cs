@@ -4,11 +4,12 @@ namespace Lapis.Commands;
 
 public class PrivateCommand : Command
 {
-    public virtual void Parse(CqPrivateMessagePostContext source)
+    public virtual void Parse(string originalPlainMessage, CqPrivateMessagePostContext source)
     {
     }
 
-    public virtual void ParseWithArgument(string[] arguments, CqPrivateMessagePostContext source)
+    public virtual void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqPrivateMessagePostContext source)
     {
     }
 

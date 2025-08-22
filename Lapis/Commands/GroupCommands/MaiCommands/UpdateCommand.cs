@@ -21,7 +21,7 @@ public class UpdateCommand : MaiCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("update", "1");
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
         var matchedUserBindData = BindCommand.UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
 

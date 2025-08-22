@@ -7,7 +7,7 @@ public static class SharedConsts
     public const string ChineseCharacterRegexString = @"[\u4e00-\u9fa5]";
     public const string JapaneseCharacterRegexString = @"[\u3040-\u30FF\u31F0-\u31FF\uFF00-\uFFEF]";
 
-    public static readonly Dictionary<string, string> PlateVersionToVersionName = new()
+    public static readonly Dictionary<string, string> PlateCharacterToVersionName = new()
     {
         { "真", "maimai PLUS" },
         { "超", "maimai GreeN" },
@@ -35,6 +35,30 @@ public static class SharedConsts
         { "镜", "maimai でらっくす PRiSM" }
     };
 
+    public static readonly Dictionary<string, List<string>> VersionNameToPlateCharacters = new()
+    {
+        ["maimai"] = ["真"],
+        ["maimai PLUS"] = ["真"],
+        ["maimai GreeN"] = ["超"],
+        ["maimai GreeN PLUS"] = ["檄"],
+        ["maimai ORANGE"] = ["橙"],
+        ["maimai ORANGE PLUS"] = ["暁"],
+        ["maimai PiNK"] = ["桃"],
+        ["maimai PiNK PLUS"] = ["櫻"],
+        ["maimai MURASAKi"] = ["紫"],
+        ["maimai MURASAKi PLUS"] = ["菫"],
+        ["maimai MiLK"] = ["白"],
+        ["MiLK PLUS"] = ["雪"],
+        ["maimai FiNALE"] = ["輝"],
+        ["maimai ALL"] = ["舞"],
+        ["maimai でらっくす"] = ["熊", "華"],
+        ["maimai でらっくす Splash"] = ["爽", "煌"],
+        ["maimai でらっくす UNiVERSE"] = ["宙", "星"],
+        ["maimai でらっくす FESTiVAL"] = ["祭", "祝"],
+        ["maimai でらっくす BUDDiES"] = ["双", "宴"],
+        ["maimai でらっくす PRiSM"] = ["镜"]
+    };
+    
     public static readonly Dictionary<string, string> DxVersionToChineseVersionName = new()
     {
         { "maimai でらっくす", "舞萌DX" },

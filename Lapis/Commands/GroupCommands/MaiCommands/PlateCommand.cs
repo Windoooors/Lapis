@@ -51,7 +51,8 @@ public class PlateCommand : MaiCommandBase
         IntendedArgumentCount = 2;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var command = arguments[0];
 
@@ -133,11 +134,11 @@ public class PlateCommand : MaiCommandBase
             versionCharacter = versionCharacterInJapanese;
 
         var singleVersionFound =
-            SharedConsts.PlateVersionToVersionName.TryGetValue(versionCharacter, out var singleVersion);
+            SharedConsts.PlateCharacterToVersionName.TryGetValue(versionCharacter, out var singleVersion);
 
         string[] version = singleVersionFound ? [singleVersion] : null;
 
-        var plateVersionIndex = SharedConsts.PlateVersionToVersionName.Keys.ToList().IndexOf(versionCharacter);
+        var plateVersionIndex = SharedConsts.PlateCharacterToVersionName.Keys.ToList().IndexOf(versionCharacter);
 
         if (command == "霸者" || command.StartsWith("舞"))
         {
@@ -382,6 +383,8 @@ public class PlateCommand : MaiCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
+        
+        var originalCommandString = command;
 
         if (command.EndsWith(" 进度"))
             command = command.Replace(" 进度", "");
@@ -394,7 +397,7 @@ public class PlateCommand : MaiCommandBase
         else
             return;
 
-        ParseWithArgument([command], source);
+        ParseWithArgument([command], originalCommandString, source);
     }
 
     public class UsernameDto

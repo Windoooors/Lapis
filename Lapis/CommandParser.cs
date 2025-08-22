@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands;
+using Lapis.Commands.GroupCommands.GroupMemberCommands;
 using Lapis.Commands.UniversalCommands;
 using Lapis.Settings;
 using Microsoft.Extensions.Logging;
@@ -20,6 +23,7 @@ public class CommandParser
         try
         {
             var commandString = source.Message.Text;
+            var originalCommandString = commandString;
             /*var mentionedUserIdsList = new List<long>();
             foreach (var messageElement in source.Message)
                 if (messageElement is CqAtMsg atMessage && !atMessage.IsAtAll)
@@ -46,7 +50,7 @@ public class CommandParser
             commandString = _headCommandRegex.Replace(commandString, string.Empty, 1);
 
             if (!Parse(source, commandString, Program.Commands))
-                HelpCommand.Instance.Parse(source);
+                HelpCommand.Instance.Parse(originalCommandString, source);
         }
         catch (Exception ex)
         {
@@ -70,6 +74,7 @@ public class CommandParser
     private bool Parse(CqMessagePostContext source, string commandString, Command[] commands)
     {
         commandString = commandString.Trim();
+        var originalCommandString = commandString;
         var parsed = false;
         foreach (var command in commands)
             if (command.CommandHead != null)
@@ -97,7 +102,7 @@ public class CommandParser
                     if (parsed)
                         return true;
 
-                    return StartParsingTask(command, source);
+                    return StartParsingTask(command,originalCommandString, source);
                 }
             }
             else
@@ -117,6 +122,7 @@ public class CommandParser
         Command[] commands)
     {
         commandString = commandString.Trim();
+        var originalCommandString = commandString;
         foreach (var command in commands)
         {
             if (command.SubCommands.Length != 0)
@@ -139,7 +145,7 @@ public class CommandParser
 
             if (directCommandHeadMatchingEndOfString.IsMatch(commandString))
             {
-                StartParsingTask(command, source);
+                StartParsingTask(command,originalCommandString , source);
                 return;
             }
         }
@@ -150,6 +156,7 @@ public class CommandParser
         Task taskParse = null;
 
         commandString = commandString.Trim();
+        var originalCommandString = commandString;
 
         var quotationRegex = new Regex("\"([^\"]+)\"|(\\S+)");
 
@@ -174,16 +181,16 @@ public class CommandParser
                     if (SettingsPool.GetValue(command.ActivationSettingsSettingsIdentifier,
                             groupSource.GroupId))
                         taskParse = new Task(() =>
-                            groupCommand.ParseWithArgument(argumentList.ToArray(), groupSource));
+                            groupCommand.ParseWithArgument(argumentList.ToArray(), commandString, groupSource));
 
                 break;
             case PrivateCommand privateCommand:
                 if (source is CqPrivateMessagePostContext privateSource)
-                    taskParse = new Task(() => privateCommand.ParseWithArgument(argumentList.ToArray(), privateSource));
+                    taskParse = new Task(() => privateCommand.ParseWithArgument(argumentList.ToArray(), originalCommandString, privateSource));
 
                 break;
             case UniversalCommand universalCommand:
-                taskParse = new Task(() => universalCommand.ParseWithArgument(argumentList.ToArray(), source));
+                taskParse = new Task(() => universalCommand.ParseWithArgument(argumentList.ToArray(), originalCommandString, source));
                 break;
         }
 
@@ -193,7 +200,7 @@ public class CommandParser
         return true;
     }
 
-    private bool StartParsingTask(Command command, CqMessagePostContext source)
+    private bool StartParsingTask(Command command, string originalCommandString , CqMessagePostContext source)
     {
         Task taskParse = null;
         switch (command)
@@ -202,16 +209,16 @@ public class CommandParser
                 if (source is CqGroupMessagePostContext groupSource)
                     if (SettingsPool.GetValue(command.ActivationSettingsSettingsIdentifier,
                             groupSource.GroupId))
-                        taskParse = new Task(() => groupCommand.Parse(groupSource));
+                        taskParse = new Task(() => groupCommand.Parse(originalCommandString, groupSource));
 
                 break;
             case PrivateCommand privateCommand:
                 if (source is CqPrivateMessagePostContext privateSource)
-                    taskParse = new Task(() => privateCommand.Parse(privateSource));
+                    taskParse = new Task(() => privateCommand.Parse(originalCommandString, privateSource));
 
                 break;
             case UniversalCommand universalCommand:
-                taskParse = new Task(() => universalCommand.Parse(source));
+                taskParse = new Task(() => universalCommand.Parse(originalCommandString, source));
                 break;
         }
 

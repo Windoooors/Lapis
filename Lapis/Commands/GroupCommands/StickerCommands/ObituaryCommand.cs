@@ -22,7 +22,8 @@ public class ObituaryCommand : StickerCommandBase
         IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (arguments[0] != string.Empty)
         {

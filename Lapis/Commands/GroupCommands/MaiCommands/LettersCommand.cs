@@ -233,12 +233,13 @@ public class LettersCommand : MaiCommandBase
             (songs, DateTime.Now.Add(new TimeSpan(0, 0, 20, 0))));
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
         StartGuessing(source, SpecialCharactersToBeIncluded.Both);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var command = arguments[0];
 

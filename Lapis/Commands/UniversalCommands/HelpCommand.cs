@@ -16,7 +16,7 @@ public class HelpCommand : UniversalCommand
         Instance = this;
     }
 
-    public override void Parse(CqMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqMessagePostContext source)
     {
         var message = new CqMessage
         {
@@ -27,7 +27,7 @@ public class HelpCommand : UniversalCommand
         SendMessage(source, message);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage, CqMessagePostContext source)
     {
     } // 空重写以防 "help me" 导致触发帮助的情况发生
 

@@ -22,7 +22,8 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
         IntendedArgumentCount = 2;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (arguments.Length < IntendedArgumentCount)
         {

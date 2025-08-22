@@ -29,6 +29,8 @@ public class AliasCommand : AliasCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
+        
+        var originalCommandString = command;
 
         if (command.EndsWith(" 有什么别名"))
             command = command.Replace(" 有什么别名", "");
@@ -37,7 +39,7 @@ public class AliasCommand : AliasCommandBase
         else
             return;
 
-        ParseWithArgument([command], source);
+        ParseWithArgument([command], originalCommandString , source);
     }
 
     private string GetAliasesInText(Alias alias)
@@ -61,7 +63,8 @@ public class AliasCommand : AliasCommandBase
         return stringBuilder.ToString();
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var songs = MaiCommandInstance.GetSongs(arguments[0], true);
 

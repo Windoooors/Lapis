@@ -25,11 +25,15 @@ public class TaskHandleQueueCommand : GroupCommand
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        if (_argumentRegex.IsMatch(command) && !TaskHandleQueue.Instance.IsEmpty(source.GroupId, source.Sender.UserId))
-            ParseWithArgument([command], source);
+        if (!(_argumentRegex.IsMatch(command) && !TaskHandleQueue.Instance.IsEmpty(source.GroupId, source.Sender.UserId)))
+            return;
+        
+        var originalCommandString = command;
+        ParseWithArgument([command], originalCommandString, source);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (!_argumentRegex.IsMatch(arguments[0]))
         {
@@ -137,9 +141,14 @@ internal class TaskHandleQueue
     public void DueCheck(object sender, EventArgs e)
     {
         foreach (var taskList in _taskLists)
-        foreach (var task in taskList.Tasks)
-            if (task.DueTime <= DateTime.Now)
-                HandleTask(taskList.GroupId, false, task.UserToBeAsked);
+        {
+            var dueTasks = taskList.Tasks.Where(task => task.DueTime <= DateTime.Now);
+            
+            foreach (var handleableTask in dueTasks.ToList())
+            {
+                HandleTask(taskList.GroupId, false, handleableTask.UserToBeAsked);
+            }
+        }
     }
 
     private class TaskList(long groupId)

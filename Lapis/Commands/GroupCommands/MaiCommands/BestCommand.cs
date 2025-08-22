@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
@@ -31,7 +32,8 @@ public class BestCommand : MaiCommandBase
         }
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         var isGroupMember =
             GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId,
@@ -110,11 +112,17 @@ public class BestCommand : MaiCommandBase
                 return;
             }
 
+            if (ex is HttpRequestException httpRequestException && httpRequestException.StatusCode == HttpStatusCode.BadRequest)
+            {
+                ObjectUserUnboundErrorHelp(source);
+                return;
+            }
+
             HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
         try
         {
@@ -141,6 +149,12 @@ public class BestCommand : MaiCommandBase
             if (ex.InnerException is TaskCanceledException or HttpRequestException)
             {
                 DivingFishErrorHelp(source);
+                return;
+            }
+            
+            if (ex is HttpRequestException httpRequestException && httpRequestException.StatusCode == HttpStatusCode.BadRequest)
+            {
+                UnboundErrorHelp(source);
                 return;
             }
 

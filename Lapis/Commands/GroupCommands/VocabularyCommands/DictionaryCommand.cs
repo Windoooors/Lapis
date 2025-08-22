@@ -14,7 +14,8 @@ public class DictionaryCommand : VocabularyCommandBase
         IntendedArgumentCount = 1;
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         WordDto targetWordItem = null;
         foreach (var vocabulary in VocabularyCommandInstance.Vocabularies)

@@ -123,7 +123,7 @@ public class GuessWordsCommand : VocabularyCommandBase
             ]);
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
         var text = $"{BotConfiguration.Instance.BotName} 可从以下词库选取词语猜词\n";
         var i = 0;
@@ -149,7 +149,8 @@ public class GuessWordsCommand : VocabularyCommandBase
         ]);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (arguments[0] == "answer")
         {

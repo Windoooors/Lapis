@@ -56,7 +56,7 @@ public abstract class GroupMemberCommandBase : GroupCommand
     }
 
     protected string GetMultiAliasesMatchedInformationString(GroupMemberCommand.GroupMember[] members, string command,
-        string functionString, long groupId)
+        long groupId)
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("该别称有多位群友匹配：");
@@ -79,15 +79,16 @@ public abstract class GroupMemberCommandBase : GroupCommand
         }
 
         stringBuilder.Append(
-            $"*发送 \"lps {command} {members[j].Id}\" 指令即可查询群友 {exampleNickname} 的{functionString}");
+            $"*发送 \"lps {command} {members[j].Id}\" 指令即可使用目标功能");
 
         return stringBuilder.ToString();
     }
 
-    protected string GetMultiSearchResultInformationString(string keyword, string command, string functionString,
+    protected string GetMultiSearchResultInformationString(string keyword, string command,
         long groupId, bool findAgreedToUseRapeCommand, bool findAgreedToUseMarryCommand)
     {
-        var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId, findAgreedToUseRapeCommand, findAgreedToUseMarryCommand);
+        var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId,
+            findAgreedToUseRapeCommand, findAgreedToUseMarryCommand);
 
         var stringBuilder = new StringBuilder();
 
@@ -98,24 +99,24 @@ public abstract class GroupMemberCommandBase : GroupCommand
         else
         {
             stringBuilder = SearchMemberCommand.SearchMemberCommandInstance.GetMultiSearchResults(
-                SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId), groupId
+                SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId, findAgreedToUseRapeCommand,
+                    findAgreedToUseMarryCommand), groupId
             );
 
             if (searchResult.MembersMatchedByAlias.Count != 0)
             {
                 var j = 0;
-                var exampleNickname = "";
                 for (var i = 0; i < searchResult.MembersMatchedByAlias.Count; i++)
                 {
                     if (!TryGetNickname(searchResult.MembersMatchedByAlias.Keys.ToArray()[i].Id, groupId,
-                            out exampleNickname))
+                            out _))
                         continue;
                     j = i;
                     break;
                 }
 
                 stringBuilder.Append(
-                    $"*发送 \"lps {command} {searchResult.MembersMatchedByAlias.Keys.ToArray()[j].Id}\" 指令即可查询群友 {exampleNickname} 的{functionString}");
+                    $"*发送 \"lps {command} {searchResult.MembersMatchedByAlias.Keys.ToArray()[j].Id}\" 指令即可使用目标功能");
             }
             else
             {

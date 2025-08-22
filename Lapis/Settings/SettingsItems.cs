@@ -228,6 +228,12 @@ public static class SettingsItems
                             Identifier = "1",
                             DisplayName = "启用",
                             DefaultValue = true
+                        },
+                        new SettingsItem
+                        {
+                            Identifier = "2",
+                            DisplayName = "询问用户是否同意使用",
+                            DefaultValue = true
                         }
                     ]
                 },
@@ -242,6 +248,18 @@ public static class SettingsItems
                             Identifier = "1",
                             DisplayName = "启用",
                             DefaultValue = true
+                        },
+                        new SettingsItem
+                        {
+                            Identifier = "2",
+                            DisplayName = "使用更多触发词",
+                            DefaultValue = false
+                        },
+                        new SettingsItem
+                        {
+                            Identifier = "3",
+                            DisplayName = "询问用户是否同意使用",
+                            DefaultValue = true
                         }
                     ]
                 },
@@ -255,6 +273,18 @@ public static class SettingsItems
                         {
                             Identifier = "1",
                             DisplayName = "启用",
+                            DefaultValue = true
+                        }, 
+                        new SettingsItem
+                        {
+                            Identifier = "2",
+                            DisplayName = "使用更多触发词",
+                            DefaultValue = false
+                        },
+                        new SettingsItem
+                        {
+                            Identifier = "3",
+                            DisplayName = "询问用户是否同意使用",
                             DefaultValue = true
                         }
                     ]

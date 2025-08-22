@@ -17,7 +17,7 @@ public class SettingsCommand : GroupCommand
         IntendedArgumentCount = 2;
     }
 
-    public override void Parse(CqGroupMessagePostContext source)
+    public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
         Program.Session.SendGroupMessageAsync(source.GroupId, [
             new CqReplyMsg(source.MessageId),
@@ -26,7 +26,8 @@ public class SettingsCommand : GroupCommand
         ]);
     }
 
-    public override void ParseWithArgument(string[] arguments, CqGroupMessagePostContext source)
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
     {
         if (!(source.Sender.Role is CqRole.Admin or CqRole.Owner ||
               source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber))
