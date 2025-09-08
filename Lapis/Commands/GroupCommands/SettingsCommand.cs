@@ -43,7 +43,7 @@ public class SettingsCommand : GroupCommand
             return;
         }
 
-        var operationRegex = new Regex("true|false");
+        var operationRegex = new Regex("true$|false$");
 
         if (!operationRegex.IsMatch(arguments[1]))
         {
@@ -60,9 +60,11 @@ public class SettingsCommand : GroupCommand
         var valueString = arguments[1];
         var value = valueString.Equals("true");
 
-        SettingsPool.SetValue(identifierPair, source.GroupId, value);
-
-        Program.Session.SendGroupMessageAsync(source.GroupId,
-            [new CqReplyMsg(source.MessageId), new CqTextMsg("设置变更成功！")]);
+        if (SettingsPool.SetValue(identifierPair, source.GroupId, value))
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+                [new CqReplyMsg(source.MessageId), new CqTextMsg("设置变更成功！")]);
+        else
+            Program.Session.SendGroupMessageAsync(source.GroupId,
+                [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到设置项！")]);
     }
 }

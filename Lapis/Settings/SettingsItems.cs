@@ -232,7 +232,7 @@ public static class SettingsItems
                         new SettingsItem
                         {
                             Identifier = "2",
-                            DisplayName = "询问用户是否同意使用",
+                            DisplayName = "需要用户同意使用群友互动功能",
                             DefaultValue = true
                         }
                     ]
@@ -251,14 +251,8 @@ public static class SettingsItems
                         },
                         new SettingsItem
                         {
-                            Identifier = "2",
-                            DisplayName = "使用更多触发词",
-                            DefaultValue = false
-                        },
-                        new SettingsItem
-                        {
                             Identifier = "3",
-                            DisplayName = "询问用户是否同意使用",
+                            DisplayName = "需要用户同意使用群友互动功能",
                             DefaultValue = true
                         }
                     ]
@@ -277,14 +271,8 @@ public static class SettingsItems
                         }, 
                         new SettingsItem
                         {
-                            Identifier = "2",
-                            DisplayName = "使用更多触发词",
-                            DefaultValue = false
-                        },
-                        new SettingsItem
-                        {
                             Identifier = "3",
-                            DisplayName = "询问用户是否同意使用",
+                            DisplayName = "需要用户同意使用群友互动功能",
                             DefaultValue = true
                         }
                     ]

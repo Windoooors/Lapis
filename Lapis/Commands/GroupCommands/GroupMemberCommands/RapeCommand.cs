@@ -12,19 +12,15 @@ public class BeingRapedCommand : RapeCommandBase
 {
     public BeingRapedCommand()
     {
-        AdditionalCommandHeads = "被日(批)?|被操|被干";
-        AdditionalDirectCommandHeads = "被日(批)?|被操|被干";
-
         MoreCommandHeadsSettingsIdentifierPair = new SettingsIdentifierPair("beingraped", "2");
         EulaSettingsIdentifierPair = new SettingsIdentifierPair("beingraped", "3");
-        
-        CommandHead = "被(群友)?透" + "|" + AdditionalCommandHeads;
-        DirectCommandHead = "被(群友)?透" + "|" + AdditionalDirectCommandHeads;
+
+        CommandHead = "被(群友)?(透|日(批)?|操|干)";
+        DirectCommandHead = "被(群友)?(透|日(批)?|操|干)";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("beingraped", "1");
         IntendedArgumentCount = 1;
         BotReply = "😈";
         CommandString = "被日";
-        FunctionString = "屌";
     }
 
     protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
@@ -46,22 +42,19 @@ public class BeingRapedCommand : RapeCommandBase
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
         
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+            return;
+        
         var originalCommandString = command;
-
-        var regex = new Regex("^(被(群友)?(.*)透)$");
+        
+        var regex = new Regex("^(被(群友)?(.*)(透|日(批)?|操|干))$");
 
         if (!regex.IsMatch(command))
             return;
 
         var match = regex.Match(command);
 
-        var validGroups = match.Groups
-            .Cast<Group>()
-            .Skip(1)
-            .Where(g => g.Success)
-            .Select(g => g.Value).ToArray();
-
-        var targetedMemberName = validGroups[^1] == "批" ? validGroups[^2] : validGroups[^1];
+        var targetedMemberName = match.Groups[3].ToString();
 
         targetedMemberName = targetedMemberName.Trim();
 
@@ -74,19 +67,15 @@ public class RapeCommand : RapeCommandBase
 {
     public RapeCommand()
     {
-        AdditionalCommandHeads = "日(批)?|操|干";
-        AdditionalDirectCommandHeads = "日(批)?|操|干";
-        
         MoreCommandHeadsSettingsIdentifierPair = new SettingsIdentifierPair("rape", "2");
         EulaSettingsIdentifierPair = new SettingsIdentifierPair("rape", "3");
-        
-        CommandHead = "透(群友)?" + "|" + AdditionalCommandHeads;
-        DirectCommandHead = "透(群友)?" + "|" + AdditionalDirectCommandHeads;
+
+        CommandHead = "透(群友)?|日(批)?|操|干";
+        DirectCommandHead = "透(群友)?|日(批)?|操|干";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("rape", "1");
         IntendedArgumentCount = 1;
         BotReply = "🥺";
         CommandString = "日";
-        FunctionString = "逼";
     }
 
     protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
@@ -123,11 +112,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 {
     protected string BotReply;
     protected string CommandString;
-    protected string FunctionString;
-
-    protected string AdditionalCommandHeads;
-    protected string AdditionalDirectCommandHeads;
-
+    
     protected SettingsIdentifierPair EulaSettingsIdentifierPair;
     protected SettingsIdentifierPair MoreCommandHeadsSettingsIdentifierPair;
 
@@ -148,7 +133,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
                 out var memberInvokingCommand))
             return false;
 
-        if (memberInvokingCommand[0].AgreedToUseRapeCommand)
+        if (memberInvokingCommand[0].AgreedWithEula)
             return true;
 
         TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
@@ -160,7 +145,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             ]);
         }, () =>
         {
-            GroupMemberCommandInstance.AgreeToUseRapeCommand(source.Sender.UserId, source.GroupId);
+            GroupMemberCommandInstance.AgreeWithEula(source.Sender.UserId, source.GroupId);
 
             SendMessage(source,
             [
@@ -175,7 +160,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(
-                    "您需要同意才能使用透群友功能（您同意后，其他同意使用该功能的群友也能透到您。如果您是本群第一个同意该功能的，您需要等待下一位群友同意使用该功能）" +
+                    "您需要同意才能使用群友互动功能" +
                     "\n 发送 \"lps handle confirm\" 以同意，或者发送 \"lps handle cancel\" 以拒绝")
             ]);
         else
@@ -190,11 +175,6 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
     protected void ProcessRapeWithArguments(string[] arguments, string originalPlainMessage, CqGroupMessagePostContext source,
         bool sendNotFoundMessage)
     {
-        if (!SettingsPool.GetValue(MoreCommandHeadsSettingsIdentifierPair, source.GroupId) &&
-            (new Regex(AdditionalCommandHeads).IsMatch(originalPlainMessage) ||
-             new Regex(AdditionalDirectCommandHeads).IsMatch(originalPlainMessage)))
-            return;
-        
         if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
             return;
 
@@ -217,7 +197,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
                     [
                         new CqReplyMsg(source.MessageId),
                         GetMultiSearchResultInformationString(arguments[0], CommandString,
-                            source.GroupId, SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId), false)
+                            source.GroupId, SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
                     ]
                 );
             return;
@@ -247,23 +227,18 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
-        if (!SettingsPool.GetValue(MoreCommandHeadsSettingsIdentifierPair, source.GroupId) &&
-            (new Regex(AdditionalCommandHeads).IsMatch(originalPlainMessage) ||
-             new Regex(AdditionalDirectCommandHeads).IsMatch(originalPlainMessage)))
-            return;
-        
         if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
             return;
 
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                 out var group) ||
-            group.Members.Where(x => x.AgreedToUseRapeCommand || !SettingsPool.GetValue(EulaSettingsIdentifierPair,source.GroupId)).Select(x => x).ToArray().Length <= 1)
+            group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair,source.GroupId)).Select(x => x).ToArray().Length <= 1)
         {
             MemberNotEnoughErrorHelp(source);
             return;
         }
 
-        var memberArray = group.Members.Where(x => x.AgreedToUseRapeCommand || !SettingsPool.GetValue(EulaSettingsIdentifierPair,source.GroupId)).Select(x => x).ToArray();
+        var memberArray = group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair,source.GroupId)).Select(x => x).ToArray();
 
         var i = new Random().Next(0, memberArray.Length);
 

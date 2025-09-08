@@ -33,8 +33,26 @@ public static class SettingsPool
         return defaultValue;
     }
 
-    public static void SetValue(SettingsIdentifierPair identifierPair, long groupId, bool value)
+    public static bool SetValue(SettingsIdentifierPair identifierPair, long groupId, bool value)
     {
+        var primeIdentifierVerified = false;
+        var identifierVerified = false;
+        foreach (var category in SettingsItems.Categories)
+        {
+            foreach (var item in category.Items)
+            {
+                primeIdentifierVerified = item.Identifier == identifierPair.PrimeIdentifier;
+
+                if (!primeIdentifierVerified)
+                    continue;
+                foreach (var option in item.Items)
+                    identifierVerified = identifierPair.Identifier == option.Identifier;
+            }
+        }
+        
+        if (!(primeIdentifierVerified && identifierVerified))
+            return false;
+        
         var found = false;
         var identifierPairString = identifierPair.ToString();
         foreach (var storageItem in StorageItems)
@@ -48,6 +66,8 @@ public static class SettingsPool
             StorageItems.Add(new StorageItem(identifierPairString, groupId, value));
 
         File.WriteAllText(SavePath, JsonConvert.SerializeObject(StorageItems));
+
+        return true;
     }
 
     private class StorageItem(string identifierPairString, long groupId, bool value)

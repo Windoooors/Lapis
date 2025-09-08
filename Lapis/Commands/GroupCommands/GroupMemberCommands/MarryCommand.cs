@@ -28,8 +28,7 @@ public class MarryCommand : GroupMemberCommandBase
                 out var memberInvokingCommand))
             return false;
 
-
-        if (memberInvokingCommand[0].AgreedToUseMarryCommand)
+        if (memberInvokingCommand[0].AgreedWithEula)
             return true;
 
         TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
@@ -41,7 +40,7 @@ public class MarryCommand : GroupMemberCommandBase
             ]);
         }, () =>
         {
-            GroupMemberCommandInstance.AgreeToUseMarryCommand(source.Sender.UserId, source.GroupId);
+            GroupMemberCommandInstance.AgreeWithEula(source.Sender.UserId, source.GroupId);
 
             SendMessage(source,
             [
@@ -88,14 +87,14 @@ public class MarryCommand : GroupMemberCommandBase
         {
             if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                     out var group) ||
-                group.Members.Where(x => x.AgreedToUseMarryCommand || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray().Length -
+                group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray().Length -
                 CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
             {
                 MemberNotEnoughErrorHelp(source);
                 return;
             }
 
-            var memberArray = group.Members.Where(x => x.AgreedToUseMarryCommand || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray();
+            var memberArray = group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray();
 
             var i = new Random().Next(0, memberArray.Length);
 

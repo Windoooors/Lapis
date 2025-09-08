@@ -34,7 +34,7 @@ public class MemberAliasCommand : MemberAliasCommandBase
         if (!memberFound)
         {
             var message =
-                GetMultiSearchResultInformationString(arguments[0], "alias", source.GroupId, false, false);
+                GetMultiSearchResultInformationString(arguments[0], "alias", source.GroupId);
 
             SendMessage(source,
                 [
