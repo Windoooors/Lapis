@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Lapis.Settings;
@@ -41,15 +42,16 @@ public static class SettingsPool
         {
             foreach (var item in category.Items)
             {
-                primeIdentifierVerified = item.Identifier == identifierPair.PrimeIdentifier;
-
-                if (!primeIdentifierVerified)
+                if (item.Identifier != identifierPair.PrimeIdentifier)
                     continue;
-                foreach (var option in item.Items)
-                    identifierVerified = identifierPair.Identifier == option.Identifier;
+                
+                primeIdentifierVerified = true;
+
+                identifierVerified = item.Items.Where(option => option.Identifier == identifierPair.Identifier)
+                    .ToArray().Length == 1;
             }
         }
-        
+
         if (!(primeIdentifierVerified && identifierVerified))
             return false;
         
