@@ -116,6 +116,8 @@ public class BestImageGenerator
 
         head.Dispose();
 
+        var oldTotalRating = 0f;
+
         for (var i = 0; i < best.Charts.SdCharts.Length; i++)
         {
             var x = 0;
@@ -163,12 +165,19 @@ public class BestImageGenerator
             }
 
             var item = GenerateItem(best.Charts.SdCharts[i], i + 1);
+            
+            oldTotalRating += best.Charts.SdCharts[i].Rating;
 
             image.DrawImage(item, x, y);
 
             item.Dispose();
         }
 
+        image.DrawText(oldTotalRating.ToString("G"), new Color(1, 1, 1, 0.6f), 24,
+            FontWeight.Regular, 130, 285);
+
+        var newTotalRating = 0f;
+        
         for (var i = 0; i < best.Charts.DxCharts.Length; i++)
         {
             var x = 0;
@@ -193,10 +202,15 @@ public class BestImageGenerator
 
             var item = GenerateItem(best.Charts.DxCharts[i], i + 1);
 
+            newTotalRating += best.Charts.DxCharts[i].Rating;
+
             image.DrawImage(item, x, y);
 
             item.Dispose();
         }
+        
+        image.DrawText(newTotalRating.ToString("G"), new Color(1, 1, 1, 0.6f), 24,
+            FontWeight.Regular, 130, 1048);
 
         var result = image.ToBase64(isCompressed);
 

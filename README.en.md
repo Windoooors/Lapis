@@ -20,7 +20,7 @@ Lapis is now capable for
   
 and other non-maimai-related tasks.
   
-Noticed that Wahlap Connective Kits are not and will not be open-sourced due to safety reasons, so that you may not be able to use score uploading functions.
+Notice that Wahlap Connective Kits are not and will not be open-sourced due to safety reasons, so that you may not be able to use score uploading functions.
   
 If you want to build from project, please remove instantiations for both UpdateCommand and BindCommand in the constructor of MaiCommand.
   

@@ -112,9 +112,21 @@ public class BestCommand : MaiCommandBase
                 return;
             }
 
-            if (ex is HttpRequestException httpRequestException && httpRequestException.StatusCode == HttpStatusCode.BadRequest)
+            if (ex is HttpRequestException httpRequestException)
             {
-                ObjectUserUnboundErrorHelp(source);
+                switch (httpRequestException.StatusCode)
+                {
+                    case HttpStatusCode.BadRequest:
+                        ObjectUserUnboundErrorHelp(source);
+                        break;
+                    case HttpStatusCode.Forbidden:
+                        ForbiddenErrorHelp(source);
+                        break;
+                    default:
+                        HelpCommand.Instance.UnexpectedErrorHelp(source);
+                        break;
+                }
+                
                 return;
             }
 
@@ -152,9 +164,21 @@ public class BestCommand : MaiCommandBase
                 return;
             }
             
-            if (ex is HttpRequestException httpRequestException && httpRequestException.StatusCode == HttpStatusCode.BadRequest)
+            if (ex is HttpRequestException httpRequestException)
             {
-                UnboundErrorHelp(source);
+                switch (httpRequestException.StatusCode)
+                {
+                    case HttpStatusCode.BadRequest:
+                        UnboundErrorHelp(source);
+                        break;
+                    case HttpStatusCode.Forbidden:
+                        ForbiddenErrorHelp(source);
+                        break;
+                    default:
+                        HelpCommand.Instance.UnexpectedErrorHelp(source);
+                        break;
+                }
+
                 return;
             }
 
