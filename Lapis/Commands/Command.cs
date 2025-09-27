@@ -43,3 +43,17 @@ public abstract class Command
             Program.Session.SendPrivateMessage(privateSource.Sender.UserId, message);
     }
 }
+
+public class CommandBehaviorInformationDataObject(
+    string commandString,
+    string functionString,
+    string[] extraParameterStrings = null,
+    bool contentModification = false,
+    bool passiveToContentSubject = false)
+{
+    public readonly string CommandString = commandString;
+    public readonly bool ContentModification = contentModification;
+    public readonly string[] ExtraParameterStrings = extraParameterStrings;
+    public readonly string FunctionString = functionString;
+    public readonly bool PassiveToContentSubject = passiveToContentSubject;
+}

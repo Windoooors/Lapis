@@ -20,7 +20,8 @@ public class BeingRapedCommand : RapeCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("beingraped", "1");
         IntendedArgumentCount = 1;
         BotReply = "😈";
-        CommandString = "被日";
+        CommandString = "被透";
+        FunctionString = "被群友透";
     }
 
     protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
@@ -41,12 +42,12 @@ public class BeingRapedCommand : RapeCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         var originalCommandString = command;
-        
+
         var regex = new Regex("^(被(群友)?(.*)(透|日(批)?|操|干))$");
 
         if (!regex.IsMatch(command))
@@ -59,7 +60,7 @@ public class BeingRapedCommand : RapeCommandBase
         targetedMemberName = targetedMemberName.Trim();
 
         if (!targetedMemberName.Equals(string.Empty))
-            ProcessRapeWithArguments([targetedMemberName], originalCommandString , source, false);
+            ProcessRapeWithArguments([targetedMemberName], originalCommandString, source, false);
     }
 }
 
@@ -75,7 +76,8 @@ public class RapeCommand : RapeCommandBase
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("rape", "1");
         IntendedArgumentCount = 1;
         BotReply = "🥺";
-        CommandString = "日";
+        CommandString = "透";
+        FunctionString = "透群友";
     }
 
     protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
@@ -97,14 +99,14 @@ public class RapeCommand : RapeCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         var originalCommandString = command;
 
         var regex = new Regex($"^({DirectCommandHead})");
         var regexWithEndingSpace = new Regex(@$"^({DirectCommandHead})\s");
         if (regex.IsMatch(command) && !regexWithEndingSpace.IsMatch(command) &&
             regex.Replace(command, "", 1).Trim() != "")
-            ProcessRapeWithArguments([regex.Replace(command, "", 1)], originalCommandString , source, false);
+            ProcessRapeWithArguments([regex.Replace(command, "", 1)], originalCommandString, source, false);
     }
 }
 
@@ -112,8 +114,9 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 {
     protected string BotReply;
     protected string CommandString;
-    
+
     protected SettingsIdentifierPair EulaSettingsIdentifierPair;
+    protected string FunctionString;
     protected SettingsIdentifierPair MoreCommandHeadsSettingsIdentifierPair;
 
     protected virtual bool SendMessage(long memberId, CqGroupMessagePostContext source)
@@ -124,13 +127,13 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
         CqGroupMessagePostContext source)
     {
-        ProcessRapeWithArguments(arguments,originalPlainMessage , source, true);
+        ProcessRapeWithArguments(arguments, originalPlainMessage, source, true);
     }
 
     private bool MemberAgreedToUse(CqGroupMessagePostContext source)
     {
-        if (!GroupMemberCommandInstance.TryGetMember(source.Sender.UserId.ToString(), source.GroupId,
-                out var memberInvokingCommand))
+        if (!GroupMemberCommandInstance.TryGetMember(source.Sender.UserId.ToString(),
+                out var memberInvokingCommand, source))
             return false;
 
         if (memberInvokingCommand[0].AgreedWithEula)
@@ -172,7 +175,8 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         return false;
     }
 
-    protected void ProcessRapeWithArguments(string[] arguments, string originalPlainMessage, CqGroupMessagePostContext source,
+    protected void ProcessRapeWithArguments(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source,
         bool sendNotFoundMessage)
     {
         if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
@@ -188,27 +192,22 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         }
 
         var memberFound =
-            GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out var members, SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId));
+            GroupMemberCommandInstance.TryGetMember(arguments[0], out var members, source,
+                new CommandBehaviorInformationDataObject(CommandString, FunctionString, null, false, true),
+                sendNotFoundMessage,
+                SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId));
 
         if (!memberFound)
-        {
-            if (sendNotFoundMessage)
-                SendMessage(source,
-                    [
-                        new CqReplyMsg(source.MessageId),
-                        GetMultiSearchResultInformationString(arguments[0], CommandString,
-                            source.GroupId, SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
-                    ]
-                );
             return;
-        }
 
         if (members.Length != 1)
         {
             SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
-                    GetMultiAliasesMatchedInformationString(members, CommandString, source.GroupId)
+                    GetMultiAliasesMatchedInformationString(members,
+                        new CommandBehaviorInformationDataObject(CommandString, FunctionString, null, false, true),
+                        source.GroupId)
                 ]
             );
             return;
@@ -232,13 +231,17 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                 out var group) ||
-            group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair,source.GroupId)).Select(x => x).ToArray().Length <= 1)
+            group.Members
+                .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
+                .Select(x => x).ToArray().Length <= 1)
         {
             MemberNotEnoughErrorHelp(source);
             return;
         }
 
-        var memberArray = group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair,source.GroupId)).Select(x => x).ToArray();
+        var memberArray = group.Members
+            .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
+            .Select(x => x).ToArray();
 
         var i = new Random().Next(0, memberArray.Length);
 

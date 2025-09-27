@@ -36,8 +36,8 @@ public class BestCommand : MaiCommandBase
         CqGroupMessagePostContext source)
     {
         var isGroupMember =
-            GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId,
-                out var groupMembers) && groupMembers.Length == 1;
+            GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[0],
+                out var groupMembers, source) && groupMembers.Length == 1;
 
         var isQqId = long.TryParse(arguments[0], out _);
 
@@ -126,7 +126,7 @@ public class BestCommand : MaiCommandBase
                         HelpCommand.Instance.UnexpectedErrorHelp(source);
                         break;
                 }
-                
+
                 return;
             }
 
@@ -163,7 +163,7 @@ public class BestCommand : MaiCommandBase
                 DivingFishErrorHelp(source);
                 return;
             }
-            
+
             if (ex is HttpRequestException httpRequestException)
             {
                 switch (httpRequestException.StatusCode)

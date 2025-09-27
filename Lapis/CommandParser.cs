@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands;
-using Lapis.Commands.GroupCommands.GroupMemberCommands;
 using Lapis.Commands.UniversalCommands;
 using Lapis.Settings;
 using Microsoft.Extensions.Logging;
@@ -102,7 +99,7 @@ public class CommandParser
                     if (parsed)
                         return true;
 
-                    return StartParsingTask(command,originalCommandString, source);
+                    return StartParsingTask(command, originalCommandString, source);
                 }
             }
             else
@@ -145,7 +142,7 @@ public class CommandParser
 
             if (directCommandHeadMatchingEndOfString.IsMatch(commandString))
             {
-                StartParsingTask(command,originalCommandString , source);
+                StartParsingTask(command, originalCommandString, source);
                 return;
             }
         }
@@ -164,15 +161,16 @@ public class CommandParser
 
         var matches = quotationRegex.Matches(commandString);
 
-        for (var i = 0; i < matches.Count; i++)
-        {
-            var match = matches[i];
-            if (i < command.IntendedArgumentCount)
-                argumentList.Add((match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim());
-            else
-                argumentList[^1] +=
-                    " " + (match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim();
-        }
+        if (command.IntendedArgumentCount > 0)
+            for (var i = 0; i < matches.Count; i++)
+            {
+                var match = matches[i];
+                if (i < command.IntendedArgumentCount)
+                    argumentList.Add((match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim());
+                else
+                    argumentList[^1] +=
+                        " " + (match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim();
+            }
 
         switch (command)
         {
@@ -186,11 +184,13 @@ public class CommandParser
                 break;
             case PrivateCommand privateCommand:
                 if (source is CqPrivateMessagePostContext privateSource)
-                    taskParse = new Task(() => privateCommand.ParseWithArgument(argumentList.ToArray(), originalCommandString, privateSource));
+                    taskParse = new Task(() =>
+                        privateCommand.ParseWithArgument(argumentList.ToArray(), originalCommandString, privateSource));
 
                 break;
             case UniversalCommand universalCommand:
-                taskParse = new Task(() => universalCommand.ParseWithArgument(argumentList.ToArray(), originalCommandString, source));
+                taskParse = new Task(() =>
+                    universalCommand.ParseWithArgument(argumentList.ToArray(), originalCommandString, source));
                 break;
         }
 
@@ -200,7 +200,7 @@ public class CommandParser
         return true;
     }
 
-    private bool StartParsingTask(Command command, string originalCommandString , CqMessagePostContext source)
+    private bool StartParsingTask(Command command, string originalCommandString, CqMessagePostContext source)
     {
         Task taskParse = null;
         switch (command)

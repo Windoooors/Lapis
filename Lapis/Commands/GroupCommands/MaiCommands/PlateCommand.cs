@@ -80,8 +80,8 @@ public class PlateCommand : MaiCommandBase
             if (arguments.Length > 1)
             {
                 var isGroupMember =
-                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1], source.GroupId,
-                        out var groupMembers) && groupMembers.Length == 1;
+                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
+                        out var groupMembers, source) && groupMembers.Length == 1;
                 var isQqId = long.TryParse(arguments[1], out _);
                 content = isGroupMember
                     ? ApiOperator.Instance.Post(
@@ -217,8 +217,8 @@ public class PlateCommand : MaiCommandBase
             if (arguments.Length > 1)
             {
                 var isGroupMember =
-                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1], source.GroupId,
-                        out var groupMembers) && groupMembers.Length == 1;
+                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
+                        out var groupMembers, source) && groupMembers.Length == 1;
                 var isQqId = long.TryParse(arguments[1], out _);
                 scoresInReality = isGroupMember
                     ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
@@ -383,7 +383,7 @@ public class PlateCommand : MaiCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         var originalCommandString = command;
 
         if (command.EndsWith(" 进度"))

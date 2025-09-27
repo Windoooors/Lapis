@@ -27,7 +27,7 @@ public class InfoCommand : MaiCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         var originalCommandString = command;
 
         if (command.EndsWith(" 是什么歌"))
@@ -43,22 +43,17 @@ public class InfoCommand : MaiCommandBase
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
         CqGroupMessagePostContext source)
     {
-        var songs = MaiCommandInstance.GetSongs(arguments[0], true);
-
-        if (songs == null)
-        {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                GetMultiSearchResultInformationString(arguments[0], "info", "信息")
-            ]);
+        if (!MaiCommandInstance.TryGetSongs(arguments[0], out var songs,
+                new CommandBehaviorInformationDataObject("info", "信息"),
+                source, true))
             return;
-        }
 
         if (songs.Length != 1)
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg(GetMultiAliasesMatchedInformationString(songs, "info", "信息"))
+                new CqTextMsg(GetMultiAliasesMatchedInformationString(songs,
+                    new CommandBehaviorInformationDataObject("info", "信息")))
             ]);
 
             return;
@@ -69,8 +64,8 @@ public class InfoCommand : MaiCommandBase
         if (arguments.Length > 1)
         {
             var isGroupMember =
-                GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1], source.GroupId,
-                    out var groupMembers) && groupMembers.Length == 1;
+                GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
+                    out var groupMembers, source) && groupMembers.Length == 1;
 
             var isQqId = long.TryParse(arguments[1], out var qqId);
 

@@ -165,7 +165,7 @@ public class BestImageGenerator
             }
 
             var item = GenerateItem(best.Charts.SdCharts[i], i + 1);
-            
+
             oldTotalRating += best.Charts.SdCharts[i].Rating;
 
             image.DrawImage(item, x, y);
@@ -177,7 +177,7 @@ public class BestImageGenerator
             FontWeight.Regular, 130, 285);
 
         var newTotalRating = 0f;
-        
+
         for (var i = 0; i < best.Charts.DxCharts.Length; i++)
         {
             var x = 0;
@@ -208,7 +208,7 @@ public class BestImageGenerator
 
             item.Dispose();
         }
-        
+
         image.DrawText(newTotalRating.ToString("G"), new Color(1, 1, 1, 0.6f), 24,
             FontWeight.Regular, 130, 1048);
 

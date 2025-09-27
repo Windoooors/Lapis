@@ -39,22 +39,20 @@ public static class SettingsPool
         var primeIdentifierVerified = false;
         var identifierVerified = false;
         foreach (var category in SettingsItems.Categories)
+        foreach (var item in category.Items)
         {
-            foreach (var item in category.Items)
-            {
-                if (item.Identifier != identifierPair.PrimeIdentifier)
-                    continue;
-                
-                primeIdentifierVerified = true;
+            if (item.Identifier != identifierPair.PrimeIdentifier)
+                continue;
 
-                identifierVerified = item.Items.Where(option => option.Identifier == identifierPair.Identifier)
-                    .ToArray().Length == 1;
-            }
+            primeIdentifierVerified = true;
+
+            identifierVerified = item.Items.Where(option => option.Identifier == identifierPair.Identifier)
+                .ToArray().Length == 1;
         }
 
         if (!(primeIdentifierVerified && identifierVerified))
             return false;
-        
+
         var found = false;
         var identifierPairString = identifierPair.ToString();
         foreach (var storageItem in StorageItems)

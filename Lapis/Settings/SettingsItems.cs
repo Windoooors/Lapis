@@ -149,6 +149,20 @@ public static class SettingsItems
                 },
                 new SettingsItemsOfACommand
                 {
+                    DisplayName = "谱面分数线",
+                    Identifier = "cutoff",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
                     DisplayName = "舞萌信息绑定",
                     Identifier = "bind",
                     Items =
@@ -251,7 +265,7 @@ public static class SettingsItems
                         },
                         new SettingsItem
                         {
-                            Identifier = "3",
+                            Identifier = "2",
                             DisplayName = "需要用户同意使用群友互动功能",
                             DefaultValue = true
                         }
@@ -268,10 +282,10 @@ public static class SettingsItems
                             Identifier = "1",
                             DisplayName = "启用",
                             DefaultValue = true
-                        }, 
+                        },
                         new SettingsItem
                         {
-                            Identifier = "3",
+                            Identifier = "2",
                             DisplayName = "需要用户同意使用群友互动功能",
                             DefaultValue = true
                         }

@@ -30,11 +30,12 @@ public class MemberAliasCommand : MemberAliasCommandBase
     {
         var memberFound =
             GroupMemberCommandInstance.TryGetMember(arguments[0],
-                source.GroupId, out var members);
+                out var members, source);
         if (!memberFound)
         {
             var message =
-                GetMultiSearchResultInformationString(arguments[0], "alias", source.GroupId);
+                GetMultiSearchResultInformationString(arguments[0],
+                    new CommandBehaviorInformationDataObject("malias", "别名"), source.GroupId);
 
             SendMessage(source,
                 [
@@ -59,7 +60,8 @@ public class MemberAliasCommand : MemberAliasCommandBase
         SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
-                GetMultiAliasesMatchedInformationString(members, "alias", source.GroupId)
+                GetMultiAliasesMatchedInformationString(members,
+                    new CommandBehaviorInformationDataObject("malias", "别名"), source.GroupId)
             ]
         );
     }

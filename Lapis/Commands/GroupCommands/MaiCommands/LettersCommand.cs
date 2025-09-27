@@ -328,9 +328,9 @@ public class LettersCommand : MaiCommandBase
             return;
         }
 
-        var songs = MaiCommandInstance.GetSongs(songIndicator);
+        var songsDetermined = MaiCommandInstance.TryGetSongs(songIndicator, out var songs);
 
-        if (songs == null)
+        if (!songsDetermined)
         {
             SendMessage(source, [new CqReplyMsg(source.MessageId), "未开出歌曲"]);
             return;

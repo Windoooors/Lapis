@@ -58,7 +58,7 @@ public static class SharedConsts
         ["maimai でらっくす BUDDiES"] = ["双", "宴"],
         ["maimai でらっくす PRiSM"] = ["镜"]
     };
-    
+
     public static readonly Dictionary<string, string> DxVersionToChineseVersionName = new()
     {
         { "maimai でらっくす", "舞萌DX" },

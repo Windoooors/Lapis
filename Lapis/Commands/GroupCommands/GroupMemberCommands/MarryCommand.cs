@@ -13,8 +13,8 @@ namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
 
 public class MarryCommand : GroupMemberCommandBase
 {
-    private SettingsIdentifierPair _eulaSettingsIdentifierPair = new SettingsIdentifierPair("marry", "2");
-    
+    private readonly SettingsIdentifierPair _eulaSettingsIdentifierPair = new("marry", "2");
+
     public MarryCommand()
     {
         CommandHead = "娶(群友)?|嫁";
@@ -24,8 +24,8 @@ public class MarryCommand : GroupMemberCommandBase
 
     private bool MemberAgreedToUse(CqGroupMessagePostContext source)
     {
-        if (!GroupMemberCommandInstance.TryGetMember(source.Sender.UserId.ToString(), source.GroupId,
-                out var memberInvokingCommand))
+        if (!GroupMemberCommandInstance.TryGetMember(source.Sender.UserId.ToString(),
+                out var memberInvokingCommand, source))
             return false;
 
         if (memberInvokingCommand[0].AgreedWithEula)
@@ -87,14 +87,18 @@ public class MarryCommand : GroupMemberCommandBase
         {
             if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
                     out var group) ||
-                group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray().Length -
+                group.Members
+                    .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
+                    .Select(x => x).ToArray().Length -
                 CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
             {
                 MemberNotEnoughErrorHelp(source);
                 return;
             }
 
-            var memberArray = group.Members.Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId)).Select(x => x).ToArray();
+            var memberArray = group.Members
+                .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
+                .Select(x => x).ToArray();
 
             var i = new Random().Next(0, memberArray.Length);
 

@@ -29,7 +29,7 @@ public class AliasCommand : AliasCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         var originalCommandString = command;
 
         if (command.EndsWith(" 有什么别名"))
@@ -39,7 +39,7 @@ public class AliasCommand : AliasCommandBase
         else
             return;
 
-        ParseWithArgument([command], originalCommandString , source);
+        ParseWithArgument([command], originalCommandString, source);
     }
 
     private string GetAliasesInText(Alias alias)
@@ -66,16 +66,10 @@ public class AliasCommand : AliasCommandBase
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
         CqGroupMessagePostContext source)
     {
-        var songs = MaiCommandInstance.GetSongs(arguments[0], true);
-
-        if (songs == null)
-        {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                GetMultiSearchResultInformationString(arguments[0], "alias", "别称")
-            ]);
+        if (!MaiCommandInstance.TryGetSongs(arguments[0], out var songs,
+                new CommandBehaviorInformationDataObject("alias", "别称"),
+                source, true))
             return;
-        }
 
         if (songs.Length == 1)
         {
@@ -89,7 +83,8 @@ public class AliasCommand : AliasCommandBase
 
         SendMessage(source, [
             new CqReplyMsg(source.MessageId),
-            new CqTextMsg(GetMultiAliasesMatchedInformationString(songs, "alias", "别称"))
+            new CqTextMsg(GetMultiAliasesMatchedInformationString(songs,
+                new CommandBehaviorInformationDataObject("alias", "别称")))
         ]);
     }
 }

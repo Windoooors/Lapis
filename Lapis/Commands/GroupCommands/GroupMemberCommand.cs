@@ -55,7 +55,8 @@ public abstract class GroupMemberCommandBase : GroupCommand
         return true;
     }
 
-    protected string GetMultiAliasesMatchedInformationString(GroupMemberCommand.GroupMember[] members, string command,
+    public string GetMultiAliasesMatchedInformationString(GroupMemberCommand.GroupMember[] members,
+        CommandBehaviorInformationDataObject behaviorInformation,
         long groupId)
     {
         var stringBuilder = new StringBuilder();
@@ -69,21 +70,34 @@ public abstract class GroupMemberCommandBase : GroupCommand
         }
 
         var j = 0;
+        var exampleNickname = "";
         for (var i = 0; i < members.Length; i++)
         {
-            if (!TryGetNickname(members[i].Id, groupId, out _))
+            if (!TryGetNickname(members[i].Id, groupId, out exampleNickname))
                 continue;
             j = i;
             break;
         }
 
+        var memberId = members[j].Id;
+
         stringBuilder.Append(
-            $"*发送 \"lps {command} {members[j].Id}\" 指令即可使用目标功能");
+            behaviorInformation.ExtraParameterStrings == null
+                ? behaviorInformation.PassiveToContentSubject
+                    ? $"*发送 \"lps {behaviorInformation.CommandString} {memberId}\" 指令即可{behaviorInformation.FunctionString}"
+                    : $"*发送 \"lps {behaviorInformation.CommandString} {memberId}\" 指令即可查询群友 {exampleNickname} ({memberId}) 的{behaviorInformation.FunctionString}"
+                : $"*发送 \"lps {behaviorInformation.CommandString} {memberId} {
+                    behaviorInformation.ExtraParameterStrings.Aggregate(
+                        new StringBuilder(), (builder, item) => builder.Append(item).Append(' ')
+                    ).ToString().Trim()
+                }\" 指令即可{(behaviorInformation.ContentModification ? "为群友" : "查询群友")} {exampleNickname} ({memberId}) {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}"
+        );
 
         return stringBuilder.ToString();
     }
 
-    protected string GetMultiSearchResultInformationString(string keyword, string command,
+    public string GetMultiSearchResultInformationString(string keyword,
+        CommandBehaviorInformationDataObject behaviorInformation,
         long groupId, bool findAgreedWithEula = false)
     {
         var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(keyword, groupId,
@@ -104,17 +118,29 @@ public abstract class GroupMemberCommandBase : GroupCommand
             if (searchResult.MembersMatchedByAlias.Count != 0)
             {
                 var j = 0;
+                var exampleNickname = "";
                 for (var i = 0; i < searchResult.MembersMatchedByAlias.Count; i++)
                 {
                     if (!TryGetNickname(searchResult.MembersMatchedByAlias.Keys.ToArray()[i].Id, groupId,
-                            out _))
+                            out exampleNickname))
                         continue;
                     j = i;
                     break;
                 }
 
+                var memberId = searchResult.MembersMatchedByAlias.Keys.ToArray()[j].Id;
+
                 stringBuilder.Append(
-                    $"*发送 \"lps {command} {searchResult.MembersMatchedByAlias.Keys.ToArray()[j].Id}\" 指令即可使用目标功能");
+                    behaviorInformation.ExtraParameterStrings == null
+                        ? behaviorInformation.PassiveToContentSubject
+                            ? $"*发送 \"lps {behaviorInformation.CommandString} {memberId}\" 指令即可{behaviorInformation.FunctionString}"
+                            : $"*发送 \"lps {behaviorInformation.CommandString} {memberId}\" 指令即可查询群友 {exampleNickname} ({memberId}) 的{behaviorInformation.FunctionString}"
+                        : $"*发送 \"lps {behaviorInformation.CommandString} {memberId} {
+                            behaviorInformation.ExtraParameterStrings.Aggregate(
+                                new StringBuilder(), (builder, item) => builder.Append(item).Append(' ')
+                            ).ToString().Trim()
+                        }\" 指令即可{(behaviorInformation.ContentModification ? "为群友" : "查询群友")} {exampleNickname} ({memberId}) {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}"
+                );
             }
             else
             {
@@ -200,15 +226,27 @@ public class GroupMemberCommand : GroupMemberCommandBase
         return false;
     }
 
-    public bool TryGetMember(string userIdentificationString, long groupId, out GroupMember[] members,
+    public bool TryGetMember(string userIdentificationString, out GroupMember[] members,
+        CqGroupMessagePostContext source,
+        CommandBehaviorInformationDataObject behaviorInformation = null, bool sendMessage = false,
         bool findAgreedWithEula = false)
     {
+        var groupId = source.GroupId;
+
         members = [];
 
         if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId),
                 out var group))
         {
             members = [];
+
+            if (sendMessage)
+                SendMessage(source,
+                [
+                    new CqReplyMsg(source.MessageId),
+                    GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation, groupId,
+                        findAgreedWithEula)
+                ]);
             return false;
         }
 
@@ -219,8 +257,20 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
             if (findAgreedWithEula)
                 members = members.Where(x => x.AgreedWithEula).Select(x => x).ToArray();
-            
-            return members.Length > 0;
+
+            if (members.Length == 0)
+            {
+                if (sendMessage)
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation, groupId,
+                            findAgreedWithEula)
+                    ]);
+                return false;
+            }
+
+            return true;
         }
 
         var memberHashset = new HashSet<GroupMember>();
@@ -240,11 +290,23 @@ public class GroupMemberCommand : GroupMemberCommandBase
         if (memberHashset.Count != 0)
         {
             members = memberHashset.ToArray();
-            
+
             if (findAgreedWithEula)
                 members = members.Where(x => x.AgreedWithEula).Select(x => x).ToArray();
 
-            return members.Length > 0;
+            if (members.Length == 0)
+            {
+                if (sendMessage)
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation, groupId,
+                            findAgreedWithEula)
+                    ]);
+                return false;
+            }
+
+            return true;
         }
 
         var searchResult = SearchMemberCommand.SearchMemberCommandInstance.Search(userIdentificationString, groupId);
@@ -254,14 +316,33 @@ public class GroupMemberCommand : GroupMemberCommandBase
         if (searchedMembers.Count == 1)
         {
             members = searchedMembers.ToArray();
-            
+
             if (findAgreedWithEula)
                 members = members.Where(x => x.AgreedWithEula).Select(x => x).ToArray();
 
-            return members.Length > 0;
+            if (members.Length == 0)
+            {
+                if (sendMessage)
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation, groupId,
+                            findAgreedWithEula)
+                    ]);
+                return false;
+            }
+
+            return true;
         }
 
         members = [];
+        if (sendMessage)
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation, groupId,
+                    findAgreedWithEula)
+            ]);
         return false;
     }
 
@@ -283,7 +364,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
     public class GroupMember(long id)
     {
         public bool AgreedWithEula;
-        
+
         public long Id { get; } = id;
 
         public override int GetHashCode()

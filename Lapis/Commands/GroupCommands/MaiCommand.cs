@@ -58,13 +58,13 @@ public abstract class MaiCommandBase : GroupCommand
             new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
         ]);
     }
-    
+
     protected void ForbiddenErrorHelp(CqGroupMessagePostContext source)
     {
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqTextMsg("您禁用了非网页地成绩查询")
+            new CqTextMsg("您禁用了非网页成绩查询")
         ]);
     }
 
@@ -77,7 +77,8 @@ public abstract class MaiCommandBase : GroupCommand
         ]);
     }
 
-    public string GetMultiAliasesMatchedInformationString(SongDto[] songs, string command, string functionString)
+    public string GetMultiAliasesMatchedInformationString(SongDto[] songs,
+        CommandBehaviorInformationDataObject behaviorInformation)
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("该别称有多首歌曲匹配：");
@@ -85,26 +86,20 @@ public abstract class MaiCommandBase : GroupCommand
         foreach (var song in songs) stringBuilder.AppendLine($"ID {song.Id} - {song.Title} [{song.Type}]");
 
         stringBuilder.Append(
-            $"*发送 \"lps mai {command} ID{songs[0].Id}\" 指令即可查询歌曲 {songs[0].Title} [{songs[0].Type}] 的{functionString}");
+            behaviorInformation.ExtraParameterStrings == null
+                ? $"*发送 \"lps mai {behaviorInformation.CommandString} ID{songs[0].Id}\" 指令即可查询歌曲 {songs[0].Title} [{songs[0].Type}] 的{behaviorInformation.FunctionString}"
+                : $"*发送 \"lps mai {behaviorInformation.CommandString} ID{songs[0].Id} {
+                    behaviorInformation.ExtraParameterStrings.Aggregate(
+                        new StringBuilder(), (builder, item) => builder.Append(item).Append(' ')
+                    ).ToString().Trim()
+                }\" 指令即可{(behaviorInformation.ContentModification ? "为歌曲" : "查询歌曲")} {songs[0].Title} [{songs[0].Type}] {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}"
+        );
 
         return stringBuilder.ToString();
     }
 
-    public string GetMultiAliasesMatchedInformationString(SongDto[] songs, string command, string commandParameter,
-        string functionString)
-    {
-        var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("该别称有多首歌曲匹配：");
-
-        foreach (var song in songs) stringBuilder.AppendLine($"ID {song.Id} - {song.Title} [{song.Type}]");
-
-        stringBuilder.Append(
-            $"*发送 \"lps mai {command} ID{songs[0].Id} {commandParameter}\" 指令即可为歌曲 {songs[0].Title} [{songs[0].Type}] {functionString}");
-
-        return stringBuilder.ToString();
-    }
-
-    public string GetMultiSearchResultInformationString(string keyword, string command, string functionString)
+    public string GetMultiSearchResultInformationString(string keyword,
+        CommandBehaviorInformationDataObject behaviorInformation)
     {
         var searchResult = SearchCommand.SearchCommandInstance.Search(keyword);
 
@@ -122,38 +117,11 @@ public abstract class MaiCommandBase : GroupCommand
             {
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append(
-                    $"*发送 \"lps mai {command} ID{exampleSong.Id}\" 指令即可查询歌曲 {exampleSong.Title} [{exampleSong.Type}] 的{functionString}");
-            }
-            else
-            {
-                stringBuilder.Clear();
-                stringBuilder = new StringBuilder("未找到该歌曲");
-            }
-        }
-
-        return stringBuilder.ToString();
-    }
-
-    public string GetMultiSearchResultInformationString(string keyword, string command, string commandParameter,
-        string functionString)
-    {
-        var searchResult = SearchCommand.SearchCommandInstance.Search(keyword);
-
-        var stringBuilder = new StringBuilder();
-
-        if (searchResult.AllSongs.Length >= 100)
-        {
-            stringBuilder.AppendLine("搜索结果过多，请提供更多关键词");
-        }
-        else
-        {
-            stringBuilder = SearchCommand.SearchCommandInstance.GetMultiSearchResults(searchResult);
-
-            if (searchResult.AllSongs.Length != 0)
-            {
-                var exampleSong = searchResult.AllSongs[0];
-                stringBuilder.Append(
-                    $"*发送 \"lps mai {command} ID{exampleSong.Id} {commandParameter}\" 指令即可为歌曲 {exampleSong.Title} [{exampleSong.Type}] {functionString}");
+                    behaviorInformation.ExtraParameterStrings == null
+                        ? $"*发送 \"lps mai {behaviorInformation.CommandString} ID{exampleSong.Id}\" 指令即可查询歌曲 {exampleSong.Title} [{exampleSong.Type}] 的{behaviorInformation.FunctionString}"
+                        : $"*发送 \"lps mai {behaviorInformation.CommandString} ID{exampleSong.Id} {behaviorInformation.ExtraParameterStrings.Aggregate(
+                            new StringBuilder(), (builder, item) => builder.Append(item).Append(' ')
+                        ).ToString().Trim()}\" 指令即可{(behaviorInformation.ContentModification ? "为歌曲" : "查询歌曲")} {exampleSong.Title} [{exampleSong.Type}] {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}");
             }
             else
             {
@@ -335,7 +303,8 @@ public class MaiCommand : MaiCommandBase
             new PlateCommand(),
             new UpdateCommand(),
             new BindCommand(),
-            new SearchCommand()
+            new SearchCommand(),
+            new CutoffPointCommand()
         ];
     }
 
@@ -427,7 +396,10 @@ public class MaiCommand : MaiCommandBase
         return Songs[GetSongIndexById(id)];
     }
 
-    public SongDto[] GetSongs(string inputString, bool noUtage = false)
+    public bool TryGetSongs(string inputString, out SongDto[] songs,
+        CommandBehaviorInformationDataObject commandBehaviorInformationDataObject = null,
+        CqMessagePostContext source = null,
+        bool noUtage = false) // Return false when no song is matched, and send error message to the group.
     {
         inputString = inputString.ToLower();
         var aliases = GetAliasByAliasString(inputString);
@@ -453,11 +425,17 @@ public class MaiCommand : MaiCommandBase
                     .ToArray();
 
                 if (standardSongs.Length != 0 && noUtage)
-                    return standardSongs;
+                {
+                    songs = standardSongs;
+                    return true;
+                }
             }
 
             if (songsList.Count != 0)
-                return songsList.ToArray();
+            {
+                songs = songsList.ToArray();
+                return true;
+            }
         }
 
         if (IdRegex.IsMatch(inputString.ToLower()))
@@ -466,16 +444,41 @@ public class MaiCommand : MaiCommandBase
                 var id = int.Parse(IdHeadRegex.Replace(inputString.ToLower(), string.Empty, 1));
                 var index = GetSongIndexById(id);
                 if (index != -1)
-                    return [Songs[index]];
-                return null;
+                {
+                    songs = [Songs[index]];
+
+                    return true;
+                }
+
+                songs = null;
+
+                if (source != null && commandBehaviorInformationDataObject != null)
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(inputString, commandBehaviorInformationDataObject)
+                    ]);
+                return false;
             }
             catch
             {
-                return null;
+                songs = null;
+
+                if (source != null && commandBehaviorInformationDataObject != null)
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        GetMultiSearchResultInformationString(inputString, commandBehaviorInformationDataObject)
+                    ]);
+                return false;
             }
 
         var songIndex = GetSongIndexByTitle(inputString);
-        if (songIndex != -1) return [Songs[songIndex]];
+        if (songIndex != -1)
+        {
+            songs = [Songs[songIndex]];
+            return true;
+        }
 
         var searchedSongsList = SearchCommand.SearchCommandInstance.Search(inputString).AllSongs;
 
@@ -497,9 +500,20 @@ public class MaiCommand : MaiCommandBase
         }
 
         if (dereplicatedSearchedSongsList.Count == 1)
-            return dereplicatedSearchedSongsList.ToArray();
+        {
+            songs = dereplicatedSearchedSongsList.ToArray();
+            return true;
+        }
 
-        return null;
+        songs = null;
+
+        if (source != null && commandBehaviorInformationDataObject != null)
+            SendMessage(source,
+            [
+                new CqReplyMsg(source.MessageId),
+                GetMultiSearchResultInformationString(inputString, commandBehaviorInformationDataObject)
+            ]);
+        return false;
     }
 
     private void Reload(object sender, EventArgs e)

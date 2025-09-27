@@ -34,21 +34,24 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
         GroupMemberCommand.GroupMember[] members = [];
         long intendedUserId = 0;
 
-        if (!GroupMemberCommandInstance.TryGetMember(arguments[0], source.GroupId, out members))
-        {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                "未指定群友！"
-            ]);
+        if (!GroupMemberCommandInstance.TryGetMember(arguments[0], out members, source,
+                new CommandBehaviorInformationDataObject("malias add", "添加别名", [arguments[1]], true),
+                true)
+           )
             return;
-        }
+
 
         if (members.Length > 1)
         {
-            SendMessage(source, [
+            SendMessage(source,
+            [
                 new CqReplyMsg(source.MessageId),
-                "无法确定是哪个群友！"
+                new CqTextMsg(
+                    GroupMemberCommandInstance.GetMultiAliasesMatchedInformationString(members,
+                        new CommandBehaviorInformationDataObject("malias add", "添加别名", [arguments[1]], true),
+                        source.GroupId))
             ]);
+
             return;
         }
 

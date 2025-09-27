@@ -8,7 +8,6 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.ImageGenerators;
 using Lapis.Settings;
-using Microsoft.Extensions.Logging;
 using Xabe.FFmpeg;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -219,7 +218,7 @@ public class GuessCommand : MaiCommandBase
         {
             _guessingGroupsMap.TryGetValue(source.GroupId.ToString(), out var keyIdDateTimePair);
 
-            var songs = MaiCommandInstance.GetSongs(command);
+            MaiCommandInstance.TryGetSongs(command, out var songs);
             if (songs.Length != 0)
                 passed = true;
             foreach (var song in songs)

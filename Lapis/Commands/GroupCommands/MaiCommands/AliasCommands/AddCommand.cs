@@ -64,19 +64,10 @@ public class AddCommand : AliasCommandBase
             return;
         }
 
-        var songs = MaiCommandInstance.GetSongs(arguments[0], true);
-
-        if (songs == null)
-        {
-            SendMessage(source,
-            [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg(
-                    MaiCommandInstance.GetMultiSearchResultInformationString(arguments[0], "alias add", arguments[1],
-                        "添加别名"))
-            ]);
+        if (!MaiCommandInstance.TryGetSongs(arguments[0], out var songs,
+                new CommandBehaviorInformationDataObject("alias add", "添加别名", [arguments[1]], true),
+                source, true))
             return;
-        }
 
         if (songs.Length > 1)
         {
@@ -84,8 +75,8 @@ public class AddCommand : AliasCommandBase
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(
-                    MaiCommandInstance.GetMultiAliasesMatchedInformationString(songs, "alias add", arguments[1],
-                        "添加别名"))
+                    MaiCommandInstance.GetMultiAliasesMatchedInformationString(songs,
+                        new CommandBehaviorInformationDataObject("alias add", "添加别名", [arguments[1]], true)))
             ]);
             return;
         }

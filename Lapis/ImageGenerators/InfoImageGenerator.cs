@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Lapis.Commands.GroupCommands;
@@ -238,7 +237,7 @@ public class InfoImageGenerator
         SharedConsts.VersionNameToPlateCharacters.TryGetValue(song.BasicInfo.Version, out var plateVersionNames);
 
         plateVersionNames ??= ["未知"];
-        
+
         image.DrawText(
             (versionNames.Length > 0 ? versionNames[0] : song.BasicInfo.Version) +
             "·" + (plateVersionNames.Count > 1

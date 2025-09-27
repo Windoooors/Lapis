@@ -54,7 +54,7 @@ public class SearchMemberCommand : GroupMemberCommandBase
         if (findAgreedWithEula)
             membersMatchedByAlias = membersMatchedByAlias.Where(x => x.Key.AgreedWithEula).Select(x => x)
                 .ToDictionary();
-        
+
         return new SearchResult
         (
             membersMatchedByAlias

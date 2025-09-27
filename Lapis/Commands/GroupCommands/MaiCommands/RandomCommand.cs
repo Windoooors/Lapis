@@ -59,7 +59,7 @@ public class RandomCommand : MaiCommandBase
     {
         if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
             return;
-        
+
         var originalCommandString = command;
 
         if (command.StartsWith("随个") && !command.Replace("随个", "").StartsWith(' '))
