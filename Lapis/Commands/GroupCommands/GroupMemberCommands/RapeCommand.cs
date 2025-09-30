@@ -12,8 +12,7 @@ public class BeingRapedCommand : RapeCommandBase
 {
     public BeingRapedCommand()
     {
-        MoreCommandHeadsSettingsIdentifierPair = new SettingsIdentifierPair("beingraped", "2");
-        EulaSettingsIdentifierPair = new SettingsIdentifierPair("beingraped", "3");
+        EulaSettingsIdentifierPair = new SettingsIdentifierPair("beingraped", "2");
 
         CommandHead = "被(群友)?(透|日(批)?|操|干)";
         DirectCommandHead = "被(群友)?(透|日(批)?|操|干)";
@@ -68,8 +67,7 @@ public class RapeCommand : RapeCommandBase
 {
     public RapeCommand()
     {
-        MoreCommandHeadsSettingsIdentifierPair = new SettingsIdentifierPair("rape", "2");
-        EulaSettingsIdentifierPair = new SettingsIdentifierPair("rape", "3");
+        EulaSettingsIdentifierPair = new SettingsIdentifierPair("rape", "2");
 
         CommandHead = "透(群友)?|日(批)?|操|干";
         DirectCommandHead = "透(群友)?|日(批)?|操|干";
@@ -117,7 +115,6 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
     protected SettingsIdentifierPair EulaSettingsIdentifierPair;
     protected string FunctionString;
-    protected SettingsIdentifierPair MoreCommandHeadsSettingsIdentifierPair;
 
     protected virtual bool SendMessage(long memberId, CqGroupMessagePostContext source)
     {

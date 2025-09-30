@@ -30,14 +30,15 @@ public class CutoffPointCommand : MaiCommandBase
 
         var songName = achievementRegex.Replace(difficultyRegex.Replace(command, "", 1), "", 1);
 
-        ParseWithArgument(
-            [
-                songName,
-                difficultyRegex.Match(command).ToString(),
-                achievementRegex.Match(command).ToString().Replace("分数线", "").Replace("详情", ""),
-                command.Contains("详情").ToString()
-            ],
-            command, source);
+        if (songName.Length != 0)
+            ParseWithArgument(
+                [
+                    songName,
+                    difficultyRegex.Match(command).ToString(),
+                    achievementRegex.Match(command).ToString().Replace("分数线", "").Replace("详情", ""),
+                    command.Contains("详情").ToString()
+                ],
+                command, source);
     }
 
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
@@ -177,11 +178,11 @@ public class CutoffPointCommand : MaiCommandBase
         }
 
         stringBuilder.AppendLine(
-            $"\n打出 {greatCount} 个 GREAT TAP （-{singleGreatTapAchievementLoss.ToString("0.0000")}%/400 (GREAT) TAP）");
+            $"\n打出 {greatCount} 个 GREAT TAP （-{singleGreatTapAchievementLoss.ToString("0.0000")}%/GREAT (400) TAP）");
         stringBuilder.AppendLine(
-            $"或打出 {goodCount} 个 GOOD TAP （-{singleGoodTapAchievementLoss.ToString("0.0000")}%/250 (GOOD) TAP）");
+            $"或打出 {goodCount} 个 GOOD TAP （-{singleGoodTapAchievementLoss.ToString("0.0000")}%/GOOD (250) TAP）");
         stringBuilder.AppendLine(
-            $"或打出 {missCount} 个 MISS TAP （-{singleMissTapAchievementLoss.ToString("0.0000")}%/MISS TAP）");
+            $"或打出 {missCount} 个 MISS TAP （-{singleMissTapAchievementLoss.ToString("0.0000")}%/MISS (0) TAP）");
 
         if (arguments.Length > 3)
         {
@@ -195,32 +196,32 @@ public class CutoffPointCommand : MaiCommandBase
             {
                 stringBuilder.AppendLine("\n附：");
 
-                stringBuilder.AppendLine($"-{(20000f / totalBasicScore).ToString("0.0000")}%/800 (GREAT) HOLD");
-                stringBuilder.AppendLine($"-{(50000f / totalBasicScore).ToString("0.0000")}%/500 (GOOD) HOLD");
-                stringBuilder.AppendLine($"-{(100000f / totalBasicScore).ToString("0.0000")}%/MISS HOLD");
+                stringBuilder.AppendLine($"-{(20000f / totalBasicScore).ToString("0.0000")}%/GREAT (800) HOLD");
+                stringBuilder.AppendLine($"-{(50000f / totalBasicScore).ToString("0.0000")}%/GOOD (500) HOLD");
+                stringBuilder.AppendLine($"-{(100000f / totalBasicScore).ToString("0.0000")}%/MISS (0) HOLD");
 
                 stringBuilder.AppendLine("");
 
-                stringBuilder.AppendLine($"-{(30000f / totalBasicScore).ToString("0.0000")}%/1200 (GREAT) SLIDE");
-                stringBuilder.AppendLine($"-{(75000f / totalBasicScore).ToString("0.0000")}%/750 (GOOD) SLIDE");
-                stringBuilder.AppendLine($"-{(150000f / totalBasicScore).ToString("0.0000")}%/MISS SLIDE");
+                stringBuilder.AppendLine($"-{(30000f / totalBasicScore).ToString("0.0000")}%/GREAT (1200) SLIDE");
+                stringBuilder.AppendLine($"-{(75000f / totalBasicScore).ToString("0.0000")}%/GOOD (750) SLIDE");
+                stringBuilder.AppendLine($"-{(150000f / totalBasicScore).ToString("0.0000")}%/MISS (0) SLIDE");
 
                 stringBuilder.AppendLine("");
 
                 stringBuilder.AppendLine(
-                    $"-{(25f / totalBreakScore).ToString("0.0000")}%/2550 (PERFECT) BREAK");
+                    $"-{(25f / totalBreakScore).ToString("0.0000")}%/PERFECT (2550) BREAK");
                 stringBuilder.AppendLine(
-                    $"-{(50f / totalBreakScore).ToString("0.0000")}%/2500 (PERFECT) BREAK");
+                    $"-{(50f / totalBreakScore).ToString("0.0000")}%/PERFECT (2500) BREAK");
                 stringBuilder.AppendLine(
-                    $"-{(50000f / totalBasicScore + 60f / totalBreakScore).ToString("0.0000")}%/2000 (GREAT) BREAK");
+                    $"-{(50000f / totalBasicScore + 60f / totalBreakScore).ToString("0.0000")}%/GREAT (2000) BREAK");
                 stringBuilder.AppendLine(
-                    $"-{(100000f / totalBasicScore + 60f / totalBreakScore).ToString("0.0000")}%/1500 (GREAT) BREAK");
+                    $"-{(100000f / totalBasicScore + 60f / totalBreakScore).ToString("0.0000")}%/GREAT (1500) BREAK");
                 stringBuilder.AppendLine(
-                    $"-{(125000f / totalBasicScore + 60f / totalBreakScore).ToString("0.0000")}%/1250 (GREAT) BREAK");
+                    $"-{(125000f / totalBasicScore + 60f / totalBreakScore).ToString("0.0000")}%/GREAT (1250) BREAK");
                 stringBuilder.AppendLine(
-                    $"-{(150000f / totalBasicScore + 70f / totalBreakScore).ToString("0.0000")}%/1000 (GOOD) BREAK");
+                    $"-{(150000f / totalBasicScore + 70f / totalBreakScore).ToString("0.0000")}%/GOOD (1000) BREAK");
                 stringBuilder.AppendLine(
-                    $"-{(250000f / totalBasicScore + 100f / totalBreakScore).ToString("0.0000")}%/0 (MISS) BREAK");
+                    $"-{(250000f / totalBasicScore + 100f / totalBreakScore).ToString("0.0000")}%/MISS (0) BREAK");
             }
         }
 
