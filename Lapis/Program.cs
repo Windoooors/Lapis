@@ -21,6 +21,7 @@ public class BotConfiguration
     public static BotConfiguration Instance;
 
     [JsonProperty] public string Address;
+    [JsonProperty] public string AccessToken;
 
     [JsonProperty] public long AdministratorQqNumber;
 
@@ -99,7 +100,8 @@ public class Program
 
         Session = new CqWsSession(new CqWsSessionOptions
         {
-            BaseUri = new Uri("ws://" + _botConfiguration.Address) // WebSocket 地址
+            BaseUri = new Uri("ws://" + _botConfiguration.Address),
+            AccessToken = _botConfiguration.AccessToken
         });
 
         Session.StartAsync();
