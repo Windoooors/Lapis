@@ -377,6 +377,20 @@ public static class SettingsItems
             [
                 new SettingsItemsOfACommand
                 {
+                    DisplayName = $"禁言 {BotConfiguration.Instance.BotName}",
+                    Identifier = "mute",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = false
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
                     DisplayName = "简洁指令",
                     Identifier = "litecommand",
                     Items =
@@ -421,6 +435,20 @@ public static class SettingsItems
                 {
                     DisplayName = "关于",
                     Identifier = "about",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "退群",
+                    Identifier = "quit",
                     Items =
                     [
                         new SettingsItem

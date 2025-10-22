@@ -111,13 +111,13 @@ public class GuessWordsCommand : VocabularyCommandBase
         stringBuilder.Remove(stringBuilder.Length - 1, 1);
 
         if (messageId != 0)
-            Program.Session.SendGroupMessage(long.Parse(groupId),
+            SendMessage(long.Parse(groupId),
             [
                 new CqReplyMsg(messageId),
                 new CqTextMsg(stringBuilder.ToString())
             ]);
         else
-            Program.Session.SendGroupMessage(long.Parse(groupId),
+            SendMessage(long.Parse(groupId),
             [
                 new CqTextMsg(stringBuilder.ToString())
             ]);

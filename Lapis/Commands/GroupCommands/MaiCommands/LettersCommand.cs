@@ -162,12 +162,12 @@ public class LettersCommand : MaiCommandBase
         var text = gameOver ? $"{title}\n{songNames}" : $"{songNames}\n已开字母：{string.Join(", ", songs.GuessedLetters)}";
 
         if (messageId != 0)
-            Program.Session.SendGroupMessage(long.Parse(groupId), [
+            SendMessage(long.Parse(groupId), [
                 new CqReplyMsg(messageId),
                 new CqTextMsg(text)
             ]);
         else
-            Program.Session.SendGroupMessage(long.Parse(groupId), [
+            SendMessage(long.Parse(groupId), [
                 new CqTextMsg(text)
             ]);
     }

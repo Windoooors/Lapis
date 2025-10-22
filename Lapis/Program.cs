@@ -19,9 +19,9 @@ namespace Lapis;
 public class BotConfiguration
 {
     public static BotConfiguration Instance;
+    [JsonProperty] public string AccessToken;
 
     [JsonProperty] public string Address;
-    [JsonProperty] public string AccessToken;
 
     [JsonProperty] public long AdministratorQqNumber;
 
@@ -38,7 +38,7 @@ public class Program
     public static readonly Command[] Commands =
     [
         new TaskHandleQueueCommand(),
-        new AbuseCommand(),
+        // new AbuseCommand(),
         new VocabularyCommand(),
         new StickerCommand(),
         new AboutCommand(),
@@ -47,7 +47,8 @@ public class Program
         new MaiCommand(),
         new SettingsCommand(),
         new HelpCommand(),
-        new StickerSavingCommand()
+        new StickerSavingCommand(),
+        new QuitCommand()
     ];
 
     private static DateTime _lastDateTime;

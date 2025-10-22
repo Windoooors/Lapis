@@ -21,7 +21,7 @@ public class HelpCommand : UniversalCommand
         var message = new CqMessage
         {
             new CqReplyMsg(source.MessageId),
-            new CqTextMsg($"请访问链接以查询 {BotConfiguration.Instance.BotName} 的使用方法：https://www.setchin.com/lapis_docs.html")
+            new CqTextMsg($"请访问链接以查询 {BotConfiguration.Instance.BotName} 的使用方法：https://setchin.com/lapis/docs/")
         };
 
         SendMessage(source, message);
@@ -47,7 +47,7 @@ public class HelpCommand : UniversalCommand
         {
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(
-                $"参数错误\n请访问链接以查询 {BotConfiguration.Instance.BotName} 的使用方法：https://www.setchin.com/lapis_docs.html")
+                $"参数错误\n请访问链接以查询 {BotConfiguration.Instance.BotName} 的使用方法：https://setchin.com/lapis/docs/")
         };
         SendMessage(source, message);
     }

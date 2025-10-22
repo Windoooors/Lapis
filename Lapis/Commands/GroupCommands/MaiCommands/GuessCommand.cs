@@ -165,10 +165,10 @@ public class GuessCommand : MaiCommandBase
             "谜底", null, isCompressed);
 
         if (messageId == 0)
-            Program.Session.SendGroupMessage(long.Parse(groupId),
+            SendMessage(long.Parse(groupId),
                 [new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
         else
-            Program.Session.SendGroupMessage(long.Parse(groupId),
+            SendMessage(long.Parse(groupId),
                 [new CqReplyMsg(messageId), new CqTextMsg(text), new CqImageMsg("base64://" + image)]);
     }
 

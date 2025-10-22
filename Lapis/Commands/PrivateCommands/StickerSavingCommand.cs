@@ -10,7 +10,7 @@ public class StickerSavingCommand : PrivateCommand
     {
         foreach (var item in source.Message)
             if (item is CqImageMsg imageMsg)
-                Program.Session.SendPrivateMessage(source.Sender.UserId, [
+                SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
                     imageMsg.Url != null ? imageMsg.Url.ToString() : "获取图像时出现错误，请重试"
                 ]);

@@ -30,7 +30,7 @@ public class UpdateCommand : MaiCommandBase
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg("您的信息未绑定完全\n请访问 https://setchin.com/lapis/docs/index.html#/maimaiDX/bind 以了解更多")
+                new CqTextMsg("您的信息未绑定完全\n请访问 https://setchin.com/lapis/docs/ 以了解更多")
             ]);
             return;
         }

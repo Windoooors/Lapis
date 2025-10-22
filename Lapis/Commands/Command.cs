@@ -1,6 +1,7 @@
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Commands.GroupCommands;
 using Lapis.Settings;
 
 namespace Lapis.Commands;
@@ -35,9 +36,10 @@ public abstract class Command
     {
     }
 
-    protected static void SendMessage(CqMessagePostContext source, CqMessage message)
+    protected void SendMessage(CqMessagePostContext source, CqMessage message)
     {
-        if (source is CqGroupMessagePostContext groupSource)
+        if (source is CqGroupMessagePostContext groupSource
+            && (!SettingsPool.GetValue(new SettingsIdentifierPair("mute","1"), groupSource.GroupId) || this is SettingsCommand))
             Program.Session.SendGroupMessage(groupSource.GroupId, message);
         if (source is CqPrivateMessagePostContext privateSource)
             Program.Session.SendPrivateMessage(privateSource.Sender.UserId, message);

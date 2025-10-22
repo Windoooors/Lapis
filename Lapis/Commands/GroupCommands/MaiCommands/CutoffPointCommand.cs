@@ -28,7 +28,7 @@ public class CutoffPointCommand : MaiCommandBase
         if (!(difficultyRegex.IsMatch(command) && achievementRegex.IsMatch(command)))
             return;
 
-        var songName = achievementRegex.Replace(difficultyRegex.Replace(command, "", 1), "", 1);
+        var songName = achievementRegex.Replace(difficultyRegex.Replace(command, "", 1), "", 1).Trim();
 
         if (songName.Length != 0)
             ParseWithArgument(
