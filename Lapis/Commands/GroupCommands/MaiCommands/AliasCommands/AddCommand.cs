@@ -18,7 +18,7 @@ public class AddCommand : AliasCommandBase
     {
         CommandHead = "add";
         DirectCommandHead = "添加别名";
-        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("aliasadd", "1");
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("alias_add", "1");
         IntendedArgumentCount = 2;
     }
 

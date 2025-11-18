@@ -381,7 +381,7 @@ public class PlateCommand : MaiCommandBase
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("lite_command", "1"), source.GroupId))
             return;
 
         var originalCommandString = command;

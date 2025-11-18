@@ -32,7 +32,7 @@ public class CommandParser
             switch (source)
             {
                 case CqGroupMessagePostContext groupSource:
-                    if (SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"),
+                    if (SettingsPool.GetValue(new SettingsIdentifierPair("lite_command", "1"),
                             groupSource.GroupId))
                         ParseDirectly(source, commandString, Program.Commands);
                     break;

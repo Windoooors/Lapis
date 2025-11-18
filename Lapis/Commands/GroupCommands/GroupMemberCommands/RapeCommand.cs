@@ -12,26 +12,26 @@ public class BeingRapedCommand : RapeCommandBase
 {
     public BeingRapedCommand()
     {
-        EulaSettingsIdentifierPair = new SettingsIdentifierPair("beingraped", "2");
+        EulaSettingsIdentifierPair = new SettingsIdentifierPair("being_raped", "2");
 
         CommandHead = "被(群友)?(透|日(批)?|操|干)";
         DirectCommandHead = "被(群友)?(透|日(批)?|操|干)";
-        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("beingraped", "1");
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("being_raped", "1");
         IntendedArgumentCount = 1;
         BotReply = "😈";
         CommandString = "被透";
         FunctionString = "被群友透";
     }
 
-    protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    protected override bool SendRapeMessage(GroupMemberCommand.GroupMember member, CqGroupMessagePostContext source)
     {
-        if (!TryGetNickname(memberId, source.GroupId, out var nickname)) return false;
+        if (!TryGetNickname(member.Id, source.GroupId, out var nickname)) return false;
 
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
-            $"群友 {nickname} ({memberId}) 透到你啦(*¯︶¯*)"
+            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.Id)).ToBase64()),
+            $"群友 {nickname} ({member.Id}) 透到你啦(*¯︶¯*)"
         ]);
 
         return true;
@@ -39,10 +39,10 @@ public class BeingRapedCommand : RapeCommandBase
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("lite_command", "1"), source.GroupId))
             return;
 
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("lite_command", "1"), source.GroupId))
             return;
 
         var originalCommandString = command;
@@ -78,24 +78,25 @@ public class RapeCommand : RapeCommandBase
         FunctionString = "透群友";
     }
 
-    protected override bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    protected override bool SendRapeMessage(GroupMemberCommand.GroupMember member, CqGroupMessagePostContext source)
     {
-        if (!TryGetNickname(memberId, source.GroupId, out var nickname)) return false;
+        if (!TryGetNickname(member.Id, source.GroupId, out var nickname)) return false;
 
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
-            $"群友 {nickname} ({memberId}) 被你透啦(*¯︶¯*)"
+            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.Id)).ToBase64()),
+            $"群友 {nickname} ({member.Id}) 被你透啦(*¯︶¯*)"
         ]);
+
+        member.RapedTimes++;
 
         return true;
     }
 
-
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("lite_command", "1"), source.GroupId))
             return;
 
         var originalCommandString = command;
@@ -116,7 +117,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
     protected SettingsIdentifierPair EulaSettingsIdentifierPair;
     protected string FunctionString;
 
-    protected virtual bool SendMessage(long memberId, CqGroupMessagePostContext source)
+    protected virtual bool SendRapeMessage(GroupMemberCommand.GroupMember member, CqGroupMessagePostContext source)
     {
         return false;
     }
@@ -218,7 +219,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             return;
         }
 
-        if (!SendMessage(members[0].Id, source)) ParseWithArgument(arguments, originalPlainMessage, source);
+        if (!SendRapeMessage(members[0], source)) ParseWithArgument(arguments, originalPlainMessage, source);
     }
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
@@ -245,9 +246,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         while (memberArray[i].Id == source.Sender.UserId)
             i = new Random().Next(0, memberArray.Length);
 
-        var memberId = memberArray[i].Id;
-
-        if (!SendMessage(memberId, source))
+        if (!SendRapeMessage(memberArray[i], source))
             Parse(originalPlainMessage, source);
     }
 }

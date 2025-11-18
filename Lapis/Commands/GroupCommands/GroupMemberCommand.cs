@@ -155,7 +155,7 @@ public abstract class GroupMemberCommandBase : GroupCommand
 
 public class GroupMemberCommand : GroupMemberCommandBase
 {
-    public readonly HashSet<Group> Groups =
+    public HashSet<Group> Groups =
         File.Exists(Path.Combine(AppContext.BaseDirectory, "data/groups.json"))
             ? JsonConvert.DeserializeObject<HashSet<Group>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,
                 "data/groups.json")))
@@ -166,7 +166,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
         SubCommands =
         [
             new MarryCommand(), new RapeCommand(), new MemberAliasCommand(), new SearchMemberCommand(),
-            new BeingRapedCommand()
+            new BeingRapedCommand(), new RapeRankCommand()
         ];
         GroupMemberCommandInstance = this;
     }
@@ -364,6 +364,8 @@ public class GroupMemberCommand : GroupMemberCommandBase
     public class GroupMember(long id)
     {
         public bool AgreedWithEula;
+
+        public int RapedTimes;
 
         public long Id { get; } = id;
 

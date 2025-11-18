@@ -64,49 +64,21 @@ public class UpdateCommand : MaiCommandBase
 
         foreach (var rawData in rawMusicData.RawMusicDataDetailArray)
         {
-            var fcString = "";
-            var fsString = "";
-
-            switch (rawData.ComboStatus)
+            var fcString = rawData.ComboStatus switch
             {
-                case 0:
-                    fcString = "";
-                    break;
-                case 1:
-                    fcString = "fc";
-                    break;
-                case 2:
-                    fcString = "fcp";
-                    break;
-                case 3:
-                    fcString = "ap";
-                    break;
-                case 4:
-                    fcString = "app";
-                    break;
-            }
+                0 => "", 1 => "fc", 2 => "fcp", 3 => "ap", 4 => "app", _ => ""
+            };
 
-            switch (rawData.SyncStatus)
+            var fsString = rawData.SyncStatus switch
             {
-                case 0:
-                    fsString = "";
-                    break;
-                case 5:
-                    fsString = "sync";
-                    break;
-                case 1:
-                    fsString = "fs";
-                    break;
-                case 2:
-                    fsString = "fsp";
-                    break;
-                case 3:
-                    fsString = "fsd";
-                    break;
-                case 4:
-                    fsString = "fsdp";
-                    break;
-            }
+                0 => "",
+                5 => "sync",
+                1 => "fs",
+                2 => "fsp",
+                3 => "fsd",
+                4 => "fsdp",
+                _ => ""
+            };
 
             SongDto song;
 

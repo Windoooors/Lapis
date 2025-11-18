@@ -23,10 +23,14 @@ public class GroupCommand : Command
     public virtual void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
     }
-    
+
     protected void SendMessage(long groupId, CqMessage message)
     {
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("mute","1"), groupId) || this is SettingsCommand)
-            Program.Session.SendGroupMessage(groupId, message);
+        if (!(!SettingsPool.GetValue(new SettingsIdentifierPair("mute", "1"), groupId) || this is SettingsCommand))
+            return;
+
+        if (message[0] is CqReplyMsg replyMessage)
+            TooLongDontReadCommand.Instance.ExcludeMessage(replyMessage.Id, groupId);
+        Program.Session.SendGroupMessage(groupId, message);
     }
 }

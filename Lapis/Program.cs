@@ -28,6 +28,8 @@ public class BotConfiguration
     [JsonProperty] public string AliasUrl;
     [JsonProperty] public string BotName;
     [JsonProperty] public long BotQqNumber;
+    [JsonProperty] public string DeepSeekApiToken;
+    [JsonProperty] public string DeepSeekUrl;
     [JsonProperty] public string DivingFishDevToken;
     [JsonProperty] public string DivingFishUrl;
     [JsonProperty] public string WahlapConnectiveKitsUrl;
@@ -42,18 +44,21 @@ public class Program
         new VocabularyCommand(),
         new StickerCommand(),
         new AboutCommand(),
-        new RepeatCommand(),
+        new PingCommand(),
         new GroupMemberCommand(),
         new MaiCommand(),
         new SettingsCommand(),
         new HelpCommand(),
         new StickerSavingCommand(),
-        new QuitCommand()
+        new QuitCommand(),
+        new TooLongDontReadCommand()
     ];
 
-    private static DateTime _lastDateTime;
+    private static DateTime _lastDailyRefreshTime;
 
-    private static DateTime _lastDateTimeHour;
+    private static DateTime _lastWeeklyRefreshTime;
+
+    private static DateTime _lastHourlyRefreshTime;
 
     private static readonly ApiOperator ApiOperator = new();
 
@@ -68,6 +73,8 @@ public class Program
     private static bool _initializationStateLogged;
 
     public static event EventHandler DateChanged;
+
+    public static event EventHandler WeekChanged;
 
     public static event EventHandler HourChanged;
 
@@ -147,9 +154,15 @@ public class Program
         });
 
         if (File.Exists(Path.Combine(AppContext.BaseDirectory, "data/date.json")))
-            _lastDateTime =
+            _lastDailyRefreshTime =
                 JsonConvert.DeserializeObject<DateTime>(File
                     .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "data/date.json")).Result);
+
+        if (File.Exists(Path.Combine(AppContext.BaseDirectory, "data/week.json")))
+            _lastWeeklyRefreshTime =
+                JsonConvert.DeserializeObject<DateTime>(File
+                    .ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "data/week.json")).Result);
+
         var thread = new Thread(CountTime);
         thread.Start();
 
@@ -171,7 +184,9 @@ public class Program
     private static void SaveDate()
     {
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "data/date.json"),
-            JsonConvert.SerializeObject(_lastDateTime));
+            JsonConvert.SerializeObject(_lastDailyRefreshTime));
+        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "data/week.json"),
+            JsonConvert.SerializeObject(_lastWeeklyRefreshTime));
         Logger.LogInformation("Date data have been saved.");
     }
 
@@ -201,24 +216,28 @@ public class Program
                     Logger.LogInformation("Initialized.");
                 }
 
-
                 if (TimeChanged != null)
                     TimeChanged(new object(), EventArgs.Empty);
 
-                if (_lastDateTime.Date != DateTime.Now.Date)
+                if (_lastDailyRefreshTime.Date != DateTime.Now.Date)
                 {
-                    _lastDateTime = DateTime.Now;
+                    _lastDailyRefreshTime = DateTime.Now;
                     Logger.LogInformation("Date change detected, refreshing data...");
                     SaveDate();
-                    if (DateChanged != null)
-                        DateChanged(new object(), EventArgs.Empty);
+                    DateChanged?.Invoke(new object(), EventArgs.Empty);
                 }
 
-                if (_lastDateTimeHour.Hour != DateTime.Now.Hour)
+                if (DateTime.Now.Day - _lastWeeklyRefreshTime.Day >= 7)
                 {
-                    _lastDateTimeHour = DateTime.Now;
-                    if (HourChanged != null)
-                        HourChanged(new object(), EventArgs.Empty);
+                    _lastWeeklyRefreshTime = DateTime.Now;
+                    Logger.LogInformation("Week changed.");
+                    WeekChanged?.Invoke(new object(), EventArgs.Empty);
+                }
+
+                if (_lastHourlyRefreshTime.Hour != DateTime.Now.Hour)
+                {
+                    _lastHourlyRefreshTime = DateTime.Now;
+                    HourChanged?.Invoke(new object(), EventArgs.Empty);
                 }
             }
         }

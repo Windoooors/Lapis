@@ -18,7 +18,7 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
     {
         CommandHead = "add";
         DirectCommandHead = "添加群友别名";
-        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("maliasadd", "1");
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("malias_add", "1");
         IntendedArgumentCount = 2;
     }
 

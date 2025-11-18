@@ -39,8 +39,15 @@ public abstract class Command
     protected void SendMessage(CqMessagePostContext source, CqMessage message)
     {
         if (source is CqGroupMessagePostContext groupSource
-            && (!SettingsPool.GetValue(new SettingsIdentifierPair("mute","1"), groupSource.GroupId) || this is SettingsCommand))
+            && (!SettingsPool.GetValue(new SettingsIdentifierPair("mute", "1"), groupSource.GroupId) ||
+                this is SettingsCommand))
+        {
             Program.Session.SendGroupMessage(groupSource.GroupId, message);
+
+            if (message[0] is CqReplyMsg replyMessage)
+                TooLongDontReadCommand.Instance.ExcludeMessage(replyMessage.Id, groupSource.GroupId);
+        }
+
         if (source is CqPrivateMessagePostContext privateSource)
             Program.Session.SendPrivateMessage(privateSource.Sender.UserId, message);
     }

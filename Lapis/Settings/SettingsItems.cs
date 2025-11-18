@@ -80,7 +80,7 @@ public static class SettingsItems
                 new SettingsItemsOfACommand
                 {
                     DisplayName = "别名添加",
-                    Identifier = "aliasadd",
+                    Identifier = "alias_add",
                     Items =
                     [
                         new SettingsItem
@@ -228,7 +228,7 @@ public static class SettingsItems
         },
         new()
         {
-            DisplayName = "群友相关",
+            DisplayName = "群聊相关",
             Items =
             [
                 new SettingsItemsOfACommand
@@ -274,7 +274,7 @@ public static class SettingsItems
                 new SettingsItemsOfACommand
                 {
                     DisplayName = "被群友透",
-                    Identifier = "beingraped",
+                    Identifier = "being_raped",
                     Items =
                     [
                         new SettingsItem
@@ -322,7 +322,35 @@ public static class SettingsItems
                 new SettingsItemsOfACommand
                 {
                     DisplayName = "群友别名添加",
-                    Identifier = "maliasadd",
+                    Identifier = "malias_add",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "聊天记录总结",
+                    Identifier = "tldr",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = false
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "透群友排行榜",
+                    Identifier = "rape_rank",
                     Items =
                     [
                         new SettingsItem
@@ -392,7 +420,7 @@ public static class SettingsItems
                 new SettingsItemsOfACommand
                 {
                     DisplayName = "简洁指令",
-                    Identifier = "litecommand",
+                    Identifier = "lite_command",
                     Items =
                     [
                         new SettingsItem

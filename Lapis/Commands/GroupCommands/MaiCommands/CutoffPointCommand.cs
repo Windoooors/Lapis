@@ -19,7 +19,7 @@ public class CutoffPointCommand : MaiCommandBase
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        if (!SettingsPool.GetValue(new SettingsIdentifierPair("litecommand", "1"), source.GroupId))
+        if (!SettingsPool.GetValue(new SettingsIdentifierPair("lite_command", "1"), source.GroupId))
             return;
 
         var difficultyRegex = new Regex("^(绿|黄|红|紫|白|难度一|难度二|)");
