@@ -34,6 +34,11 @@ public class UpdateCommand : MaiCommandBase
             ]);
             return;
         }
+        
+        SendMessage(source, [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg("正在尝试更新成绩，请稍等")
+        ]);
 
         string responseString;
 

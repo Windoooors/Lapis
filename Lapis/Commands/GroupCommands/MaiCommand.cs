@@ -304,7 +304,8 @@ public class MaiCommand : MaiCommandBase
             new UpdateCommand(),
             new BindCommand(),
             new SearchCommand(),
-            new CutoffPointCommand()
+            new CutoffPointCommand(),
+            new PlayerInfoCommand()
         ];
     }
 

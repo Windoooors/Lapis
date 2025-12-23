@@ -188,6 +188,20 @@ public static class SettingsItems
                             DefaultValue = true
                         }
                     ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "玩家信息查询",
+                    Identifier = "me",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
                 }
             ]
         },
