@@ -34,7 +34,7 @@ public class UpdateCommand : MaiCommandBase
             ]);
             return;
         }
-        
+
         SendMessage(source, [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg("正在尝试更新成绩，请稍等")
@@ -119,7 +119,10 @@ public class UpdateCommand : MaiCommandBase
         {
             var uploadResponseString = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/player/update_records", uploadContent,
-                [new KeyValuePair<string, string>("Import-Token", matchedUserBindData.DivingFishImportToken)], 60);
+                [
+                    new KeyValuePair<string, string>("Import-Token", matchedUserBindData.DivingFishImportToken),
+                    new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)
+                ], 60);
 
             var uploadResponse = JsonConvert.DeserializeObject<UploadRecordsResponseDto>(uploadResponseString);
 

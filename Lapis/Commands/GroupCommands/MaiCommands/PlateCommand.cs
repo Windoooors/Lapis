@@ -87,23 +87,39 @@ public class PlateCommand : MaiCommandBase
                     ? ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/player",
-                        new { qq = groupMembers[0].Id.ToString() })
+                        new { qq = groupMembers[0].Id.ToString() },
+                        [
+                            new KeyValuePair<string, string>("Developer-Token",
+                                BotConfiguration.Instance.DivingFishDevToken)
+                        ])
                     : isQqId
                         ? ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/player",
-                            new { qq = arguments[1] })
+                            new { qq = arguments[1] },
+                            [
+                                new KeyValuePair<string, string>("Developer-Token",
+                                    BotConfiguration.Instance.DivingFishDevToken)
+                            ])
                         : ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/player",
-                            new { username = arguments[1] });
+                            new { username = arguments[1] },
+                            [
+                                new KeyValuePair<string, string>("Developer-Token",
+                                    BotConfiguration.Instance.DivingFishDevToken)
+                            ]);
             }
             else
             {
                 content = ApiOperator.Instance.Post(
                     BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
-                    new { qq = source.Sender.UserId });
+                    new { qq = source.Sender.UserId.ToString() },
+                    [
+                        new KeyValuePair<string, string>("Developer-Token",
+                            BotConfiguration.Instance.DivingFishDevToken)
+                    ]);
             }
 
             userName = JsonConvert.DeserializeObject<BestDto>(content).Username;
@@ -177,7 +193,11 @@ public class PlateCommand : MaiCommandBase
             {
                 content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/plate",
-                    new { username = "maxscore", version });
+                    new { username = "maxscore", version },
+                    [
+                        new KeyValuePair<string, string>("Developer-Token",
+                            BotConfiguration.Instance.DivingFishDevToken)
+                    ]);
             }
             catch (Exception ex)
             {
@@ -224,16 +244,28 @@ public class PlateCommand : MaiCommandBase
                     ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/plate",
-                        new { qq = groupMembers[0].Id.ToString(), version }))
+                        new { qq = groupMembers[0].Id.ToString(), version },
+                        [
+                            new KeyValuePair<string, string>("Developer-Token",
+                                BotConfiguration.Instance.DivingFishDevToken)
+                        ]))
                     : isQqId
                         ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/plate",
-                            new { qq = arguments[1], version }))
+                            new { qq = arguments[1], version },
+                            [
+                                new KeyValuePair<string, string>("Developer-Token",
+                                    BotConfiguration.Instance.DivingFishDevToken)
+                            ]))
                         : JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/plate",
-                            new { username = arguments[1], version }));
+                            new { username = arguments[1], version },
+                            [
+                                new KeyValuePair<string, string>("Developer-Token",
+                                    BotConfiguration.Instance.DivingFishDevToken)
+                            ]));
                 useAvatar = false;
             }
             else
@@ -241,7 +273,11 @@ public class PlateCommand : MaiCommandBase
                 scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
                     BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/plate",
-                    new { qq = source.Sender.UserId, version }));
+                    new { qq = source.Sender.UserId.ToString(), version },
+                    [
+                        new KeyValuePair<string, string>("Developer-Token",
+                            BotConfiguration.Instance.DivingFishDevToken)
+                    ]));
             }
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -51,7 +52,11 @@ public class BestCommand : MaiCommandBase
                     {
                         qq = groupMembers[0].Id.ToString(),
                         b50 = true
-                    });
+                    },
+                    [
+                        new KeyValuePair<string, string>("Developer-Token",
+                            BotConfiguration.Instance.DivingFishDevToken)
+                    ]);
 
                 var best = JsonConvert.DeserializeObject<BestDto>(content);
 
@@ -71,7 +76,11 @@ public class BestCommand : MaiCommandBase
                     {
                         qq = arguments[0],
                         b50 = true
-                    });
+                    },
+                    [
+                        new KeyValuePair<string, string>("Developer-Token",
+                            BotConfiguration.Instance.DivingFishDevToken)
+                    ]);
 
                 var best = JsonConvert.DeserializeObject<BestDto>(content);
 
@@ -91,7 +100,11 @@ public class BestCommand : MaiCommandBase
                     {
                         username = arguments[0],
                         b50 = true
-                    });
+                    },
+                    [
+                        new KeyValuePair<string, string>("Developer-Token",
+                            BotConfiguration.Instance.DivingFishDevToken)
+                    ]);
 
                 var best = JsonConvert.DeserializeObject<BestDto>(content);
 
@@ -144,7 +157,7 @@ public class BestCommand : MaiCommandBase
                 {
                     qq = source.Sender.UserId.ToString(),
                     b50 = true
-                });
+                }, [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
             var best = JsonConvert.DeserializeObject<BestDto>(content);
 
