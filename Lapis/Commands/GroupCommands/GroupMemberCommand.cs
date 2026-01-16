@@ -38,7 +38,7 @@ public abstract class GroupMemberCommandBase : GroupCommand
         return $"http://q.qlogo.cn/headimg_dl?dst_uin={id}&spec=640&img_type=jpg";
     }
 
-    protected bool TryGetNickname(long id, long groupId, out string nickname)
+    public bool TryGetNickname(long id, long groupId, out string nickname)
     {
         var memberInformation = Program.Session.GetGroupMemberInformation(groupId, id);
 

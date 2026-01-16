@@ -58,7 +58,25 @@ public class BestCommand : MaiCommandBase
                             BotConfiguration.Instance.DivingFishDevToken)
                     ]);
 
-                var best = JsonConvert.DeserializeObject<BestDto>(content);
+                if (content.StatusCode != HttpStatusCode.OK)
+                {
+                    switch (content.StatusCode)
+                    {
+                        case HttpStatusCode.BadRequest:
+                            ObjectUserUnboundErrorHelp(source);
+                            break;
+                        case HttpStatusCode.Forbidden:
+                            ForbiddenErrorHelp(source);
+                            break;
+                        default:
+                            HelpCommand.Instance.UnexpectedErrorHelp(source);
+                            break;
+                    }
+
+                    return;
+                }
+
+                var best = JsonConvert.DeserializeObject<BestDto>(content.Result);
 
                 if (best.Charts == null)
                 {
@@ -82,7 +100,25 @@ public class BestCommand : MaiCommandBase
                             BotConfiguration.Instance.DivingFishDevToken)
                     ]);
 
-                var best = JsonConvert.DeserializeObject<BestDto>(content);
+                if (content.StatusCode != HttpStatusCode.OK)
+                {
+                    switch (content.StatusCode)
+                    {
+                        case HttpStatusCode.BadRequest:
+                            ObjectUserUnboundErrorHelp(source);
+                            break;
+                        case HttpStatusCode.Forbidden:
+                            ForbiddenErrorHelp(source);
+                            break;
+                        default:
+                            HelpCommand.Instance.UnexpectedErrorHelp(source);
+                            break;
+                    }
+
+                    return;
+                }
+
+                var best = JsonConvert.DeserializeObject<BestDto>(content.Result);
 
                 if (best.Charts == null)
                 {
@@ -106,7 +142,25 @@ public class BestCommand : MaiCommandBase
                             BotConfiguration.Instance.DivingFishDevToken)
                     ]);
 
-                var best = JsonConvert.DeserializeObject<BestDto>(content);
+                if (content.StatusCode != HttpStatusCode.OK)
+                {
+                    switch (content.StatusCode)
+                    {
+                        case HttpStatusCode.BadRequest:
+                            ObjectUserUnboundErrorHelp(source);
+                            break;
+                        case HttpStatusCode.Forbidden:
+                            ForbiddenErrorHelp(source);
+                            break;
+                        default:
+                            HelpCommand.Instance.UnexpectedErrorHelp(source);
+                            break;
+                    }
+
+                    return;
+                }
+
+                var best = JsonConvert.DeserializeObject<BestDto>(content.Result);
 
                 if (best.Charts == null)
                 {
@@ -117,32 +171,8 @@ public class BestCommand : MaiCommandBase
                 Process(source, best, false);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            if (ex.InnerException is TaskCanceledException or HttpRequestException)
-            {
-                DivingFishErrorHelp(source);
-                return;
-            }
-
-            if (ex is HttpRequestException httpRequestException)
-            {
-                switch (httpRequestException.StatusCode)
-                {
-                    case HttpStatusCode.BadRequest:
-                        ObjectUserUnboundErrorHelp(source);
-                        break;
-                    case HttpStatusCode.Forbidden:
-                        ForbiddenErrorHelp(source);
-                        break;
-                    default:
-                        HelpCommand.Instance.UnexpectedErrorHelp(source);
-                        break;
-                }
-
-                return;
-            }
-
             HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }
@@ -159,27 +189,9 @@ public class BestCommand : MaiCommandBase
                     b50 = true
                 }, [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
-            var best = JsonConvert.DeserializeObject<BestDto>(content);
-
-            if (best.Charts == null)
+            if (content.StatusCode != HttpStatusCode.OK)
             {
-                UnboundErrorHelp(source);
-                return;
-            }
-
-            Process(source, best, true);
-        }
-        catch (Exception ex)
-        {
-            if (ex.InnerException is TaskCanceledException or HttpRequestException)
-            {
-                DivingFishErrorHelp(source);
-                return;
-            }
-
-            if (ex is HttpRequestException httpRequestException)
-            {
-                switch (httpRequestException.StatusCode)
+                switch (content.StatusCode)
                 {
                     case HttpStatusCode.BadRequest:
                         UnboundErrorHelp(source);
@@ -195,6 +207,18 @@ public class BestCommand : MaiCommandBase
                 return;
             }
 
+            var best = JsonConvert.DeserializeObject<BestDto>(content.Result);
+
+            if (best.Charts == null)
+            {
+                UnboundErrorHelp(source);
+                return;
+            }
+
+            Process(source, best, true);
+        }
+        catch (Exception)
+        {
             HelpCommand.Instance.UnexpectedErrorHelp(source);
         }
     }

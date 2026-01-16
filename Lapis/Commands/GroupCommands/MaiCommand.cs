@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -528,8 +529,13 @@ public class MaiCommand : MaiCommandBase
         {
             var responseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/chart_stats", 60);
+
+            if (responseContent.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {responseContent.StatusCode}", null,
+                    responseContent.StatusCode);
+
             _chartStatistics =
-                JsonConvert.DeserializeObject<ChartStatisticsDto>(responseContent);
+                JsonConvert.DeserializeObject<ChartStatisticsDto>(responseContent.Result);
         }
         catch (Exception ex)
         {
@@ -543,9 +549,14 @@ public class MaiCommand : MaiCommandBase
 
         try
         {
-            Songs = (SongDto[])JsonConvert.DeserializeObject(
-                ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl, "api/maimaidxprober/music_data", 60),
-                typeof(SongDto[]));
+            var response = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/music_data", 60);
+
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {response.StatusCode}", null,
+                    response.StatusCode);
+
+            Songs = (SongDto[])JsonConvert.DeserializeObject(response.Result, typeof(SongDto[]));
         }
         catch (Exception ex)
         {
@@ -580,9 +591,15 @@ public class MaiCommand : MaiCommandBase
 
         try
         {
+            var responseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 60);
+
+            if (responseContent.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {responseContent.StatusCode}", null,
+                    responseContent.StatusCode);
+
             aliasDto =
                 JsonConvert.DeserializeObject<AliasDto>(
-                    ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 60));
+                    responseContent.Result);
         }
         catch (Exception ex)
         {

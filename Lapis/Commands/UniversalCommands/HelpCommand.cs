@@ -16,6 +16,14 @@ public class HelpCommand : UniversalCommand
         Instance = this;
     }
 
+    public void SendNotLoggedInHelp(CqMessagePostContext source)
+    {
+        SendMessage(source, [
+            new CqReplyMsg(source.MessageId),
+            new CqTextMsg($"您未登录！\n请私聊 {BotConfiguration.Instance.BotName} 发送指令 \"login <舞萌｜中二登录微信二维码扫描结果>\" 后再试")
+        ]);
+    }
+
     public override void Parse(string originalPlainMessage, CqMessagePostContext source)
     {
         var message = new CqMessage

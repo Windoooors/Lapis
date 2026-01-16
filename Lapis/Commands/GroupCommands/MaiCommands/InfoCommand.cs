@@ -139,8 +139,12 @@ public class InfoCommand : MaiCommandBase
                 new { username = name, music_id = song.Id.ToString() },
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
+            if (content.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
+                    content.StatusCode);
+
             return new ScoreData(
-                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content).Values.ToArray()[0]);
+                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0]);
         }
 
         private static ScoreData Get(long userId, SongDto song)
@@ -150,8 +154,12 @@ public class InfoCommand : MaiCommandBase
                 new { qq = userId.ToString(), music_id = song.Id.ToString() },
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
+            if (content.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
+                    content.StatusCode);
+
             return new ScoreData(
-                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content).Values.ToArray()[0]);
+                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0]);
         }
 
         public class LevelDto

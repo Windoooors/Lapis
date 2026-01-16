@@ -51,7 +51,9 @@ public class Program
         new HelpCommand(),
         new StickerSavingCommand(),
         new QuitCommand(),
-        new TooLongDontReadCommand()
+        new TooLongDontReadCommand(),
+        new WckSessionLoginCommand(),
+        new WckSessionLogoutCommand()
     ];
 
     private static DateTime _lastDailyRefreshTime;

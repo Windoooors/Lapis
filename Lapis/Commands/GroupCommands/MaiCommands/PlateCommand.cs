@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ public class PlateCommand : MaiCommandBase
         string userName;
         try
         {
-            string content;
+            ApiOperator.RequestResult content;
 
             if (arguments.Length > 1)
             {
@@ -109,6 +110,10 @@ public class PlateCommand : MaiCommandBase
                                 new KeyValuePair<string, string>("Developer-Token",
                                     BotConfiguration.Instance.DivingFishDevToken)
                             ]);
+
+                if (content.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
+                        content.StatusCode);
             }
             else
             {
@@ -122,7 +127,7 @@ public class PlateCommand : MaiCommandBase
                     ]);
             }
 
-            userName = JsonConvert.DeserializeObject<BestDto>(content).Username;
+            userName = JsonConvert.DeserializeObject<BestDto>(content.Result).Username;
         }
         catch (Exception ex)
         {
@@ -188,7 +193,7 @@ public class PlateCommand : MaiCommandBase
         ScoresDto scores;
         if (!(command == "霸者" || command.StartsWith("舞")))
         {
-            string content;
+            ApiOperator.RequestResult content;
             try
             {
                 content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
@@ -198,6 +203,10 @@ public class PlateCommand : MaiCommandBase
                         new KeyValuePair<string, string>("Developer-Token",
                             BotConfiguration.Instance.DivingFishDevToken)
                     ]);
+
+                if (content.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
+                        content.StatusCode);
             }
             catch (Exception ex)
             {
@@ -214,7 +223,7 @@ public class PlateCommand : MaiCommandBase
                 return;
             }
 
-            scores = JsonConvert.DeserializeObject<ScoresDto>(content);
+            scores = JsonConvert.DeserializeObject<ScoresDto>(content.Result);
         }
         else
         {
@@ -240,44 +249,57 @@ public class PlateCommand : MaiCommandBase
                     GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
                         out var groupMembers, source) && groupMembers.Length == 1;
                 var isQqId = long.TryParse(arguments[1], out _);
-                scoresInReality = isGroupMember
-                    ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                var scoresInRealityContent = isGroupMember
+                    ? ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/plate",
                         new { qq = groupMembers[0].Id.ToString(), version },
                         [
                             new KeyValuePair<string, string>("Developer-Token",
                                 BotConfiguration.Instance.DivingFishDevToken)
-                        ]))
+                        ])
                     : isQqId
-                        ? JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                        ? ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/plate",
                             new { qq = arguments[1], version },
                             [
                                 new KeyValuePair<string, string>("Developer-Token",
                                     BotConfiguration.Instance.DivingFishDevToken)
-                            ]))
-                        : JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                            ])
+                        : ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/plate",
                             new { username = arguments[1], version },
                             [
                                 new KeyValuePair<string, string>("Developer-Token",
                                     BotConfiguration.Instance.DivingFishDevToken)
-                            ]));
+                            ]);
+
+                if (scoresInRealityContent.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException($"Unexpected status code: {scoresInRealityContent.StatusCode}", null,
+                        scoresInRealityContent.StatusCode);
+
+                scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(scoresInRealityContent.Result);
+
                 useAvatar = false;
             }
             else
             {
-                scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(ApiOperator.Instance.Post(
+                var scoresInRealityContent = ApiOperator.Instance.Post(
                     BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/plate",
                     new { qq = source.Sender.UserId.ToString(), version },
                     [
                         new KeyValuePair<string, string>("Developer-Token",
                             BotConfiguration.Instance.DivingFishDevToken)
-                    ]));
+                    ]);
+
+                if (scoresInRealityContent.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException($"Unexpected status code: {scoresInRealityContent.StatusCode}", null,
+                        scoresInRealityContent.StatusCode);
+
+                scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(scoresInRealityContent.Result);
             }
         }
         catch (Exception ex)
@@ -373,15 +395,34 @@ public class PlateCommand : MaiCommandBase
         var category = PlateCategories.Ji;
 
         if (jiRegex.IsMatch(command))
+        {
             category = PlateCategories.Ji;
-        if (jiangRegex.IsMatch(command))
+        }
+        else if (jiangRegex.IsMatch(command))
+        {
             category = PlateCategories.Jiang;
-        if (shenRegex.IsMatch(command))
+        }
+        else if (shenRegex.IsMatch(command))
+        {
             category = PlateCategories.Shen;
-        if (wuwuRegex.IsMatch(command))
+        }
+        else if (wuwuRegex.IsMatch(command))
+        {
             category = PlateCategories.Wuwu;
-        if (bazheRegex.IsMatch(command))
+        }
+        else if (bazheRegex.IsMatch(command))
+        {
             category = PlateCategories.Bazhe;
+        }
+        else
+        {
+            SendMessage(
+                source,
+                [new CqReplyMsg(source.MessageId), new CqTextMsg("未找到该姓名框")]
+            );
+
+            return;
+        }
 
         var isCompressed =
             SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);

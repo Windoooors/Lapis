@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
@@ -12,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
-public class UpdateCommand : MaiCommandBase
+public class UpdateCommand : WckCommandBase
 {
     public UpdateCommand()
     {
@@ -23,14 +24,18 @@ public class UpdateCommand : MaiCommandBase
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
+        var sessionValid = TryGetSessionId(source, out var sessionId);
+
+        if (!sessionValid)
+            return;
+
         var matchedUserBindData = BindCommand.UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
 
-        if (matchedUserBindData == null || matchedUserBindData.AimeId == 0 ||
-            matchedUserBindData.DivingFishImportToken == null)
+        if (matchedUserBindData == null || matchedUserBindData.DivingFishImportToken == null)
         {
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg("您的信息未绑定完全\n请访问 https://setchin.com/lapis/docs/ 以了解更多")
+                new CqTextMsg("您未绑定 DivingFish 分数上传 Token\n请访问 https://setchin.com/lapis/docs/ 以了解更多")
             ]);
             return;
         }
@@ -44,13 +49,18 @@ public class UpdateCommand : MaiCommandBase
 
         try
         {
-            responseString = ApiOperator.Instance.Post(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
-                "get_user_music_data",
-                new UserMusicDataRequestDto(matchedUserBindData.AimeId, MaiCommandInstance.Songs.Last().Id), 60);
-        }
-        catch (Exception exception)
-        {
-            if (exception is TaskCanceledException or HttpRequestException)
+            var parameters = new Dictionary<string, string>
+            {
+                { "session_id", sessionId },
+                { "range", MaiCommandInstance.Songs.Last().Id.ToString() }
+            };
+
+            var response = ApiOperator.Instance.Get(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
+                "v1/user_music_data", parameters, 240);
+
+            responseString = response.Result;
+
+            if (response.StatusCode != HttpStatusCode.OK)
             {
                 SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
@@ -58,16 +68,24 @@ public class UpdateCommand : MaiCommandBase
                 ]);
                 return;
             }
-
+        }
+        catch (Exception)
+        {
             HelpCommand.Instance.UnexpectedErrorHelp(source);
             return;
         }
 
-        var rawMusicData = JsonConvert.DeserializeObject<RawMusicDataDto>(responseString);
+        var rawMusicData = JsonConvert.DeserializeObject<WckMusicDataResponseDto>(responseString);
 
-        var musicDataList = new List<MusicData>();
+        if (rawMusicData.Code != 200)
+        {
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
+            return;
+        }
 
-        foreach (var rawData in rawMusicData.RawMusicDataDetailArray)
+        var musicDataList = new List<DivingFishMusicDataItemDto>();
+
+        foreach (var rawData in rawMusicData.MusicData)
         {
             var fcString = rawData.ComboStatus switch
             {
@@ -99,7 +117,7 @@ public class UpdateCommand : MaiCommandBase
             if (rawData.Id >= 100000)
                 rawData.Level -= 10;
 
-            var musicData = new MusicData
+            var musicData = new DivingFishMusicDataItemDto
             {
                 Achievements = (float)rawData.Achievement / 10000,
                 DxScore = rawData.DxScore,
@@ -117,14 +135,18 @@ public class UpdateCommand : MaiCommandBase
 
         try
         {
-            var uploadResponseString = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+            var uploadRequestResult = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/player/update_records", uploadContent,
                 [
                     new KeyValuePair<string, string>("Import-Token", matchedUserBindData.DivingFishImportToken),
                     new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)
                 ], 60);
 
-            var uploadResponse = JsonConvert.DeserializeObject<UploadRecordsResponseDto>(uploadResponseString);
+            if (uploadRequestResult.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {uploadRequestResult.StatusCode}", null,
+                    uploadRequestResult.StatusCode);
+
+            var uploadResponse = JsonConvert.DeserializeObject<UploadRecordsResponseDto>(uploadRequestResult.Result);
 
             if (uploadResponse.Status == "error")
             {
@@ -166,13 +188,7 @@ public class UpdateCommand : MaiCommandBase
         [JsonProperty("status")] public string Status { get; set; }
     }
 
-    private class UserMusicDataRequestDto(long aimeId, int range)
-    {
-        public long AimeId = aimeId;
-        public int Range = range;
-    }
-
-    private class MusicData
+    private class DivingFishMusicDataItemDto
     {
         [JsonProperty("achievements")] public float Achievements;
         [JsonProperty("dxScore")] public int DxScore;
@@ -183,20 +199,20 @@ public class UpdateCommand : MaiCommandBase
         [JsonProperty("type")] public string Type;
     }
 
-    private class RawMusicDataDto
+    private class WckMusicDataResponseDto
     {
-        [JsonProperty("Code")] public int Code { get; set; }
+        public int Code { get; set; }
 
-        [JsonProperty("MusicData")] public RawMusicDataDetailDto[] RawMusicDataDetailArray { get; set; }
+        public WckMusicDataResponseItemDto[] MusicData { get; set; }
     }
 
-    private class RawMusicDataDetailDto
+    private class WckMusicDataResponseItemDto
     {
-        [JsonProperty("musicId")] public int Id { get; set; }
-        [JsonProperty("level")] public int Level { get; set; }
-        [JsonProperty("achievement")] public int Achievement { get; set; }
-        [JsonProperty("deluxscoreMax")] public int DxScore { get; set; }
-        [JsonProperty("comboStatus")] public int ComboStatus { get; set; }
-        [JsonProperty("syncStatus")] public int SyncStatus { get; set; }
+        public int Id { get; set; }
+        public int Level { get; set; }
+        public int Achievement { get; set; }
+        public int DxScore { get; set; }
+        public int ComboStatus { get; set; }
+        public int SyncStatus { get; set; }
     }
 }
