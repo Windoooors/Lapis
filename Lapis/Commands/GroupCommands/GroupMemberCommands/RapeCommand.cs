@@ -177,12 +177,10 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         CqGroupMessagePostContext source,
         bool sendNotFoundMessage)
     {
-        if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
-            return;
-
-        if
-            (long.TryParse(arguments[0], out var id) && id == BotConfiguration.Instance.BotQqNumber)
+        if (long.TryParse(arguments[0], out var id) && id == BotConfiguration.Instance.BotQqNumber)
         {
+            if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
+                return;
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId), BotReply
             ]);
@@ -200,6 +198,9 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
         if (members.Length != 1)
         {
+            if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
+                return;
+            
             SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
@@ -213,12 +214,18 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
         if (members[0].Id == source.Sender.UserId)
         {
+            if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
+                return;
+            
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId), "哇 还有水仙"
             ]);
             return;
         }
 
+        if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
+            return;
+        
         if (!SendRapeMessage(members[0], source)) ParseWithArgument(arguments, originalPlainMessage, source);
     }
 
