@@ -303,13 +303,13 @@ public class TooLongDontReadCommand : GroupCommand
         long[] atIds = null,
         bool hasPicture = false)
     {
-        public readonly long[] AtIds = atIds ?? [];
-        public readonly bool HasPicture = hasPicture;
-        public readonly long MessageId = messageId;
-        public readonly string MessageInPlainText = plainMessage;
-        public readonly long RepliedMessageId = repliedMessageId;
-        public readonly long SenderId = senderId;
-        public readonly DateTime TimeStamp = DateTime.Now;
+        public long[] AtIds { get; set; } = atIds ?? [];
+        public bool HasPicture { get; set; } = hasPicture;
+        public long MessageId { get; set; } = messageId;
+        public string MessageInPlainText { get; set; } = plainMessage;
+        public long RepliedMessageId { get; set; } = repliedMessageId;
+        public long SenderId { get; set; } = senderId;
+        public DateTime TimeStamp { get; set; } = DateTime.Now;
     }
 
     private class DeepSeekResponseDto
