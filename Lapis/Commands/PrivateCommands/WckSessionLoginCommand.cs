@@ -64,12 +64,12 @@ public class WckSessionLoginCommand : PrivateCommand // Wck stands for WahlapCon
 
     private class SessionLoginResponseDto
     {
-        public int Code { get; set; }
+        [JsonProperty] public int Code { get; set; }
     }
 
     private class SessionLoginRequestDto
     {
-        public string WechatQrCode { get; set; }
-        public long QqId { get; set; }
+        [JsonProperty] public string WechatQrCode { get; set; }
+        [JsonProperty] public long QqId { get; set; }
     }
 }

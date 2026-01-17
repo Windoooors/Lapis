@@ -93,26 +93,26 @@ public class PlayerInfoCommand : WckCommandBase
 
     private class PlayInfoResponseDto
     {
-        public int Code { get; } = 0;
+        [JsonProperty] public int Code { get; set; }
 
-        public string LastRegionName { get; } = "";
+        [JsonProperty] public string LastRegionName { get; set; } = "";
 
-        public UserRegionDto[] UserRegions { get; set; }
-        public string UserName { get; set; }
-        public int PlayerRating { get; set; }
-        public int PlayerNewRating { get; set; }
-        public int PlayerOldRating { get; set; }
-        public int PlayCount { get; set; }
-        public int CurrentVersionPlayCount { get; set; }
-        public DateTime LastLoginDate { get; set; }
-        public DateTime LastLogoutDate { get; set; }
-        public DateTime FirstPlayDate { get; set; }
+        [JsonProperty] public UserRegionDto[] UserRegions { get; set; }
+        [JsonProperty] public string UserName { get; set; }
+        [JsonProperty] public int PlayerRating { get; set; }
+        [JsonProperty] public int PlayerNewRating { get; set; }
+        [JsonProperty] public int PlayerOldRating { get; set; }
+        [JsonProperty] public int PlayCount { get; set; }
+        [JsonProperty] public int CurrentVersionPlayCount { get; set; }
+        [JsonProperty] public DateTime LastLoginDate { get; set; }
+        [JsonProperty] public DateTime LastLogoutDate { get; set; }
+        [JsonProperty] public DateTime FirstPlayDate { get; set; }
     }
 
     private class UserRegionDto
     {
-        public string RegionName { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public int PlayCount { get; set; }
+        [JsonProperty] public string RegionName { get; set; }
+        [JsonProperty] public DateTime CreatedDate { get; set; }
+        [JsonProperty] public int PlayCount { get; set; }
     }
 }

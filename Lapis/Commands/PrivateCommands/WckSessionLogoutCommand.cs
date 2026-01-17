@@ -66,6 +66,6 @@ public class WckSessionLogoutCommand : PrivateCommand
 
     private class SessionLogoutResponseDto
     {
-        public int Code { get; set; }
+        [JsonProperty] public int Code { get; set; }
     }
 }

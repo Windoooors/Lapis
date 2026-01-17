@@ -55,7 +55,7 @@ public class WckCommandBase : MaiCommandBase // Wck stands for WahlapConnectiveK
 
     protected class SessionDto
     {
-        public int Code { get; set; } = 0;
-        public string SessionId { get; set; } = null;
+        [JsonProperty] public int Code { get; set; }
+        [JsonProperty] public string SessionId { get; set; }
     }
 }

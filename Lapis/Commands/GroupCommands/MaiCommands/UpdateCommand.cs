@@ -201,18 +201,18 @@ public class UpdateCommand : WckCommandBase
 
     private class WckMusicDataResponseDto
     {
-        public int Code { get; set; }
+        [JsonProperty] public int Code { get; set; }
 
-        public WckMusicDataResponseItemDto[] MusicData { get; set; }
+        [JsonProperty] public WckMusicDataResponseItemDto[] MusicData { get; set; }
     }
 
     private class WckMusicDataResponseItemDto
     {
-        public int Id { get; set; }
-        public int Level { get; set; }
-        public int Achievement { get; set; }
-        public int DxScore { get; set; }
-        public int ComboStatus { get; set; }
-        public int SyncStatus { get; set; }
+        [JsonProperty] public int Id { get; set; }
+        [JsonProperty] public int Level { get; set; }
+        [JsonProperty] public int Achievement { get; set; }
+        [JsonProperty] public int DxScore { get; set; }
+        [JsonProperty] public int ComboStatus { get; set; }
+        [JsonProperty] public int SyncStatus { get; set; }
     }
 }

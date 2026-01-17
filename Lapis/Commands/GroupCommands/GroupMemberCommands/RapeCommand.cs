@@ -200,7 +200,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         {
             if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
                 return;
-            
+
             SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
@@ -216,7 +216,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         {
             if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
                 return;
-            
+
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId), "哇 还有水仙"
             ]);
@@ -225,7 +225,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
 
         if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
             return;
-        
+
         if (!SendRapeMessage(members[0], source)) ParseWithArgument(arguments, originalPlainMessage, source);
     }
 
