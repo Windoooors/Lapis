@@ -32,7 +32,8 @@ public static class SharedConsts
         { "祝", "maimai でらっくす FESTiVAL" },
         { "双", "maimai でらっくす BUDDiES" },
         { "宴", "maimai でらっくす BUDDiES" },
-        { "镜", "maimai でらっくす PRiSM" }
+        { "镜", "maimai でらっくす PRiSM" },
+        { "彩", "maimai でらっくす PRiSM" }
     };
 
     public static readonly Dictionary<string, List<string>> VersionNameToPlateCharacters = new()
@@ -56,7 +57,7 @@ public static class SharedConsts
         ["maimai でらっくす UNiVERSE"] = ["宙", "星"],
         ["maimai でらっくす FESTiVAL"] = ["祭", "祝"],
         ["maimai でらっくす BUDDiES"] = ["双", "宴"],
-        ["maimai でらっくす PRiSM"] = ["镜"]
+        ["maimai でらっくす PRiSM"] = ["镜", "彩"]
     };
 
     public static readonly Dictionary<string, string> DxVersionToChineseVersionName = new()

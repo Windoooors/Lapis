@@ -53,7 +53,8 @@ public class Program
         new QuitCommand(),
         new TooLongDontReadCommand(),
         new WckSessionLoginCommand(),
-        new WckSessionLogoutCommand()
+        new WckSessionLogoutCommand(),
+        new BilibiliForwardParserCommand()
     ];
 
     private static DateTime _lastDailyRefreshTime;

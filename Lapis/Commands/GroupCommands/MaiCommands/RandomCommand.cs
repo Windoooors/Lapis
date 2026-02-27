@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.ImageGenerators;
@@ -47,7 +48,8 @@ public class RandomCommand : MaiCommandBase
                     isCompressed))
             ]);
 
-            if (SettingsPool.GetValue(new SettingsIdentifierPair("random", "2"), source.GroupId))
+            if (SettingsPool.GetValue(new SettingsIdentifierPair("random", "2"), source.GroupId) &&
+                File.Exists(GetSongPath(songs[j].Id)))
                 SendMessage(source,
                 [
                     new CqRecordMsg("file:///" + GetSongPath(songs[j].Id))

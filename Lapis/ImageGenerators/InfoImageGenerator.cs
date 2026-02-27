@@ -9,7 +9,7 @@ using HorizontalAlignment = Lapis.Operations.ImageOperation.HorizontalAlignment;
 
 namespace Lapis.ImageGenerators;
 
-public class InfoImageGenerator
+public class InfoImageGenerator : ImageGenerator
 {
     private string _coverImagePath;
 
@@ -17,10 +17,7 @@ public class InfoImageGenerator
     {
         var image = new Image(Path.Combine(Environment.CurrentDirectory, "resource/random/background.png"));
 
-        _coverImagePath = File.Exists(Path.Combine(Environment.CurrentDirectory, "resource/covers_hd",
-            song.Id + ".png"))
-            ? Path.Combine(Environment.CurrentDirectory, "resource/covers_hd", song.Id + ".png")
-            : Path.Combine(Environment.CurrentDirectory, "resource/covers", "1000.png");
+        _coverImagePath = GetHdSongCoverPath(song.Id);
 
         var backgroundCoverImage = new Image(_coverImagePath);
 
@@ -55,13 +52,14 @@ public class InfoImageGenerator
         return image;
     }
 
-    private Image GenerateDifficultyLayer(SongDto song, InfoCommand.GetScore.LevelDto[] levels)
+    private Image GenerateDifficultyLayer(SongDto song, InfoCommand.GetScore.ScoreData scoreData)
     {
         var difficultyLayerImage = new Image(6600, 1080, new Color(0, 0, 0, 0));
-        if (levels != null)
+        if (scoreData != null)
         {
             Image image = null;
-            foreach (var level in levels)
+
+            foreach (var level in scoreData.Levels)
             {
                 var y = 0;
                 switch (level.LevelIndex)
@@ -85,7 +83,7 @@ public class InfoImageGenerator
 
                 var achievementText = level.Achievement.ToString("0.0000") + "%";
 
-                var ratingText = $"·{level.Rating}";
+                var ratingText = $"·{level.Rating}{(level.PlayCount == -1 ? "" : $" PC {level.PlayCount}")}";
 
                 difficultyLayerImage.DrawText(achievementText, Color.White, 24,
                     FontWeight.Regular, 0, y + 120);
@@ -139,7 +137,9 @@ public class InfoImageGenerator
                         indicatorText = indicatorText.TrimEnd();
 
                     if (indicatorText != string.Empty)
-                        difficultyLayerImage.DrawText(indicatorText, new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
+                        difficultyLayerImage.DrawText(
+                            $"{indicatorText} {level.DxScore}/{scoreData.Song.Charts[level.LevelIndex].MaxDxScore}",
+                            new Color(1, 1, 1, 0.5f), 18, FontWeight.Regular,
                             image.Width + 5,
                             y + 95);
 
@@ -178,7 +178,7 @@ public class InfoImageGenerator
         return difficultyLayerImage;
     }
 
-    public string Generate(SongDto song, string title, InfoCommand.GetScore.LevelDto[] levels, bool isCompressed)
+    public string Generate(SongDto song, string title, InfoCommand.GetScore.ScoreData levels, bool isCompressed)
     {
         var image = GenerateBackground(song, title);
 

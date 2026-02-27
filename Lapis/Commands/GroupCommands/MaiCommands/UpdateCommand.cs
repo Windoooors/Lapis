@@ -52,7 +52,8 @@ public class UpdateCommand : WckCommandBase
             var parameters = new Dictionary<string, string>
             {
                 { "session_id", sessionId },
-                { "range", MaiCommandInstance.Songs.Last().Id.ToString() }
+                { "range_to", MaiCommandInstance.Songs.Last().Id.ToString() },
+                { "range_from", "0" }
             };
 
             var response = ApiOperator.Instance.Get(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
@@ -82,10 +83,80 @@ public class UpdateCommand : WckCommandBase
             HelpCommand.Instance.UnexpectedErrorHelp(source);
             return;
         }
+        
+        var uploadContent = ConvertData(rawMusicData.MusicData);
 
+        try
+        {
+            var uploadRequestResult = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/player/update_records", uploadContent,
+                [
+                    new KeyValuePair<string, string>("Import-Token", matchedUserBindData.DivingFishImportToken),
+                    new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)
+                ], 60);
+
+            if (uploadRequestResult.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {uploadRequestResult.StatusCode}", null,
+                    uploadRequestResult.StatusCode);
+
+            var uploadResponse = JsonConvert.DeserializeObject<UploadRecordsResponseDto>(uploadRequestResult.Result);
+
+            if (uploadResponse.Status == "error")
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户")
+                ]);
+                return;
+            }
+
+            SendMessage(source, [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg($"更新成功！\n本次一共更新了 {uploadContent.Length} 张谱面的数据")
+            ]);
+        }
+        catch (Exception exception)
+        {
+            if (exception is TaskCanceledException)
+            {
+                DivingFishErrorHelp(source);
+                return;
+            }
+
+            if (exception is HttpRequestException)
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户")
+                ]);
+                return;
+            }
+
+            HelpCommand.Instance.UnexpectedErrorHelp(source);
+        }
+    }
+
+    private class UploadRecordsResponseDto
+    {
+        [JsonProperty("status")] public string Status { get; set; }
+    }
+
+    public class DivingFishMusicDataItemDto
+    {
+        [JsonProperty("achievements")] public float Achievements;
+        [JsonProperty("dxScore")] public int DxScore;
+        [JsonProperty("fc")] public string Fc;
+        [JsonProperty("fs")] public string Fs;
+        [JsonProperty("level_index")] public int LevelIndex;
+        [JsonProperty("title")] public string Title;
+        [JsonProperty("type")] public string Type;
+    }
+
+    public static DivingFishMusicDataItemDto[] ConvertData(WckMusicDataResponseItemDto[] rawMusicData)
+    {
         var musicDataList = new List<DivingFishMusicDataItemDto>();
 
-        foreach (var rawData in rawMusicData.MusicData)
+        foreach (var rawData in rawMusicData)
         {
             var fcString = rawData.ComboStatus switch
             {
@@ -130,83 +201,18 @@ public class UpdateCommand : WckCommandBase
 
             musicDataList.Add(musicData);
         }
-
-        var uploadContent = musicDataList.ToArray();
-
-        try
-        {
-            var uploadRequestResult = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/player/update_records", uploadContent,
-                [
-                    new KeyValuePair<string, string>("Import-Token", matchedUserBindData.DivingFishImportToken),
-                    new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)
-                ], 60);
-
-            if (uploadRequestResult.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"Unexpected status code: {uploadRequestResult.StatusCode}", null,
-                    uploadRequestResult.StatusCode);
-
-            var uploadResponse = JsonConvert.DeserializeObject<UploadRecordsResponseDto>(uploadRequestResult.Result);
-
-            if (uploadResponse.Status == "error")
-            {
-                SendMessage(source, [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户")
-                ]);
-                return;
-            }
-
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg($"更新成功！\n本次一共更新了 {musicDataList.Count} 张谱面的数据")
-            ]);
-        }
-        catch (Exception exception)
-        {
-            if (exception is TaskCanceledException)
-            {
-                DivingFishErrorHelp(source);
-                return;
-            }
-
-            if (exception is HttpRequestException)
-            {
-                SendMessage(source, [
-                    new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户")
-                ]);
-                return;
-            }
-
-            HelpCommand.Instance.UnexpectedErrorHelp(source);
-        }
+        
+        return musicDataList.ToArray();
     }
-
-    private class UploadRecordsResponseDto
-    {
-        [JsonProperty("status")] public string Status { get; set; }
-    }
-
-    private class DivingFishMusicDataItemDto
-    {
-        [JsonProperty("achievements")] public float Achievements;
-        [JsonProperty("dxScore")] public int DxScore;
-        [JsonProperty("fc")] public string Fc;
-        [JsonProperty("fs")] public string Fs;
-        [JsonProperty("level_index")] public int LevelIndex;
-        [JsonProperty("title")] public string Title;
-        [JsonProperty("type")] public string Type;
-    }
-
-    private class WckMusicDataResponseDto
+    
+    public class WckMusicDataResponseDto
     {
         [JsonProperty] public int Code { get; set; }
 
         [JsonProperty] public WckMusicDataResponseItemDto[] MusicData { get; set; }
     }
 
-    private class WckMusicDataResponseItemDto
+    public class WckMusicDataResponseItemDto
     {
         [JsonProperty] public int Id { get; set; }
         [JsonProperty] public int Level { get; set; }
@@ -214,5 +220,6 @@ public class UpdateCommand : WckCommandBase
         [JsonProperty] public int DxScore { get; set; }
         [JsonProperty] public int ComboStatus { get; set; }
         [JsonProperty] public int SyncStatus { get; set; }
+        [JsonProperty] public int PlayCount { get; set; }
     }
 }

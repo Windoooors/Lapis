@@ -7,7 +7,7 @@ using Lapis.Operations.ImageOperation;
 
 namespace Lapis.ImageGenerators;
 
-public class BestImageGenerator
+public class BestImageGenerator : ImageGenerator
 {
     public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
     {
@@ -258,13 +258,7 @@ public class BestImageGenerator
         var foreground = new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/b50_item_foreground_" +
                                                                           difficulty + ".png"));
 
-        Image background;
-        if (File.Exists(Path.Combine(AppContext.BaseDirectory, "resource/covers/" + score.Id +
-                                                               ".png")))
-            background = new Image(Path.Combine(AppContext.BaseDirectory, "resource/covers/" +
-                                                                          score.Id + ".png"));
-        else
-            background = new Image(Path.Combine(AppContext.BaseDirectory, "resource/covers/1000.png"));
+        var background = new Image(GetSongCoverPath(score.Id));
 
         var foregroundColor = background.GetDominantColor();
 
@@ -419,8 +413,7 @@ public class BestImageGenerator
         if (best.Charts.SdCharts.Length != 0)
         {
             background.Dispose();
-            background = new Image(Path.Combine(AppContext.BaseDirectory, "resource/covers/" +
-                                                                          best.Charts.SdCharts[0].Id + ".png"));
+            background = new Image(GetSongCoverPath(best.Charts.SdCharts[0].Id));
         }
 
         background.Scale(75, 75);

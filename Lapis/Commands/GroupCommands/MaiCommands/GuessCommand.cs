@@ -13,7 +13,7 @@ namespace Lapis.Commands.GroupCommands.MaiCommands;
 
 public static class AudioEditor
 {
-    public static string Convert(int id)
+    public static bool TryConvert(int id, out string path)
     {
         try
         {
@@ -21,6 +21,13 @@ public static class AudioEditor
                                   "temp/" + id + "/"))
                 Directory.CreateDirectory(AppContext.BaseDirectory +
                                           "temp/" + id + "/");
+
+            if (!File.Exists(AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3"))
+            {
+                path = "";
+
+                return false;
+            }
 
             var info = FFmpeg.GetMediaInfo(AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3").Result;
             var duration = (int)info
@@ -34,9 +41,12 @@ public static class AudioEditor
             if (File.Exists(AppContext.BaseDirectory +
                             "temp/" + id + "/" +
                             startTime.TotalSeconds + ".mp3"))
-                return new string(AppContext.BaseDirectory +
+            {
+                path = new string(AppContext.BaseDirectory +
                                   "temp/" + id + "/" +
                                   startTime.TotalSeconds + ".mp3");
+                return true;
+            }
 
             var conversion = FFmpeg.Conversions.New();
 
@@ -47,13 +57,18 @@ public static class AudioEditor
 
             var result = conversion.Start().Result;
 
-            return new string(AppContext.BaseDirectory +
-                              "temp/" + id + "/" +
-                              startTime.TotalSeconds + ".mp3");
+            {
+                path = new string(AppContext.BaseDirectory +
+                                  "temp/" + id + "/" +
+                                  startTime.TotalSeconds + ".mp3");
+                return true;
+            }
         }
         catch
         {
-            return "";
+            path = "";
+
+            return false;
         }
     }
 }
@@ -103,6 +118,19 @@ public class GuessCommand : MaiCommandBase
         {
             var random = new Random();
             var songIndex = random.Next(0, songs.Length);
+
+            if (!AudioEditor.TryConvert(songs[songIndex].Id, out var clipPath))
+            {
+                if (songs.Length <= 1)
+                    SendMessage(source,
+                    [
+                        new CqReplyMsg(source.MessageId),
+                        new CqTextMsg("未找到歌曲资源，请重试")
+                    ]);
+
+                StartGuessing(source, songs);
+            }
+
             _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
             SendMessage(source,
@@ -112,7 +140,7 @@ public class GuessCommand : MaiCommandBase
             ]);
 
             SendMessage(source,
-                [new CqRecordMsg("file:///" + AudioEditor.Convert(songs[songIndex].Id))]);
+                [new CqRecordMsg("file:///" + clipPath)]);
         }
         else
         {
@@ -130,6 +158,10 @@ public class GuessCommand : MaiCommandBase
         {
             var random = new Random();
             var songIndex = random.Next(0, MaiCommandInstance.Songs.Length);
+
+            if (!AudioEditor.TryConvert(MaiCommandInstance.Songs[songIndex].Id, out var clipPath))
+                StartGuessing(source);
+
             _guessingGroupsMap.Add(source.GroupId.ToString(),
                 (MaiCommandInstance.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
             SendMessage(source,
@@ -139,7 +171,7 @@ public class GuessCommand : MaiCommandBase
             ]);
 
             SendMessage(source,
-                [new CqRecordMsg("file:///" + AudioEditor.Convert(MaiCommandInstance.Songs[songIndex].Id))]);
+                [new CqRecordMsg("file:///" + clipPath)]);
         }
         else
         {

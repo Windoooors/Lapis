@@ -9,7 +9,7 @@ using Lapis.Operations.ImageOperation;
 
 namespace Lapis.ImageGenerators;
 
-public class PlateImageGenerator
+public class PlateImageGenerator : ImageGenerator
 {
     public string Generate(List<PlateCommand.SongToBeDisplayed> songsToBeDisplayed,
         List<PlateCommand.SongToBeDisplayed> allSongs, string username, MaiCommand maiCommand,
@@ -99,8 +99,7 @@ public class PlateImageGenerator
 
         using var image = new Image(700, totalHeight);
 
-        using var backgroundImage = new Image(AppContext.BaseDirectory + @"resource/covers/" +
-                                              sortedDifficulties.Values.ToArray()[0][0].SongDto.Id + ".png");
+        using var backgroundImage = new Image(GetSongCoverPath(sortedDifficulties.Values.ToArray()[0][0].SongDto.Id));
 
         backgroundImage.Resize(75, 75);
 
@@ -375,7 +374,7 @@ public class PlateImageGenerator
     private Image GenerateItem(SongDto songDto, int levelIndex, ScoresDto.ScoreDto scoreDto,
         PlateCommand.PlateCategories category)
     {
-        var image = new Image(AppContext.BaseDirectory + "resource/covers/" + songDto.Id + ".png");
+        var image = new Image(GetSongCoverPath(songDto.Id));
         var gradient = new Image(AppContext.BaseDirectory + "resource/plate/gradient.png");
 
         var dominantColor = image.GetDominantColor();
