@@ -39,6 +39,8 @@ public class RapeRankCommand : GroupMemberCommandBase
 
         var ranked = false;
 
+        var lines = 0;
+        
         for (var i = 0;
              i < memberList.Count && memberList[i].RapedTimes != 0 &&
              TryGetNickname(memberList[i].Id, source.GroupId, out var nickname);
@@ -48,13 +50,17 @@ public class RapeRankCommand : GroupMemberCommandBase
                 memberList[i].RapedTimes
             } 次");
 
+            lines++;
+
             ranked = true;
         }
 
-        SendMessage(source,
+        var sendForwardMsg = lines >= 10;
+
+        SendMessage(source.GroupId,
         [
             new CqReplyMsg(source.MessageId),
             ranked ? new CqTextMsg(stringBuilder.ToString().Trim()) : new CqTextMsg("暂时没有人北朝哈！")
-        ]);
+        ], sendForwardMsg);
     }
 }

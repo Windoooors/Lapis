@@ -24,13 +24,28 @@ public class GroupCommand : Command
     {
     }
 
-    protected void SendMessage(long groupId, CqMessage message)
+    protected void SendMessage(long groupId, CqMessage message, bool sendForwardedHistory= false)
     {
         if (!(!SettingsPool.GetValue(new SettingsIdentifierPair("mute", "1"), groupId) || this is SettingsCommand))
             return;
 
         if (message[0] is CqReplyMsg replyMessage)
             TooLongDontReadCommand.Instance.ExcludeMessage(replyMessage.Id, groupId);
-        Program.Session.SendGroupMessage(groupId, message);
+
+        if (sendForwardedHistory)
+        {
+            var msg = new CqForwardMessage
+            {
+                Capacity = 1
+            };
+            msg.Add(new CqForwardMessageNode(BotConfiguration.Instance.BotName, BotConfiguration.Instance.BotQqNumber,
+                message));
+
+            Program.Session.SendGroupForwardMessage(groupId, msg);
+        }
+        else
+        {
+            Program.Session.SendGroupMessage(groupId, message);
+        }
     }
 }

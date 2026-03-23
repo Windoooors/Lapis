@@ -85,6 +85,10 @@ public class Program
 
     public static Task Main()
     {
+        var keepAlive = new ManualResetEvent(false);
+
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => keepAlive.Set();
+        
         if (!Directory.Exists(AppContext.BaseDirectory + "/data"))
             Directory.CreateDirectory(AppContext.BaseDirectory + "/data");
 
@@ -169,7 +173,7 @@ public class Program
         var thread = new Thread(CountTime);
         thread.Start();
 
-        Console.ReadLine();
+        keepAlive.WaitOne();
 
         return Task.CompletedTask;
     }

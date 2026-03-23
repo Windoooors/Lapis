@@ -120,8 +120,13 @@ public class ApiOperator
         var httpResponse = httpClient.DeleteAsync(new Uri(url)).Result;
 
         if (httpResponse.StatusCode != HttpStatusCode.OK)
+        {
+            httpClient.Dispose();
+            httpResponse.Dispose();
+            
             throw new HttpRequestException($"Unexpected status code: {httpResponse.StatusCode}", null,
                 httpResponse.StatusCode);
+        }
 
         var reader = new StreamReader(httpResponse.Content.ReadAsStream(), Encoding.UTF8);
         var result = reader.ReadToEnd();
@@ -164,15 +169,20 @@ public class ApiOperator
 
     private RequestResult GetCore(string url, int timeOut)
     {
-        var httpClient = new HttpClient
+         var httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(timeOut)
         };
-        var httpResponse = httpClient.GetAsync(new Uri(url)).Result;
+         var httpResponse = httpClient.GetAsync(new Uri(url)).Result;
 
         if (httpResponse.StatusCode != HttpStatusCode.OK)
+        {
+            httpClient.Dispose();
+            httpResponse.Dispose();
+
             throw new HttpRequestException($"Unexpected status code: {httpResponse.StatusCode}", null,
                 httpResponse.StatusCode);
+        }
 
         var reader = new StreamReader(httpResponse.Content.ReadAsStream(), Encoding.UTF8);
         var result = reader.ReadToEnd();
