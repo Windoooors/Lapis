@@ -26,16 +26,22 @@ public abstract class VocabularyCommandBase : GroupCommand
     {
         public WordDto[] Words;
     }
+
+    public class LargeVocabulary
+    {
+        public Dictionary<string, WordDto[]> Words;
+    }
 }
 
 public class VocabularyCommand : VocabularyCommandBase
 {
     public readonly List<Vocabulary> Vocabularies = [];
+    public LargeVocabulary LargeVocabulary;
 
     public VocabularyCommand()
     {
         VocabularyCommandInstance = this;
-        SubCommands = [new GuessWordsCommand(), new DictionaryCommand()];
+        SubCommands = [new GuessWordsCommand(), new DictionaryCommand(), new WordleCommand()];
     }
 
     public override void Initialize()
@@ -47,5 +53,12 @@ public class VocabularyCommand : VocabularyCommandBase
             var jsonString = File.ReadAllText(file);
             Vocabularies.Add(new Vocabulary { Words = JsonConvert.DeserializeObject<WordDto[]>(jsonString) });
         }
+
+        var largeVocabularyPath = Path.Combine(AppContext.BaseDirectory, "resource/large_vocabulary.json");
+
+        LargeVocabulary = new LargeVocabulary
+        {
+            Words = JsonConvert.DeserializeObject<Dictionary<string, WordDto[]>>(File.ReadAllText(largeVocabularyPath))
+        };
     }
 }

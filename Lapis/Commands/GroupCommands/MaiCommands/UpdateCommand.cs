@@ -83,7 +83,7 @@ public class UpdateCommand : WckCommandBase
             HelpCommand.Instance.UnexpectedErrorHelp(source);
             return;
         }
-        
+
         var uploadContent = ConvertData(rawMusicData.MusicData);
 
         try
@@ -136,22 +136,6 @@ public class UpdateCommand : WckCommandBase
         }
     }
 
-    private class UploadRecordsResponseDto
-    {
-        [JsonProperty("status")] public string Status { get; set; }
-    }
-
-    public class DivingFishMusicDataItemDto
-    {
-        [JsonProperty("achievements")] public float Achievements;
-        [JsonProperty("dxScore")] public int DxScore;
-        [JsonProperty("fc")] public string Fc;
-        [JsonProperty("fs")] public string Fs;
-        [JsonProperty("level_index")] public int LevelIndex;
-        [JsonProperty("title")] public string Title;
-        [JsonProperty("type")] public string Type;
-    }
-
     public static DivingFishMusicDataItemDto[] ConvertData(WckMusicDataResponseItemDto[] rawMusicData)
     {
         var musicDataList = new List<DivingFishMusicDataItemDto>();
@@ -201,10 +185,26 @@ public class UpdateCommand : WckCommandBase
 
             musicDataList.Add(musicData);
         }
-        
+
         return musicDataList.ToArray();
     }
-    
+
+    private class UploadRecordsResponseDto
+    {
+        [JsonProperty("status")] public string Status { get; set; }
+    }
+
+    public class DivingFishMusicDataItemDto
+    {
+        [JsonProperty("achievements")] public float Achievements;
+        [JsonProperty("dxScore")] public int DxScore;
+        [JsonProperty("fc")] public string Fc;
+        [JsonProperty("fs")] public string Fs;
+        [JsonProperty("level_index")] public int LevelIndex;
+        [JsonProperty("title")] public string Title;
+        [JsonProperty("type")] public string Type;
+    }
+
     public class WckMusicDataResponseDto
     {
         [JsonProperty] public int Code { get; set; }

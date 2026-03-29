@@ -340,11 +340,11 @@ public class TooLongDontReadCommand : GroupCommand
             .AppendLine("6. 如果用户在聊天记录中赞美你，你可以在输出最后加一句简短的回应。")
             .AppendLine("7. 一定保证输出简洁，不能记流水账")
             .ToString();
-        
+
         [JsonProperty("messages")]
         public DeepSeekMessageDto[] Message { get; set; } =
         [
-            new("system",Prompt
+            new("system", Prompt
             ),
             new("user",
                 content)

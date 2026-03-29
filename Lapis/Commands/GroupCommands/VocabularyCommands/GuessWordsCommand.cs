@@ -58,15 +58,7 @@ public class GuessWordsCommand : VocabularyCommandBase
             return;
         }
 
-        var certified = false;
-
-        foreach (var vocabulary in VocabularyCommandInstance.Vocabularies)
-        foreach (var wordItem in vocabulary.Words)
-            if (wordItem.Word == command)
-            {
-                certified = true;
-                break;
-            }
+        var certified = DictionaryCommand.DictionaryCommandInstance.TryLookUp(command, out _);
 
         if (!certified)
             return;

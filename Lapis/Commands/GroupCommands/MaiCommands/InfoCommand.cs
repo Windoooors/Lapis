@@ -160,41 +160,38 @@ public class InfoCommand : WckCommandBase
             if (content.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
                     content.StatusCode);
-            
+
             return new ScoreData(
                 JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0]
                     .Select(x =>
                     {
-                        InquirePlayCount(x,song, userId);
+                        InquirePlayCount(x, song, userId);
                         return x;
                     }).ToArray(),
                 song);
         }
-        
+
         private static void InquirePlayCount(LevelDto levelDto, SongDto song, long qqId)
         {
             var sessionValid = TryGetSessionId(qqId, out var sessionId);
 
             if (!sessionValid)
                 return;
-            
+
             var parameters = new Dictionary<string, string>
             {
                 { "session_id", sessionId },
                 { "range_to", song.Id.ToString() },
                 { "range_from", song.Id.ToString() }
             };
-            
+
             var response = ApiOperator.Instance.Get(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
                 "v1/user_music_data", parameters, 240);
 
             var responseString = response.Result;
 
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                return;
-            }
-            
+            if (response.StatusCode != HttpStatusCode.OK) return;
+
             var rawMusicData = JsonConvert.DeserializeObject<UpdateCommand.WckMusicDataResponseDto>(responseString);
 
             if (rawMusicData.Code != 200)
@@ -215,9 +212,9 @@ public class InfoCommand : WckCommandBase
             [JsonProperty("fc")] public string Fc;
             [JsonProperty("fs")] public string Fs;
             [JsonProperty("level_index")] public int LevelIndex;
+            public int PlayCount = -1;
             [JsonProperty("rate")] public Rate Rate;
             [JsonProperty("ra")] public int Rating;
-            public int PlayCount = -1;
         }
 
         public class ScoreData(LevelDto[] levels, SongDto song)

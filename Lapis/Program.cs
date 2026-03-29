@@ -88,7 +88,7 @@ public class Program
         var keepAlive = new ManualResetEvent(false);
 
         AppDomain.CurrentDomain.ProcessExit += (s, e) => keepAlive.Set();
-        
+
         if (!Directory.Exists(AppContext.BaseDirectory + "/data"))
             Directory.CreateDirectory(AppContext.BaseDirectory + "/data");
 

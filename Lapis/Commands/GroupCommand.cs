@@ -24,7 +24,7 @@ public class GroupCommand : Command
     {
     }
 
-    protected void SendMessage(long groupId, CqMessage message, bool sendForwardedHistory= false)
+    protected void SendMessage(long groupId, CqMessage message, bool sendForwardedHistory = false)
     {
         if (!(!SettingsPool.GetValue(new SettingsIdentifierPair("mute", "1"), groupId) || this is SettingsCommand))
             return;

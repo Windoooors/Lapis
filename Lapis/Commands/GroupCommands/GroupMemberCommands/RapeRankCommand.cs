@@ -40,7 +40,7 @@ public class RapeRankCommand : GroupMemberCommandBase
         var ranked = false;
 
         var lines = 0;
-        
+
         for (var i = 0;
              i < memberList.Count && memberList[i].RapedTimes != 0 &&
              TryGetNickname(memberList[i].Id, source.GroupId, out var nickname);

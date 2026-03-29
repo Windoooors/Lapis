@@ -307,6 +307,7 @@ public class Color
     public static readonly Color Black = new(0, 0, 0, 1);
     public static readonly Color Red = new(1, 0, 0, 1);
     public static readonly Color Transparent = new(0, 0, 0, 0);
+    public static readonly Color LapisThemeColor = new(0.0588f, 0.239f, 0.514f, 1);
     public float A;
     public float B;
     public float G;
