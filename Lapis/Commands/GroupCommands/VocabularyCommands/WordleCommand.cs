@@ -160,7 +160,7 @@ public class WordleCommand : VocabularyCommandBase
             return;
         }
 
-        if (wordLength < 5 || maxTries < 1 || maxTries > 10 || wordLength > 16)
+        if (wordLength < 3 || maxTries < 1 || maxTries > 10 || wordLength > 16)
         {
             SendMessage(source.GroupId, [
                 new CqReplyMsg(source.MessageId),
@@ -175,16 +175,36 @@ public class WordleCommand : VocabularyCommandBase
 
         while (true)
         {
-            var categoryRandom = random.Next(0, VocabularyCommandInstance.LargeVocabulary.Words.Count);
+            var totalLength = 0;
 
-            var categoryKeyString = VocabularyCommandInstance.LargeVocabulary.Words.Keys.ToArray()[categoryRandom];
-            var category = VocabularyCommandInstance.LargeVocabulary.Words[categoryKeyString];
+            VocabularyCommandInstance.LargeVocabulary.Words.ToList().ForEach(x
+                => { totalLength += x.Value.Length; });
 
-            var wordRandom = random.Next(0, category.Length);
-            var word = category[wordRandom];
+            var wordRandomIndex = random.Next(0, totalLength);
+
+            var currentIndex = 0;
+
+            var categoryIndex = 0;
+
+            for (int i = 0; i < VocabularyCommandInstance.LargeVocabulary.Words.Count; i++)
+            {
+                if (currentIndex < wordRandomIndex)
+                    currentIndex += VocabularyCommandInstance.LargeVocabulary.Words.ToList()[i].Value.Length;
+
+                if (currentIndex > wordRandomIndex)
+                {
+                    currentIndex -= VocabularyCommandInstance.LargeVocabulary.Words.ToList()[i].Value.Length;
+
+                    categoryIndex = i;
+                    
+                    break;
+                }
+            }
+            
+            var word = VocabularyCommandInstance.LargeVocabulary.Words.ToList()[categoryIndex].Value[wordRandomIndex - currentIndex];
 
             if (word.Word.Length == wordLength && word.Word.ToList().All(char.IsLetter) &&
-                !word.Word.ToList().All(char.IsUpper))
+                !word.Word.ToList().All(char.IsUpper) && word.Translations.Any(x => x.Type != "abbr"))
             {
                 game.Word = word;
                 break;

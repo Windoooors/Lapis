@@ -29,15 +29,14 @@ public class WordleGameImageGenerator
     public string Generate(WordleCommand.WordleGame game, bool compressed)
     {
         var imageHeight = Padding * 2
-                          + WordBoxWidth * game.MaxTries
-                          + SpaceBetweenWordBoxes * (game.MaxTries - 1)
-                          + SpaceBetweenWordAndKeyboard
-                          + KeyboardBoxHeight * 3 + SpaceBetweenKeyBoxes * 2;
+            + WordBoxWidth * game.MaxTries
+            + SpaceBetweenWordBoxes * (game.MaxTries - 1) +
+            (game.WordLength >= 5
+                ? SpaceBetweenWordAndKeyboard
+                  + KeyboardBoxHeight * 3 + SpaceBetweenKeyBoxes * 2
+                : 0);
 
-        var imageWidth = Math.Max(
-            KeyboardBoxWidth * 10 + SpaceBetweenKeyBoxes * 9 + 2 * Padding,
-            WordBoxWidth * game.WordLength + SpaceBetweenWordBoxes * (game.WordLength - 1) + Padding * 2
-        );
+        var imageWidth = WordBoxWidth * game.WordLength + SpaceBetweenWordBoxes * (game.WordLength - 1) + Padding * 2;
 
         using var image = new Image((int)imageWidth, (int)imageHeight, Color.LapisThemeColor);
 
@@ -45,7 +44,8 @@ public class WordleGameImageGenerator
         for (var i = 0; i < game.MaxTries; i++) colorMaps.Add(new int[game.WordLength]);
 
         DrawWordBoxes(image);
-        DrawKeyBoxes(image);
+        if (game.WordLength >= 5)
+            DrawKeyBoxes(image);
 
         return image.ToBase64(compressed);
 
@@ -145,7 +145,12 @@ public class WordleGameImageGenerator
         void DrawKeyBoxes(Image backgroundImage)
         {
             var top = imageHeight - Padding - SpaceBetweenKeyBoxes * 2 - KeyboardBoxHeight * 3;
-            var left = Padding;
+
+            var keyWidth = KeyboardBoxWidth * _keyboardLetters[0].Length +
+                           SpaceBetweenKeyBoxes * (_keyboardLetters[0].Length - 1);
+            
+            var left = (imageWidth - keyWidth) / 2;
+            var originalLeft = left;
 
             for (var i = 0; i < 3; i++)
             {
@@ -158,7 +163,7 @@ public class WordleGameImageGenerator
                 }
 
                 top += KeyboardBoxHeight + SpaceBetweenKeyBoxes;
-                left = (int)(Padding + i switch
+                left = (int)(originalLeft + i switch
                 {
                     0 => 0.45 * (KeyboardBoxWidth + SpaceBetweenWordBoxes),
                     _ => 1.29 * (KeyboardBoxWidth + SpaceBetweenWordBoxes)

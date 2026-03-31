@@ -25,8 +25,8 @@ public class DictionaryCommand : VocabularyCommandBase
     {
         var results = VocabularyCommandInstance.Vocabularies.Select(x =>
         {
-            return x.Words.ToList().Find(y => y.Word == word);
-        }).ToArray();
+            return x.Words.ToList().Find(y => y.Word.ToLower() == word.ToLower());
+        }).Where(x => x is not null).ToArray();
 
         if (results.Length > 0)
             return results[0];
@@ -47,8 +47,10 @@ public class DictionaryCommand : VocabularyCommandBase
         if (word.Length > 1)
             bucketHeader += word[1];
 
-        if (!VocabularyCommandInstance.LargeVocabulary.Words.TryGetValue(bucketHeader, out var words) ||
-            words.Length == 0)
+        var hasBucket = VocabularyCommandInstance.LargeVocabulary.Words.TryGetValue(bucketHeader, out var words);
+
+        if ( !hasBucket
+             ||  words == null|| words.Length == 0)
         {
             wordItem = LookUpInCustomizedDictionary(word);
             return wordItem != null;
@@ -88,7 +90,7 @@ public class DictionaryCommand : VocabularyCommandBase
 
         foreach (var translation in targetWordItem.Translations)
         {
-            stringBuilder.AppendLine(translation.Type + ".");
+            stringBuilder.Append(translation.Type + ". ");
 
             var regex = new Regex(@"[0-9]+\s.*?(?=[0-9]+\s|$)");
             var matches = regex.Matches(translation.Translation);
