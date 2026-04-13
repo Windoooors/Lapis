@@ -43,7 +43,6 @@ public class PlateCommand : MaiCommandBase
         296, 414, 513, 532, 806, 65, 266
     };
 
-
     public PlateCommand()
     {
         CommandHead = "plate";
@@ -72,7 +71,6 @@ public class PlateCommand : MaiCommandBase
         var wuwuRegex = new Regex("舞舞$");
         var bazheRegex = new Regex("^霸者$");
 
-
         string userName;
         try
         {
@@ -88,7 +86,7 @@ public class PlateCommand : MaiCommandBase
                     ? ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/player",
-                        new { qq = groupMembers[0].Id.ToString() },
+                        new { qq = groupMembers[0].QqId.ToString() },
                         [
                             new KeyValuePair<string, string>("Developer-Token",
                                 BotConfiguration.Instance.DivingFishDevToken)
@@ -227,12 +225,14 @@ public class PlateCommand : MaiCommandBase
         }
         else
         {
+            using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+
             var list = new List<ScoresDto.ScoreDto>();
-            foreach (var song in MaiCommandInstance.Songs)
-                if (song.Id < 1000)
-                    for (var i = 0; i < song.Ratings.Length; i++)
+            foreach (var song in db.SongMetaDataSet)
+                if (song.SongId < 1000)
+                    for (var i = 0; i < 5; i++)
                         list.Add(new ScoresDto.ScoreDto
-                            { Id = song.Id, LevelIndex = i });
+                            { Id = song.SongId, LevelIndex = i });
 
             scores = new ScoresDto { ScoreDtos = list.ToArray() };
         }
@@ -253,7 +253,7 @@ public class PlateCommand : MaiCommandBase
                     ? ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/plate",
-                        new { qq = groupMembers[0].Id.ToString(), version },
+                        new { qq = groupMembers[0].QqId.ToString(), version },
                         [
                             new KeyValuePair<string, string>("Developer-Token",
                                 BotConfiguration.Instance.DivingFishDevToken)
@@ -330,34 +330,43 @@ public class PlateCommand : MaiCommandBase
 
         foreach (var score in scores.ScoreDtos)
         {
-            var song = MaiCommandInstance.GetSong(score.Id);
-            if (Math.Round(song.Ratings[score.LevelIndex], 1) > 13.5m)
+            var song = MaiCommandInstance.GetSongById(score.Id);
+            var charts = song.Charts;
+            if (Math.Round(charts[score.LevelIndex].Rating, 1) > 13.5)
             {
                 var scoreDto = new ScoresDto.ScoreDto();
                 foreach (var realScore in scoresInReality.ScoreDtos)
                     if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
                         scoreDto = realScore;
 
-                if (_excludedSongs.Contains(song.Id))
-                    if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
+                if (_excludedSongs.Contains(charts[0].SongId))
+                    if (!((command == "霸者" || command.StartsWith("舞")) && charts[0].SongId == 70))
                         continue;
 
-                if (song.Id >= 100000)
+                if (charts[0].SongId >= 100000)
                     continue;
 
                 if (command == "霸者" || command.StartsWith("舞"))
                 {
-                    if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
+                    if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(charts[0].SongId))
                         songsToBeDisplayed.Add(new SongToBeDisplayed
-                            { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                        {
+                            LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song),
+                            ScoreDto = scoreDto
+                        });
                     else if (score.LevelIndex != 4)
                         songsToBeDisplayed.Add(new SongToBeDisplayed
-                            { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                        {
+                            LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song),
+                            ScoreDto = scoreDto
+                        });
                 }
                 else if (score.LevelIndex != 4)
                 {
                     songsToBeDisplayed.Add(new SongToBeDisplayed
-                        { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                    {
+                        LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
+                    });
                 }
             }
         }
@@ -366,29 +375,35 @@ public class PlateCommand : MaiCommandBase
 
         foreach (var score in scores.ScoreDtos)
         {
-            var song = MaiCommandInstance.GetSong(score.Id);
+            var song = MaiCommandInstance.GetSongById(score.Id);
             var scoreDto = new ScoresDto.ScoreDto();
             foreach (var realScore in scoresInReality.ScoreDtos)
                 if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
                     scoreDto = realScore;
 
-            if (_excludedSongs.Contains(song.Id))
-                if (!((command == "霸者" || command.StartsWith("舞")) && song.Id == 70))
+            if (_excludedSongs.Contains(song.SongId))
+                if (!((command == "霸者" || command.StartsWith("舞")) && song.SongId == 70))
                     continue;
 
             if (command == "霸者" || command.StartsWith("舞"))
             {
-                if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.Id))
+                if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.SongId))
                     allSongs.Add(new SongToBeDisplayed
-                        { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                    {
+                        LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
+                    });
                 else if (score.LevelIndex != 4)
                     allSongs.Add(new SongToBeDisplayed
-                        { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                    {
+                        LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
+                    });
             }
             else if (score.LevelIndex != 4)
             {
                 allSongs.Add(new SongToBeDisplayed
-                    { LevelIndex = score.LevelIndex, SongDto = song, ScoreDto = scoreDto });
+                {
+                    LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
+                });
             }
         }
 

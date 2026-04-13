@@ -4,7 +4,9 @@ using System.Text;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
 
@@ -23,36 +25,33 @@ public class SearchMemberCommand : GroupMemberCommandBase
 
     public SearchResult Search(string keyWord, long groupId, bool findAgreedWithEula = false)
     {
-        var membersMatchedByAlias = new Dictionary<GroupMemberCommand.GroupMember, List<string>>();
+        var membersMatchedByAlias = new Dictionary<GroupMember, List<string>>();
 
-        var group = GroupMemberCommandInstance.Groups.ToList().Find(x => x.GroupId == groupId);
-        if (group == null || group.GroupId == 0)
-            return new SearchResult(null);
+        var splitWords = Searcher.Instance.GetSplitWords(keyWord.ToLower());
+        var queryString = string.Join(" AND ", splitWords);
 
-        foreach (var member in group.Members)
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+
+        var aliasList = db.MemberAliasesDataSet.Include(x => x.Aliases).ToList();
+
+        var matchedAlias = aliasList.Where(x =>
+            x.Aliases.Exists(y => y.Alias.ToLower().Contains(keyWord.ToLower())) && x.GroupId == groupId).ToList();
+
+        if (matchedAlias.Count == 0)
+            return new SearchResult([]);
+
+        foreach (var aliasItem in matchedAlias)
+        foreach (var alias in aliasItem.Aliases)
         {
-            var aliasObject = GroupMemberCommandInstance.GetAliasById(member.Id, groupId);
+            var groupMember =
+                DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetMember(aliasItem.QqId, groupId, db);
 
-            if (aliasObject == null)
-                continue;
-
-            var aliases = aliasObject.Aliases;
-
-            foreach (var alias in aliases)
-                if (Searcher.Instance.IsMatch(keyWord, alias))
-                {
-                    if (!membersMatchedByAlias.ContainsKey(member))
-                    {
-                        membersMatchedByAlias.Add(member, [alias]);
-                        continue;
-                    }
-
-                    membersMatchedByAlias[member].Add(alias);
-                }
+            var added = membersMatchedByAlias.TryAdd(groupMember, [alias.Alias]);
+            if (!added && membersMatchedByAlias.TryGetValue(groupMember, out var value)) value.Add(alias.Alias);
         }
 
         if (findAgreedWithEula)
-            membersMatchedByAlias = membersMatchedByAlias.Where(x => x.Key.AgreedWithEula).Select(x => x)
+            membersMatchedByAlias = membersMatchedByAlias.Where(x => x.Key.AgreedEula).Select(x => x)
                 .ToDictionary();
 
         return new SearchResult
@@ -72,12 +71,12 @@ public class SearchMemberCommand : GroupMemberCommandBase
         if (memberAliasDict.Count > 0)
             foreach (var pair in memberAliasDict)
             {
-                if (!TryGetNickname(pair.Key.Id, groupId, out var nickname)) continue;
+                if (!TryGetNickname(pair.Key.QqId, groupId, out var nickname)) continue;
 
                 var aliasStringBuilder = new StringBuilder();
                 foreach (var alias in pair.Value) aliasStringBuilder.AppendJoin(' ', $"\"{alias}\"");
 
-                stringBuilder.AppendLine(pair.Key.Id + " - " + nickname + $" （通过别称 {aliasStringBuilder} 匹配）");
+                stringBuilder.AppendLine(pair.Key.QqId + " - " + nickname + $" （通过别称 {aliasStringBuilder} 匹配）");
             }
 
         return stringBuilder;
@@ -112,9 +111,9 @@ public class SearchMemberCommand : GroupMemberCommandBase
         ]);
     }
 
-    public class SearchResult(Dictionary<GroupMemberCommand.GroupMember, List<string>> membersMatchedByAlias)
+    public class SearchResult(Dictionary<GroupMember, List<string>> membersMatchedByAlias)
     {
-        public readonly Dictionary<GroupMemberCommand.GroupMember, List<string>> MembersMatchedByAlias =
+        public readonly Dictionary<GroupMember, List<string>> MembersMatchedByAlias =
             membersMatchedByAlias;
     }
 }

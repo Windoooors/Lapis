@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.ImageGenerators;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 using Xabe.FFmpeg;
 
@@ -112,14 +113,14 @@ public class GuessCommand : MaiCommandBase
         StartGuessing(source);
     }
 
-    private void StartGuessing(CqGroupMessagePostContext source, SongDto[] songs)
+    private void StartGuessing(CqGroupMessagePostContext source, SongMetaData[] songs)
     {
         if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
             var random = new Random();
             var songIndex = random.Next(0, songs.Length);
 
-            if (!AudioEditor.TryConvert(songs[songIndex].Id, out var clipPath))
+            if (!AudioEditor.TryConvert(songs[songIndex].SongId, out var clipPath))
             {
                 if (songs.Length <= 1)
                     SendMessage(source,
@@ -132,7 +133,7 @@ public class GuessCommand : MaiCommandBase
             }
 
             _guessingGroupsMap.Add(source.GroupId.ToString(),
-                (songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
+                (songs[songIndex].SongId, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
             SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
@@ -157,13 +158,20 @@ public class GuessCommand : MaiCommandBase
         if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
             var random = new Random();
-            var songIndex = random.Next(0, MaiCommandInstance.Songs.Length);
 
-            if (!AudioEditor.TryConvert(MaiCommandInstance.Songs[songIndex].Id, out var clipPath))
+            using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+            var count = db.SongMetaDataSet.Count();
+            var index = random.Next(0, count);
+
+            var song = db.SongMetaDataSet
+                .Skip(index)
+                .First();
+
+            if (!AudioEditor.TryConvert(song.SongId, out var clipPath))
                 StartGuessing(source);
 
             _guessingGroupsMap.Add(source.GroupId.ToString(),
-                (MaiCommandInstance.Songs[songIndex].Id, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
+                (song.SongId, DateTime.Now.Add(new TimeSpan(0, 0, 0, 30))));
             SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
@@ -192,7 +200,8 @@ public class GuessCommand : MaiCommandBase
         var isCompressed =
             SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), long.Parse(groupId));
 
-        var image = new InfoImageGenerator().Generate(MaiCommandInstance.GetSong(keyIdDateTimePair.Item1),
+        var image = new InfoImageGenerator().Generate(
+            MaiCommandInstance.ToSongDto(MaiCommandInstance.GetSongById(keyIdDateTimePair.Item1)),
             "谜底", null, isCompressed);
 
         if (messageId == 0)
@@ -253,7 +262,7 @@ public class GuessCommand : MaiCommandBase
             if (songs.Length != 0)
                 passed = true;
             foreach (var song in songs)
-                if (passed && song.Id == keyIdDateTimePair.Item1)
+                if (passed && song.SongId == keyIdDateTimePair.Item1)
                 {
                     var task = new Task(() =>
                         AnnounceAnswer(keyIdDateTimePair, source.GroupId.ToString(), true, source.MessageId));

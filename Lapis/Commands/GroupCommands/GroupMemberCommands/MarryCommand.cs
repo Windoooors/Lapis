@@ -28,7 +28,7 @@ public class MarryCommand : GroupMemberCommandBase
                 out var memberInvokingCommand, source))
             return false;
 
-        if (memberInvokingCommand[0].AgreedWithEula)
+        if (memberInvokingCommand[0].AgreedEula)
             return true;
 
         TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
@@ -85,10 +85,15 @@ public class MarryCommand : GroupMemberCommandBase
         var couple = CouplesOperator.GetCouple(source.Sender.UserId, source.GroupId);
         if (couple == null)
         {
-            if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
-                    out var group) ||
-                group.Members
-                    .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
+            using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+
+            var groupMembers =
+                db.GroupMembersDataSet.Where(x =>
+                    x.GroupId == source.GroupId).ToArray();
+
+            if (groupMembers.Length == 0 ||
+                groupMembers
+                    .Where(x => x.AgreedEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
                     .Select(x => x).ToArray().Length -
                 CouplesOperator.GetCouplesInGroup(source.GroupId).Length * 2 <= 1)
             {
@@ -96,17 +101,17 @@ public class MarryCommand : GroupMemberCommandBase
                 return;
             }
 
-            var memberArray = group.Members
-                .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
+            var memberArray = groupMembers
+                .Where(x => x.AgreedEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
                 .Select(x => x).ToArray();
 
             var i = new Random().Next(0, memberArray.Length);
 
-            while (memberArray[i].Id == source.Sender.UserId ||
-                   CouplesOperator.IsMarried(memberArray[i].Id, source.GroupId))
+            while (memberArray[i].QqId == source.Sender.UserId ||
+                   CouplesOperator.IsMarried(memberArray[i].QqId, source.GroupId))
                 i = new Random().Next(0, memberArray.Length);
 
-            var memberId = memberArray[i].Id;
+            var memberId = memberArray[i].QqId;
             CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);
 
             Parse(originalPlainMessage, source);

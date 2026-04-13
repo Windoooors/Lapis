@@ -8,6 +8,7 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.UniversalCommands;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 using Newtonsoft.Json;
 
@@ -20,25 +21,39 @@ public class UpdateCommand : WckCommandBase
         CommandHead = "update";
         DirectCommandHead = "update|更新";
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("update", "1");
+        IntendedArgumentCount = 1;
     }
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
+    {
+        Process(true, source);
+    }
+
+    public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
+        CqGroupMessagePostContext source)
+    {
+        var argument = arguments[0];
+
+        if (!bool.TryParse(argument, out var isTrue))
+        {
+            SendMessage(source.GroupId, [
+                new CqReplyMsg(source.MessageId),
+                new CqTextMsg("未知的参数")
+            ]);
+            return;
+        }
+
+        var sendToDivingFish = isTrue;
+
+        Process(sendToDivingFish, source);
+    }
+
+    private void Process(bool sendToDivingFish, CqGroupMessagePostContext source)
     {
         var sessionValid = TryGetSessionId(source, out var sessionId);
 
         if (!sessionValid)
             return;
-
-        var matchedUserBindData = BindCommand.UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
-
-        if (matchedUserBindData == null || matchedUserBindData.DivingFishImportToken == null)
-        {
-            SendMessage(source, [
-                new CqReplyMsg(source.MessageId),
-                new CqTextMsg("您未绑定 DivingFish 分数上传 Token\n请访问 https://setchin.com/lapis/docs/ 以了解更多")
-            ]);
-            return;
-        }
 
         SendMessage(source, [
             new CqReplyMsg(source.MessageId),
@@ -52,7 +67,7 @@ public class UpdateCommand : WckCommandBase
             var parameters = new Dictionary<string, string>
             {
                 { "session_id", sessionId },
-                { "range_to", MaiCommandInstance.Songs.Last().Id.ToString() },
+                { "range_to", "200000" },
                 { "range_from", "0" }
             };
 
@@ -84,8 +99,39 @@ public class UpdateCommand : WckCommandBase
             return;
         }
 
-        var uploadContent = ConvertData(rawMusicData.MusicData);
+        Upsert(source.Sender.UserId, rawMusicData.MusicData);
 
+        if (sendToDivingFish)
+        {
+            var matchedUserBindData = BindCommand.UserBindDataList.Find(data => data.QqId == source.Sender.UserId);
+
+            if (matchedUserBindData == null || matchedUserBindData.DivingFishImportToken == null)
+            {
+                SendMessage(source, [
+                    new CqReplyMsg(source.MessageId),
+                    new CqTextMsg(
+                        $"您未绑定 DivingFish 分数上传 Token\n" +
+                        $"分数数据已被缓存至 {BotConfiguration.Instance.BotName}\n" +
+                        $"请访问 https://setchin.com/lapis/docs/ 以了解更多")
+                ]);
+                return;
+            }
+
+            var uploadContent = ConvertData(rawMusicData.MusicData, source.Sender.UserId);
+
+            UploadToDivingFish(uploadContent, source, matchedUserBindData);
+        }
+    }
+
+    private void Upsert(long qqId, WckMusicDataResponseItemDto[] rawMusicData)
+    {
+        DatabaseHandler.Instance.SongMetaDatabaseOperator.UpsertScores(
+            rawMusicData.Select(x => new ChartScoreData(x, qqId)).ToArray());
+    }
+
+    private void UploadToDivingFish(DivingFishMusicDataDto[] uploadContent, CqGroupMessagePostContext source,
+        UserBindData matchedUserBindData)
+    {
         try
         {
             var uploadRequestResult = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
@@ -127,7 +173,8 @@ public class UpdateCommand : WckCommandBase
             {
                 SendMessage(source, [
                     new CqReplyMsg(source.MessageId),
-                    new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户")
+                    new CqTextMsg("您的水鱼成绩导入 Token 不正确或已过期，请尝试重新绑定水鱼账户\n" +
+                                  $"分数数据已被缓存至 {BotConfiguration.Instance.BotName}\n")
                 ]);
                 return;
             }
@@ -136,57 +183,17 @@ public class UpdateCommand : WckCommandBase
         }
     }
 
-    public static DivingFishMusicDataItemDto[] ConvertData(WckMusicDataResponseItemDto[] rawMusicData)
+    private static DivingFishMusicDataDto[] ConvertData(WckMusicDataResponseItemDto[] rawMusicData, long qqId)
     {
-        var musicDataList = new List<DivingFishMusicDataItemDto>();
-
-        foreach (var rawData in rawMusicData)
-        {
-            var fcString = rawData.ComboStatus switch
-            {
-                0 => "", 1 => "fc", 2 => "fcp", 3 => "ap", 4 => "app", _ => ""
-            };
-
-            var fsString = rawData.SyncStatus switch
-            {
-                0 => "",
-                5 => "sync",
-                1 => "fs",
-                2 => "fsp",
-                3 => "fsd",
-                4 => "fsdp",
-                _ => ""
-            };
-
-            SongDto song;
-
-            try
-            {
-                song = MaiCommandInstance.GetSong(rawData.Id);
-            }
-            catch
-            {
-                continue;
-            }
-
-            if (rawData.Id >= 100000)
-                rawData.Level -= 10;
-
-            var musicData = new DivingFishMusicDataItemDto
-            {
-                Achievements = (float)rawData.Achievement / 10000,
-                DxScore = rawData.DxScore,
-                Fs = fsString,
-                Fc = fcString,
-                LevelIndex = rawData.Level,
-                Title = song.Title,
-                Type = song.Type.ToUpper()
-            };
-
-            musicDataList.Add(musicData);
-        }
-
-        return musicDataList.ToArray();
+        return rawMusicData
+            .Select(x =>
+                new ChartScoreData(x, qqId)
+                {
+                    Song = MaiCommandInstance.GetSongById(x.Id) ?? new SongMetaData
+                    {
+                        Title = "滚木"
+                    }
+                }.ToDivingFishDto()).ToArray();
     }
 
     private class UploadRecordsResponseDto
@@ -194,32 +201,10 @@ public class UpdateCommand : WckCommandBase
         [JsonProperty("status")] public string Status { get; set; }
     }
 
-    public class DivingFishMusicDataItemDto
-    {
-        [JsonProperty("achievements")] public float Achievements;
-        [JsonProperty("dxScore")] public int DxScore;
-        [JsonProperty("fc")] public string Fc;
-        [JsonProperty("fs")] public string Fs;
-        [JsonProperty("level_index")] public int LevelIndex;
-        [JsonProperty("title")] public string Title;
-        [JsonProperty("type")] public string Type;
-    }
-
     public class WckMusicDataResponseDto
     {
         [JsonProperty] public int Code { get; set; }
 
         [JsonProperty] public WckMusicDataResponseItemDto[] MusicData { get; set; }
-    }
-
-    public class WckMusicDataResponseItemDto
-    {
-        [JsonProperty] public int Id { get; set; }
-        [JsonProperty] public int Level { get; set; }
-        [JsonProperty] public int Achievement { get; set; }
-        [JsonProperty] public int DxScore { get; set; }
-        [JsonProperty] public int ComboStatus { get; set; }
-        [JsonProperty] public int SyncStatus { get; set; }
-        [JsonProperty] public int PlayCount { get; set; }
     }
 }

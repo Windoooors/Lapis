@@ -225,7 +225,7 @@ public class TooLongDontReadCommand : GroupCommand
 
             var userAlias =
                 GroupMemberCommandBase.GroupMemberCommandInstance.GetAliasById(senderIds[userId], groupId);
-            if (userAlias.Aliases.Count > 0) return userAlias.Aliases.ToList()[0];
+            if (userAlias != null && userAlias.Aliases.Count > 0) return userAlias.Aliases[0].Alias;
 
             if (GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(senderIds[userId], groupId,
                     out var nickname))

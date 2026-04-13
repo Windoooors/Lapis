@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
@@ -23,15 +24,15 @@ public class BeingRapedCommand : RapeCommandBase
         FunctionString = "被群友透";
     }
 
-    protected override bool SendRapeMessage(GroupMemberCommand.GroupMember member, CqGroupMessagePostContext source)
+    protected override bool SendRapeMessage(GroupMember member, CqGroupMessagePostContext source)
     {
-        if (!TryGetNickname(member.Id, source.GroupId, out var nickname)) return false;
+        if (!TryGetNickname(member.QqId, source.GroupId, out var nickname)) return false;
 
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.Id)).ToBase64()),
-            $"群友 {nickname} ({member.Id}) 透到你啦(*¯︶¯*)"
+            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.QqId)).ToBase64()),
+            $"群友 {nickname} ({member.QqId}) 透到你啦(*¯︶¯*)"
         ]);
 
         return true;
@@ -78,15 +79,15 @@ public class RapeCommand : RapeCommandBase
         FunctionString = "透群友";
     }
 
-    protected override bool SendRapeMessage(GroupMemberCommand.GroupMember member, CqGroupMessagePostContext source)
+    protected override bool SendRapeMessage(GroupMember member, CqGroupMessagePostContext source)
     {
-        if (!TryGetNickname(member.Id, source.GroupId, out var nickname)) return false;
+        if (!TryGetNickname(member.QqId, source.GroupId, out var nickname)) return false;
 
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.Id)).ToBase64()),
-            $"群友 {nickname} ({member.Id}) 被你透啦(*¯︶¯*)"
+            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.QqId)).ToBase64()),
+            $"群友 {nickname} ({member.QqId}) 被你透啦(*¯︶¯*)"
         ]);
 
         member.RapedTimes++;
@@ -117,7 +118,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
     protected SettingsIdentifierPair EulaSettingsIdentifierPair;
     protected string FunctionString;
 
-    protected virtual bool SendRapeMessage(GroupMemberCommand.GroupMember member, CqGroupMessagePostContext source)
+    protected virtual bool SendRapeMessage(GroupMember member, CqGroupMessagePostContext source)
     {
         return false;
     }
@@ -134,7 +135,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
                 out var memberInvokingCommand, source))
             return false;
 
-        if (memberInvokingCommand[0].AgreedWithEula)
+        if (memberInvokingCommand[0].AgreedEula)
             return true;
 
         TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
@@ -212,7 +213,7 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             return;
         }
 
-        if (members[0].Id == source.Sender.UserId)
+        if (members[0].QqId == source.Sender.UserId)
         {
             if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
                 return;
@@ -234,23 +235,28 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
         if (SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId) && !MemberAgreedToUse(source))
             return;
 
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId),
-                out var group) ||
-            group.Members
-                .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+
+        var groupMembers =
+            db.GroupMembersDataSet.Where(x =>
+                x.GroupId == source.GroupId).ToArray();
+
+        if (groupMembers.Length == 0 ||
+            groupMembers
+                .Where(x => x.AgreedEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
                 .Select(x => x).ToArray().Length <= 1)
         {
             MemberNotEnoughErrorHelp(source);
             return;
         }
 
-        var memberArray = group.Members
-            .Where(x => x.AgreedWithEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
+        var memberArray = groupMembers
+            .Where(x => x.AgreedEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
             .Select(x => x).ToArray();
 
         var i = new Random().Next(0, memberArray.Length);
 
-        while (memberArray[i].Id == source.Sender.UserId)
+        while (memberArray[i].QqId == source.Sender.UserId)
             i = new Random().Next(0, memberArray.Length);
 
         if (!SendRapeMessage(memberArray[i], source))

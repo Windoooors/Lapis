@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.UniversalCommands;
-using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands.AliasCommands;
 
@@ -22,37 +18,48 @@ public class AddCommand : AliasCommandBase
         IntendedArgumentCount = 2;
     }
 
-    public override void Initialize()
+    private bool TryAddAlias(int id, string alias)
     {
-        if (File.Exists(Path.Combine(AppContext.BaseDirectory, "data/local_aliases.json")))
-        {
-            var alias =
-                JsonConvert.DeserializeObject<List<Alias>>(
-                    File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data/local_aliases.json")));
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
-            LocalAliasManager.Instance.AliasCollection.Aliases.AddRange(alias);
-        }
-
-        foreach (var alias in MaiCommandInstance.SongAliases)
+        try
         {
-            var localAlias = LocalAliasManager.Instance;
-            foreach (var e1 in localAlias.GetIds())
+            var findResult = db.SongAliasDataSet.Include(x => x.Aliases)
+                .FirstOrDefault(x => x.SimplifiedSongId == id % 10000);
+
+            if (findResult == null)
             {
-                if (e1 != alias.Id)
-                    continue;
-                var a = LocalAliasManager.Instance.Get(e1);
-                foreach (var aliasString in a)
-                    if (alias.Aliases.Contains(aliasString))
-                        alias.Aliases.Remove(aliasString);
-            }
-        }
-    }
+                db.Add(new SongAlias
+                {
+                    SimplifiedSongId = id % 10000,
+                    Aliases =
+                    [
+                        new SingleSongAlias
+                        {
+                            Alias = alias
+                        }
+                    ]
+                });
 
-    private static void Save()
-    {
-        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "data/local_aliases.json"),
-            JsonConvert.SerializeObject(LocalAliasManager.Instance.AliasCollection.Aliases));
-        Program.Logger.LogInformation("Local aliases have been saved");
+                db.SaveChanges();
+
+                return true;
+            }
+
+            if (findResult.Aliases.Exists(y => y.Alias == alias)) return false;
+
+            findResult.Aliases.Add(new SingleSongAlias
+            {
+                Alias = alias
+            });
+            db.SaveChanges();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
@@ -95,27 +102,24 @@ public class AddCommand : AliasCommandBase
 
         var action = () =>
         {
-            var id = matchedSong.Id;
+            var id = matchedSong.SongId;
 
-            var success = !MaiCommandInstance.GetAliasById(id).Aliases.Contains(intendedAliasString) &&
-                          LocalAliasManager.Instance.Add(id, intendedAliasString);
+            var success = !MaiCommandInstance.GetAliasById(id).Aliases
+                              .Exists(x => x.Alias == intendedAliasString) &&
+                          TryAddAlias(id, intendedAliasString);
+
             if (success)
-            {
                 SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("添加成功！")
                 ]);
-                Save();
-            }
             else
-            {
                 SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("已存在此别名")
                 ]);
-            }
         };
         TaskHandleQueue.HandleableTask task = new(source.Sender.UserId, () =>
         {
@@ -132,7 +136,7 @@ public class AddCommand : AliasCommandBase
             [
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg(
-                    $"您正在尝试为歌曲 \"{matchedSong.Title} [{matchedSong.Type}]\" 添加别名 \"{intendedAliasString}\""
+                    $"您正在尝试为歌曲 \"{matchedSong.Title} [{GetSongType(matchedSong.SongId)}]\" 添加别名 \"{intendedAliasString}\""
                     + "\n发送 \"lps handle confirm\" 以确认，发送 \"lps handle cancel\" 以取消")
             ]);
         else
@@ -141,47 +145,5 @@ public class AddCommand : AliasCommandBase
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("您当前已有代办事项！请处理后再试！")
             ]);
-    }
-}
-
-public class LocalAliasManager
-{
-    public readonly AliasCollection AliasCollection = new();
-
-    public static LocalAliasManager Instance { get; } = new();
-
-    public bool Add(int id, string alias)
-    {
-        if (AliasCollection.TryGetAlias(id, out var aliasOut) && aliasOut.Aliases.Contains(alias))
-            return false;
-
-        AliasCollection.Add<Alias>(id, alias);
-        return true;
-    }
-
-    public bool Remove(int id, string alias)
-    {
-        if (!AliasCollection.TryGetAlias(id, out var aliasOut))
-            return false;
-        return aliasOut.Aliases.Remove(alias);
-    }
-
-    public bool RemoveAll(int index)
-    {
-        if (!AliasCollection.TryGetAlias(index, out var aliasOut)) return false;
-        AliasCollection.Remove(index);
-        return true;
-    }
-
-    public List<string> Get(long id)
-    {
-        return !AliasCollection.TryGetAlias(id, out var aliasOut)
-            ? null
-            : aliasOut.Aliases.ToList();
-    }
-
-    public long[] GetIds()
-    {
-        return AliasCollection.GetIds();
     }
 }

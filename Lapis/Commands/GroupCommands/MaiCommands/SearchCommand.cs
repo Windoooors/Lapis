@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
@@ -23,54 +24,57 @@ public class SearchCommand : MaiCommandBase
 
     public SearchResult Search(string keyWord)
     {
-        var songsMatchedByAlias = new Dictionary<SongDto, List<string>>();
-        var songsMatchedByArtist = new List<SongDto>();
-        var songsMatchedByTitle = new List<SongDto>();
-        var songsMatchedByBpm = new List<SongDto>();
+        var songsMatchedByAlias = new Dictionary<SongMetaData, List<string>>();
+        var songsMatchedByArtist = new List<SongMetaData>();
+        var songsMatchedByTitle = new List<SongMetaData>();
+        var songsMatchedByBpm = new List<SongMetaData>();
+        var isBpm = float.TryParse(keyWord, out var bpm);
 
-        var bpm = 0m;
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
-        var isBpm = float.TryParse(keyWord, out _) && decimal.TryParse(keyWord, out bpm);
+        songsMatchedByTitle
+            .AddRange(db.SongMetaDataSet.Where(x => EF.Functions.Like(x.Title, $"%{keyWord}%")
+            ));
 
-        foreach (var song in MaiCommandInstance.Songs)
+        var aliasesSet = db.SongAliasDataSet.Include(x => x.Aliases).ToList();
+
+        var aliases = aliasesSet.Where(x =>
+            x.Aliases.Exists(y => y.Alias.ToLower().Contains(keyWord?.ToLower() ?? "滚木")));
+
+        songsMatchedByArtist.AddRange(db.SongMetaDataSet.Where(x =>
+            EF.Functions.Like(x.Artist, $"%{keyWord}%")));
+
+        foreach (var aliasItem in aliases)
+        foreach (var alias in aliasItem.Aliases)
         {
-            var aliases = MaiCommandInstance.GetAliasById(song.Id).Aliases;
-            var utageSignMatch = new Regex(@"\[(.*)\]").Match(song.Title);
+            HashSet<SongMetaData> songs =
+            [
+                MaiCommandInstance.GetSongById(aliasItem.SimplifiedSongId) ??
+                MaiCommandInstance.GetSongById(aliasItem.SimplifiedSongId + 10000)
+            ];
 
-            foreach (var alias in aliases)
-                if (Searcher.Instance.IsMatch(keyWord,
-                        (song.Id >= 100000
-                            ? utageSignMatch.Success ? "宴" + utageSignMatch.Groups[1].Value : "宴"
-                            : song.Type == "SD"
-                                ? "标准"
-                                : "DX") +
-                        alias))
-                {
-                    if (!songsMatchedByAlias.ContainsKey(song))
-                    {
-                        songsMatchedByAlias.Add(song, [alias]);
-                        continue;
-                    }
+            var dxSong = MaiCommandInstance.GetSongById(aliasItem.SimplifiedSongId + 10000);
+            if (dxSong != null)
+                songs.Add(dxSong);
 
-                    songsMatchedByAlias[song].Add(alias);
-                }
+            for (var i = 0; i < 16; i++)
+            {
+                var id = aliasItem.SimplifiedSongId + i * 10000 + 100000;
 
-            if (Searcher.Instance.IsMatch(keyWord, song.BasicInfo.Artist) && !songsMatchedByArtist.Contains(song))
-                songsMatchedByArtist.Add(song);
+                var song = MaiCommandInstance.GetSongById(id);
+                if (song != null)
+                    songs.Add(song);
+            }
 
-            if (Searcher.Instance.IsMatch(keyWord,
-                    (song.Id >= 100000
-                        ? utageSignMatch.Success ? "宴" + utageSignMatch.Groups[1].Value : "宴"
-                        : song.Type == "SD"
-                            ? "标准"
-                            : "DX") +
-                    song.Title) &&
-                !songsMatchedByTitle.Contains(song))
-                songsMatchedByTitle.Add(song);
-
-            if (isBpm && song.BasicInfo.Bpm == bpm)
-                songsMatchedByBpm.Add(song);
+            foreach (var songMetaData in songs)
+            {
+                var added = songsMatchedByAlias.TryAdd(songMetaData, [alias.Alias]);
+                if (!added && songsMatchedByAlias.TryGetValue(songMetaData, out var value)) value.Add(alias.Alias);
+            }
         }
+
+        if (isBpm)
+            songsMatchedByBpm.AddRange(db.SongMetaDataSet.Where(x => x.Bpm.Equals(bpm)));
 
         return new SearchResult(songsMatchedByArtist.ToArray(), songsMatchedByTitle.ToArray(),
             songsMatchedByBpm.ToArray(), songsMatchedByAlias);
@@ -88,7 +92,8 @@ public class SearchCommand : MaiCommandBase
 
         if (songs.Length > 0)
             foreach (var song in songs)
-                stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过标题匹配）");
+                stringBuilder.AppendLine("ID " + song.SongId + " - " + song.Title + " [" + GetSongType(song.SongId) +
+                                         "] （通过标题匹配）");
 
         if (songAliasDict.Count > 0)
             foreach (var pair in songAliasDict)
@@ -96,17 +101,20 @@ public class SearchCommand : MaiCommandBase
                 var aliasStringBuilder = new StringBuilder();
                 foreach (var alias in pair.Value) aliasStringBuilder.AppendJoin(' ', $"\"{alias}\"");
 
-                stringBuilder.AppendLine("ID " + pair.Key.Id + " - " + pair.Key.Title + " [" + pair.Key.Type +
+                stringBuilder.AppendLine("ID " + pair.Key.SongId + " - " + pair.Key.Title + " [" +
+                                         GetSongType(pair.Key.SongId) +
                                          $"] （通过别称 {aliasStringBuilder} 匹配）");
             }
 
         if (songsMatchedByArtist.Length > 0)
             foreach (var song in songsMatchedByArtist)
-                stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过曲师名匹配）");
+                stringBuilder.AppendLine("ID " + song.SongId + " - " + song.Title + " [" + GetSongType(song.SongId) +
+                                         "] （通过曲师名匹配）");
 
         if (searchResult.SongsMatchedByBpm.Length > 0)
             foreach (var song in searchResult.SongsMatchedByBpm)
-                stringBuilder.AppendLine("ID " + song.Id + " - " + song.Title + " [" + song.Type + "] （通过 BPM 匹配）");
+                stringBuilder.AppendLine("ID " + song.SongId + " - " + song.Title + " [" + GetSongType(song.SongId) +
+                                         "] （通过 BPM 匹配）");
 
         return stringBuilder;
     }
@@ -129,8 +137,8 @@ public class SearchCommand : MaiCommandBase
             if (searchResult.AllSongs.Length != 0)
             {
                 var exampleSong = searchResult.AllSongs[0];
-                stringBuilder.Append($"*发送 \"lps mai info ID{exampleSong.Id}\" 指令即可查询歌曲 {
-                    MaiCommandInstance.GetSong(exampleSong.Id).Title} [{MaiCommandInstance.GetSong(exampleSong.Id).Type}] 的信息");
+                stringBuilder.Append($"*发送 \"lps mai info ID{exampleSong.SongId}\" 指令即可查询歌曲 {
+                    MaiCommandInstance.GetSongById(exampleSong.SongId).Title} [{GetSongType(exampleSong.SongId)}] 的信息");
             }
             else
             {
@@ -148,20 +156,21 @@ public class SearchCommand : MaiCommandBase
 
     public class SearchResult
     {
-        public readonly SongDto[] AllSongs;
-        public readonly Dictionary<SongDto, List<string>> SongsMatchedByAlias;
-        public readonly SongDto[] SongsMatchedByArtist;
-        public readonly SongDto[] SongsMatchedByBpm;
-        public readonly SongDto[] SongsMatchedByTitle;
+        public readonly SongMetaData[] AllSongs;
+        public readonly Dictionary<SongMetaData, List<string>> SongsMatchedByAlias;
+        public readonly SongMetaData[] SongsMatchedByArtist;
+        public readonly SongMetaData[] SongsMatchedByBpm;
+        public readonly SongMetaData[] SongsMatchedByTitle;
 
-        public SearchResult(SongDto[] songsMatchedByArtist, SongDto[] songsMatchedByTitle, SongDto[] songsMatchedByBpm,
-            Dictionary<SongDto, List<string>> songsMatchedByAlias)
+        public SearchResult(SongMetaData[] songsMatchedByArtist, SongMetaData[] songsMatchedByTitle,
+            SongMetaData[] songsMatchedByBpm,
+            Dictionary<SongMetaData, List<string>> songsMatchedByAlias)
         {
             SongsMatchedByAlias = songsMatchedByAlias;
             SongsMatchedByTitle = songsMatchedByTitle;
             SongsMatchedByArtist = songsMatchedByArtist;
             SongsMatchedByBpm = songsMatchedByBpm;
-            var allSongsList = new List<SongDto>();
+            var allSongsList = new List<SongMetaData>();
             allSongsList.AddRange(songsMatchedByTitle);
             allSongsList.AddRange(songsMatchedByBpm);
             allSongsList.AddRange(songsMatchedByArtist);

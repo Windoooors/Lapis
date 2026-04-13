@@ -106,9 +106,9 @@ public class WordleCommand : VocabularyCommandBase
         var win = word.ToLower() == game.Item1.Word.Word.ToLower();
         var gameOver = win || game.Item1.GuessedWords.Count == game.Item1.MaxTries;
 
-        AnnounceAnswer(game.Item1, source.GroupId, gameOver, win, source.MessageId);
-
         if (gameOver) _guessingGroupsMap.Remove(source.GroupId);
+
+        AnnounceAnswer(game.Item1, source.GroupId, gameOver, win, source.MessageId);
     }
 
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
@@ -126,8 +126,8 @@ public class WordleCommand : VocabularyCommandBase
                 return;
             }
 
-            AnnounceAnswer(game.Item1, source.GroupId, true, false, source.MessageId);
             _guessingGroupsMap.Remove(source.GroupId);
+            AnnounceAnswer(game.Item1, source.GroupId, true, false, source.MessageId);
 
             return;
         }
@@ -166,10 +166,10 @@ public class WordleCommand : VocabularyCommandBase
                 new CqReplyMsg(source.MessageId),
                 "不支持的参数"
             ]);
-            
+
             return;
         }
-        
+
         var game = new WordleGame(wordLength, maxTries);
         var random = new Random();
 
@@ -178,7 +178,10 @@ public class WordleCommand : VocabularyCommandBase
             var totalLength = 0;
 
             VocabularyCommandInstance.LargeVocabulary.Words.ToList().ForEach(x
-                => { totalLength += x.Value.Length; });
+                =>
+            {
+                totalLength += x.Value.Length;
+            });
 
             var wordRandomIndex = random.Next(0, totalLength);
 
@@ -186,7 +189,7 @@ public class WordleCommand : VocabularyCommandBase
 
             var categoryIndex = 0;
 
-            for (int i = 0; i < VocabularyCommandInstance.LargeVocabulary.Words.Count; i++)
+            for (var i = 0; i < VocabularyCommandInstance.LargeVocabulary.Words.Count; i++)
             {
                 if (currentIndex < wordRandomIndex)
                     currentIndex += VocabularyCommandInstance.LargeVocabulary.Words.ToList()[i].Value.Length;
@@ -196,12 +199,13 @@ public class WordleCommand : VocabularyCommandBase
                     currentIndex -= VocabularyCommandInstance.LargeVocabulary.Words.ToList()[i].Value.Length;
 
                     categoryIndex = i;
-                    
+
                     break;
                 }
             }
-            
-            var word = VocabularyCommandInstance.LargeVocabulary.Words.ToList()[categoryIndex].Value[wordRandomIndex - currentIndex];
+
+            var word = VocabularyCommandInstance.LargeVocabulary.Words.ToList()[categoryIndex]
+                .Value[wordRandomIndex - currentIndex];
 
             if (word.Word.Length == wordLength && word.Word.ToList().All(char.IsLetter) &&
                 !word.Word.ToList().All(char.IsUpper) && word.Translations.Any(x => x.Type != "abbr"))
@@ -216,10 +220,10 @@ public class WordleCommand : VocabularyCommandBase
             $"试试看吧！{BotConfiguration.Instance.BotName} 将在 {GameDuration} 秒后公布答案！"
         ]);
 
-        AnnounceAnswer(game, source.GroupId, false, false);
-
         _guessingGroupsMap.Add(source.GroupId,
             (game, DateTime.Now.Add(new TimeSpan(0, 0, 0, GameDuration))));
+
+        AnnounceAnswer(game, source.GroupId, false, false);
     }
 
     public class WordleGame(int wordLength, int maxTries)

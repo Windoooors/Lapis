@@ -6,5 +6,6 @@
   "AliasUrl": "https://maimai.lxns.net/api/v0/maimai/alias/list",
   "DivingFishUrl": "https://www.diving-fish.com",
   "DivingFishDevToken": "",
-  "WahlapConnectiveKitsUrl": ""
+  "WahlapConnectiveKitsUrl": "",
+  "SqlServerConnectionString": ""
 }

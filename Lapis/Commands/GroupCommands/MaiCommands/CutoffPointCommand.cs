@@ -63,6 +63,8 @@ public class CutoffPointCommand : MaiCommandBase
 
         var song = songs[0];
 
+        var charts = MaiCommandInstance.GetSongById(song.SongId).Charts;
+
         var difficultyIndexIsInt = int.TryParse(arguments[1], out var difficultyIndex);
 
         if (!difficultyIndexIsInt)
@@ -100,10 +102,10 @@ public class CutoffPointCommand : MaiCommandBase
                 "remas" => 4,
                 "re:mas" => 4,
 
-                _ => song.Charts.Length - 1
+                _ => charts.Count - 1
             };
 
-        if (song.Charts.Length - 1 < difficultyIndex || difficultyIndex < 0)
+        if (charts.Count - 1 < difficultyIndex || difficultyIndex < 0)
         {
             SendMessage(source, [new CqReplyMsg(source.MessageId), "不支持的难度参数"]);
             return;
@@ -134,15 +136,17 @@ public class CutoffPointCommand : MaiCommandBase
             return;
         }
 
-        var notes = song.Charts[difficultyIndex].Notes;
+        var chart = charts[difficultyIndex];
 
         var stringBuilder =
             new StringBuilder(
-                $"谱面详情：\nTAP 数量：{notes[0]}\nHOLD 数量：{notes[1]}\nSLIDE 数量：{notes[2]}\nTOUCH 数量：{(song.Type == "DX" ? notes[3] : "0")}\nBREAK 数量：{(song.Type == "DX" ? notes[4] : notes[3])}\n");
+                $"谱面详情：\nTAP 数量：{chart.TapCount}\nHOLD 数量：{chart.HoldCount}\n" +
+                $"SLIDE 数量：{chart.SlideCount}\n" +
+                $"TOUCH 数量：{chart.TouchCount}\nBREAK 数量：{chart.BreakCount}\n");
 
-        var totalBasicScore = (notes[0] + (song.Type == "DX" ? notes[3] : 0)) * 500 +
-                              notes[1] * 1000 + notes[2] * 1500 + (song.Type == "DX" ? notes[4] : notes[3]) * 2500;
-        var totalBreakScore = (song.Type == "DX" ? notes[4] : notes[3]) * 100;
+        var totalBasicScore = (chart.TapCount + chart.TouchCount) * 500 +
+                              chart.HoldCount * 1000 + chart.SlideCount * 1500 + chart.BreakCount * 2500;
+        var totalBreakScore = chart.BreakCount * 100;
         var totalScore = totalBasicScore + totalBreakScore;
 
         var singleMissTapAchievementLoss = 50000f / totalBasicScore;

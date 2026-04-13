@@ -9,12 +9,13 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.ImageGenerators;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 using Newtonsoft.Json;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
-public class InfoCommand : WckCommandBase
+public class InfoCommand : MaiCommandBase
 {
     public InfoCommand()
     {
@@ -73,7 +74,7 @@ public class InfoCommand : WckCommandBase
             try
             {
                 scoreData = isGroupMember
-                    ? GetScore.Get(groupMembers[0].Id, songs[0])
+                    ? GetScore.Get(groupMembers[0].QqId, songs[0])
                     : isQqId
                         ? GetScore.Get(qqId, songs[0])
                         : GetScore.Get(arguments[1], songs[0]);
@@ -110,21 +111,21 @@ public class InfoCommand : WckCommandBase
         var isCompressed =
             SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
-        var image = new CqImageMsg("base64://" + generator.Generate(songs[0], "歌曲信息",
+        var image = new CqImageMsg("base64://" + generator.Generate(MaiCommandInstance.ToSongDto(songs[0]), "歌曲信息",
             scoreData,
             isCompressed));
 
         SendMessage(source, [new CqReplyMsg(source.MessageId), image]);
 
         if (SettingsPool.GetValue(new SettingsIdentifierPair("info", "2"), source.GroupId) &&
-            File.Exists(GetSongPath(songs[0].Id)))
+            File.Exists(GetSongPath(songs[0].SongId)))
             SendMessage(source,
-                [new CqRecordMsg("file:///" + GetSongPath(songs[0].Id))]);
+                [new CqRecordMsg("file:///" + GetSongPath(songs[0].SongId))]);
     }
 
     public static class GetScore
     {
-        public static ScoreData Get(object identification, SongDto song)
+        public static ScoreData Get(object identification, SongMetaData song)
         {
             return identification switch
             {
@@ -134,11 +135,11 @@ public class InfoCommand : WckCommandBase
             };
         }
 
-        private static ScoreData Get(string name, SongDto song)
+        private static ScoreData Get(string name, SongMetaData song)
         {
             var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/dev/player/record",
-                new { username = name, music_id = song.Id.ToString() },
+                new { username = name, music_id = song.SongId.ToString() },
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
             if (content.StatusCode != HttpStatusCode.OK)
@@ -147,14 +148,20 @@ public class InfoCommand : WckCommandBase
 
             return new ScoreData(
                 JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0],
-                song);
+                MaiCommandInstance.ToSongDto(song));
         }
 
-        private static ScoreData Get(long userId, SongDto song)
+        private static ScoreData Get(long userId, SongMetaData song)
         {
+            var hasDataFromLapis =
+                MaiCommandInstance.MaiScoreOperator.TryGetInformationFromLapis(userId, song.SongId,
+                    out var dataFromLapis);
+
+            if (hasDataFromLapis) return dataFromLapis;
+
             var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/dev/player/record",
-                new { qq = userId.ToString(), music_id = song.Id.ToString() },
+                new { qq = userId.ToString(), music_id = song.SongId.ToString() },
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
             if (content.StatusCode != HttpStatusCode.OK)
@@ -162,47 +169,8 @@ public class InfoCommand : WckCommandBase
                     content.StatusCode);
 
             return new ScoreData(
-                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0]
-                    .Select(x =>
-                    {
-                        InquirePlayCount(x, song, userId);
-                        return x;
-                    }).ToArray(),
-                song);
-        }
-
-        private static void InquirePlayCount(LevelDto levelDto, SongDto song, long qqId)
-        {
-            var sessionValid = TryGetSessionId(qqId, out var sessionId);
-
-            if (!sessionValid)
-                return;
-
-            var parameters = new Dictionary<string, string>
-            {
-                { "session_id", sessionId },
-                { "range_to", song.Id.ToString() },
-                { "range_from", song.Id.ToString() }
-            };
-
-            var response = ApiOperator.Instance.Get(BotConfiguration.Instance.WahlapConnectiveKitsUrl,
-                "v1/user_music_data", parameters, 240);
-
-            var responseString = response.Result;
-
-            if (response.StatusCode != HttpStatusCode.OK) return;
-
-            var rawMusicData = JsonConvert.DeserializeObject<UpdateCommand.WckMusicDataResponseDto>(responseString);
-
-            if (rawMusicData.Code != 200)
-                return;
-
-            var data = rawMusicData.MusicData.ToList().Find(x => x.Level == levelDto.LevelIndex && x.Id == song.Id);
-
-            if (data == null)
-                return;
-
-            levelDto.PlayCount = data.PlayCount;
+                JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0],
+                MaiCommandInstance.ToSongDto(song));
         }
 
         public class LevelDto

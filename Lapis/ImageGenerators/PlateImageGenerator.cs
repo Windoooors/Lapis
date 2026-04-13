@@ -19,7 +19,7 @@ public class PlateImageGenerator : ImageGenerator
         foreach (var song in songsToBeDisplayed)
         {
             var rating = Math.Round(song.SongDto.Ratings[song.LevelIndex], 1);
-            if ((rating > 13.5m) & (rating < 14.0m))
+            if ((rating > 13.5) & (rating < 14.0))
             {
                 if (!difficulties.ContainsKey("13+"))
                 {
@@ -32,7 +32,7 @@ public class PlateImageGenerator : ImageGenerator
                 }
             }
 
-            if ((rating > 13.9m) & (rating < 14.6m))
+            if ((rating > 13.9) & (rating < 14.6))
             {
                 if (!difficulties.ContainsKey("14"))
                 {
@@ -45,7 +45,7 @@ public class PlateImageGenerator : ImageGenerator
                 }
             }
 
-            if ((rating > 14.5m) & (rating < 15.0m))
+            if ((rating > 14.5) & (rating < 15.0))
             {
                 if (!difficulties.ContainsKey("14+"))
                 {
@@ -58,7 +58,7 @@ public class PlateImageGenerator : ImageGenerator
                 }
             }
 
-            if (rating > 14.9m)
+            if (rating > 14.9)
             {
                 if (!difficulties.ContainsKey("15"))
                 {

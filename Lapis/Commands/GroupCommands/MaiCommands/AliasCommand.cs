@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.MaiCommands.AliasCommands;
-using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -42,14 +43,14 @@ public class AliasCommand : AliasCommandBase
         ParseWithArgument([command], originalCommandString, source);
     }
 
-    private string GetAliasesInText(Alias alias)
+    private string GetAliasesInText(SongAlias alias, int songId)
     {
-        var song = MaiCommandInstance.GetSong((int)alias.Id);
+        var song = MaiCommandInstance.GetSongById(songId);
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine($"歌曲 {song.Title} [{song.Type}] 有如下别称：");
+        stringBuilder.AppendLine($"歌曲 {song.Title} [{GetSongType(songId)}] 有如下别称：");
         if (alias.Aliases.Count != 0)
         {
-            var hashSet = new HashSet<string>(alias.Aliases);
+            var hashSet = new HashSet<string>(alias.Aliases.Select(x => x.Alias));
 
             foreach (var aliasString in hashSet) stringBuilder.AppendLine(aliasString);
 
@@ -57,7 +58,7 @@ public class AliasCommand : AliasCommandBase
         }
         else
         {
-            stringBuilder = new StringBuilder($"歌曲 {song.Title} [{song.Type}] 没有别称");
+            stringBuilder = new StringBuilder($"歌曲 {song.Title} [{GetSongType(songId)}] 没有别称");
         }
 
         return stringBuilder.ToString();
@@ -76,7 +77,7 @@ public class AliasCommand : AliasCommandBase
             SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
-                new CqTextMsg(GetAliasesInText(MaiCommandInstance.GetAliasById(songs[0].Id)))
+                new CqTextMsg(GetAliasesInText(MaiCommandInstance.GetAliasById(songs[0].SongId), songs[0].SongId))
             ]);
             return;
         }

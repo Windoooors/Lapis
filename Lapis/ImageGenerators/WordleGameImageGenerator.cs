@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Lapis.Commands.GroupCommands.VocabularyCommands;
@@ -29,12 +28,12 @@ public class WordleGameImageGenerator
     public string Generate(WordleCommand.WordleGame game, bool compressed)
     {
         var imageHeight = Padding * 2
-            + WordBoxWidth * game.MaxTries
-            + SpaceBetweenWordBoxes * (game.MaxTries - 1) +
-            (game.WordLength >= 5
-                ? SpaceBetweenWordAndKeyboard
-                  + KeyboardBoxHeight * 3 + SpaceBetweenKeyBoxes * 2
-                : 0);
+                          + WordBoxWidth * game.MaxTries
+                          + SpaceBetweenWordBoxes * (game.MaxTries - 1) +
+                          (game.WordLength >= 5
+                              ? SpaceBetweenWordAndKeyboard
+                                + KeyboardBoxHeight * 3 + SpaceBetweenKeyBoxes * 2
+                              : 0);
 
         var imageWidth = WordBoxWidth * game.WordLength + SpaceBetweenWordBoxes * (game.WordLength - 1) + Padding * 2;
 
@@ -148,7 +147,7 @@ public class WordleGameImageGenerator
 
             var keyWidth = KeyboardBoxWidth * _keyboardLetters[0].Length +
                            SpaceBetweenKeyBoxes * (_keyboardLetters[0].Length - 1);
-            
+
             var left = (imageWidth - keyWidth) / 2;
             var originalLeft = left;
 

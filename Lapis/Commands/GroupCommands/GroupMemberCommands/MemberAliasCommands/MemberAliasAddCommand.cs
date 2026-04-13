@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.UniversalCommands;
-using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Lapis.Commands.GroupCommands.GroupMemberCommands.MemberAliasCommands;
 
@@ -31,7 +25,7 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
             return;
         }
 
-        GroupMemberCommand.GroupMember[] members = [];
+        GroupMember[] members = [];
         long intendedUserId = 0;
 
         if (!GroupMemberCommandInstance.TryGetMember(arguments[0], out members, source,
@@ -39,7 +33,6 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
                 true)
            )
             return;
-
 
         if (members.Length > 1)
         {
@@ -56,7 +49,7 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
         }
 
         if (members.Length == 1)
-            intendedUserId = members[0].Id;
+            intendedUserId = members[0].QqId;
 
         if (arguments[1] == "")
         {
@@ -69,30 +62,26 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
 
         var intendedAlias = arguments[1];
 
-        var groupedMemberAliasManager = MemberAliasManager.Instance.GetMemberAliasManager(source.GroupId);
         var action = () =>
         {
             var id = intendedUserId;
 
+            using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+
             var success =
-                groupedMemberAliasManager.Add(id, intendedAlias);
+                DatabaseHandler.Instance.GroupMemberDatabaseOperator.AddAlias(intendedAlias, source.GroupId, id, db);
             if (success)
-            {
                 SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("添加成功！")
                 ]);
-                MemberAliasManager.Instance.Save();
-            }
             else
-            {
                 SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
                     new CqTextMsg("已存在此别名")
                 ]);
-            }
         };
 
         TaskHandleQueue.HandleableTask task = new(intendedUserId, () =>
@@ -130,89 +119,5 @@ public class MemberAliasAddCommand : MemberAliasCommandBase
                 new CqReplyMsg(source.MessageId),
                 new CqTextMsg("该群友当前已有代办事项！请待其处理后再试！")
             ]);
-    }
-}
-
-public class MemberAliasManager
-{
-    private static readonly string SavePath = Path.Combine(AppContext.BaseDirectory, "data/member_aliases.json");
-
-    private readonly HashSet<GroupedMemberAliasManager> _memberAliasManagers =
-        File.Exists(SavePath)
-            ? JsonConvert.DeserializeObject<HashSet<GroupedMemberAliasManager>>(
-                File.ReadAllText(SavePath))
-            : [];
-
-    public static MemberAliasManager Instance { get; } = new();
-
-    public GroupedMemberAliasManager GetMemberAliasManager(long groupId)
-    {
-        var manager = _memberAliasManagers.ToList().Find(x => x.GroupId == groupId);
-        if (manager is null || manager.GroupId == 0)
-        {
-            _memberAliasManagers.Add(new GroupedMemberAliasManager(groupId));
-            return GetMemberAliasManager(groupId);
-        }
-
-        return manager;
-    }
-
-    public void Save()
-    {
-        File.WriteAllText(SavePath,
-            JsonConvert.SerializeObject(_memberAliasManagers));
-        Program.Logger.LogInformation("Member aliases have been saved");
-    }
-}
-
-public class GroupedMemberAliasManager(long groupId)
-{
-    public AliasCollection AliasCollection = new();
-
-    public long GroupId { get; } = groupId;
-
-    public bool Add(long id, string alias)
-    {
-        if (AliasCollection.TryGetAlias(id, out var aliasOut) && aliasOut.Aliases.Contains(alias))
-            return false;
-
-        AliasCollection.Add<Alias>(id, alias);
-        return true;
-    }
-
-    public bool Remove(long id, string alias)
-    {
-        if (!AliasCollection.TryGetAlias(id, out var aliasOut))
-            return false;
-        return aliasOut.Aliases.Remove(alias);
-    }
-
-    public bool RemoveAll(int index)
-    {
-        if (!AliasCollection.TryGetAlias(index, out var aliasOut)) return false;
-        AliasCollection.Remove(index);
-        return true;
-    }
-
-    public List<string> Get(long id)
-    {
-        return !AliasCollection.TryGetAlias(id, out var aliasOut)
-            ? null
-            : aliasOut.Aliases.ToList();
-    }
-
-    public long[] GetIds()
-    {
-        return AliasCollection.GetIds();
-    }
-
-    public override int GetHashCode()
-    {
-        return GroupId.GetHashCode();
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is GroupedMemberAliasManager other && GroupId == other.GroupId;
     }
 }

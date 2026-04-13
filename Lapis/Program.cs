@@ -9,6 +9,10 @@ using Lapis.Commands.GroupCommands;
 using Lapis.Commands.PrivateCommands;
 using Lapis.Commands.UniversalCommands;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog.Extensions.Logging;
@@ -32,7 +36,42 @@ public class BotConfiguration
     [JsonProperty] public string DeepSeekUrl;
     [JsonProperty] public string DivingFishDevToken;
     [JsonProperty] public string DivingFishUrl;
+
+    [JsonProperty] public string SqlServerConnectionString;
     [JsonProperty] public string WahlapConnectiveKitsUrl;
+}
+
+public class DatabaseHandler
+{
+    public static DatabaseHandler Instance;
+    public GroupMemberDatabaseOperator GroupMemberDatabaseOperator = new();
+    public SongMetaDatabaseOperator SongMetaDatabaseOperator = new();
+
+    public DatabaseHandler()
+    {
+        Instance = this;
+
+        InitializeDatabase(GroupMemberDatabaseOperator.Db, SongMetaDatabaseOperator.Db);
+    }
+
+    public void InitializeDatabase(params DbContext[] contexts)
+    {
+        if (contexts.Length == 0) return;
+
+        contexts[0].Database.EnsureCreated();
+
+        foreach (var db in contexts)
+        {
+            var databaseCreator = db.GetService<IRelationalDatabaseCreator>();
+            try
+            {
+                databaseCreator.CreateTables();
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
 }
 
 public class Program
@@ -66,7 +105,7 @@ public class Program
     private static readonly ApiOperator ApiOperator = new();
 
     private static BotConfiguration _botConfiguration = new();
-
+    private static DatabaseHandler _databaseHandler;
     public static CqWsSession Session;
 
     public static ILogger<Program> Logger;
@@ -82,6 +121,8 @@ public class Program
     public static event EventHandler HourChanged;
 
     public static event EventHandler TimeChanged;
+
+    public static event EventHandler OnApplicationExit;
 
     public static Task Main()
     {
@@ -112,6 +153,8 @@ public class Program
 
         BotConfiguration.Instance = _botConfiguration;
         ApiOperator.Instance = ApiOperator;
+
+        _databaseHandler = new DatabaseHandler();
 
         Session = new CqWsSession(new CqWsSessionOptions
         {
@@ -258,6 +301,8 @@ public class Program
     {
         foreach (var command in Commands)
             command.StartUnloading();
+
+        OnApplicationExit?.Invoke(sender, e);
 
         SaveDate();
     }

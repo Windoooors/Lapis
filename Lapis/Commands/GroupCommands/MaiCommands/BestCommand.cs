@@ -28,8 +28,9 @@ public class BestCommand : MaiCommandBase
         foreach (var score in scores)
         {
             score.Rate = GetRate(score.Achievements);
-            score.MaxDxScore = MaiCommandInstance.GetSong(score.Id)
-                .Charts[score.LevelIndex].MaxDxScore;
+            var song = MaiCommandInstance.GetSongById(score.Id);
+
+            score.MaxDxScore = song.Charts[score.LevelIndex].MaxDxScore;
         }
     }
 
@@ -46,11 +47,20 @@ public class BestCommand : MaiCommandBase
         {
             if (isGroupMember)
             {
+                var hasB50FromLapis = MaiScoreOperator.TryGetB50FromLapis(groupMembers[0].QqId, out var b50FromLapis);
+
+                if (hasB50FromLapis)
+                {
+                    Process(source, b50FromLapis, true);
+
+                    return;
+                }
+
                 var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
                     new
                     {
-                        qq = groupMembers[0].Id.ToString(),
+                        qq = groupMembers[0].QqId.ToString(),
                         b50 = true
                     },
                     [
@@ -88,6 +98,16 @@ public class BestCommand : MaiCommandBase
             }
             else if (isQqId)
             {
+                var hasB50FromLapis =
+                    MaiScoreOperator.TryGetB50FromLapis(long.Parse(arguments[0]), out var b50FromLapis);
+
+                if (hasB50FromLapis)
+                {
+                    Process(source, b50FromLapis, true);
+
+                    return;
+                }
+
                 var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
                     "api/maimaidxprober/query/player",
                     new
@@ -179,6 +199,15 @@ public class BestCommand : MaiCommandBase
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
+        var hasB50FromLapis = MaiScoreOperator.TryGetB50FromLapis(source.UserId, out var b50FromLapis);
+
+        if (hasB50FromLapis)
+        {
+            Process(source, b50FromLapis, true);
+
+            return;
+        }
+
         try
         {
             var content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
@@ -286,6 +315,8 @@ public class BestDto
         [JsonProperty("level_index")] public int LevelIndex;
 
         public int MaxDxScore;
+
+        public int PlayCount = -1;
 
         public MaiCommandBase.Rate Rate;
 

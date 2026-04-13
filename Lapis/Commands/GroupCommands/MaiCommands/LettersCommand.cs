@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -29,7 +30,7 @@ public class LettersCommand : MaiCommandBase
         Program.TimeChanged += TimeChanged;
     }
 
-    private SongDto GetRandomSong(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
+    private SongMetaData GetRandomSong(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
     {
         var pattern = new Regex("");
         switch (specialCharactersToBeIncluded)
@@ -47,18 +48,28 @@ public class LettersCommand : MaiCommandBase
         }
 
         var random = new Random();
-        var index = random.Next(0, MaiCommandInstance.Songs.Length);
 
-        if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both) return MaiCommandInstance.Songs[index];
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+        var count = db.SongMetaDataSet.Count();
+        var index = random.Next(0, count);
 
-        while (pattern.IsMatch(MaiCommandInstance.Songs[index].Title))
-            index = random.Next(0, MaiCommandInstance.Songs.Length);
-        return MaiCommandInstance.Songs[index];
+        if (specialCharactersToBeIncluded == SpecialCharactersToBeIncluded.Both)
+            return db.SongMetaDataSet
+                .Skip(index)
+                .First();
+
+        while (pattern.IsMatch(db.SongMetaDataSet
+                   .Skip(index)
+                   .First().Title))
+            index = random.Next(0, count);
+        return db.SongMetaDataSet
+            .Skip(index)
+            .First();
     }
 
     private SongList GenerateSongList(SpecialCharactersToBeIncluded specialCharactersToBeIncluded)
     {
-        var songs = new List<SongDto>();
+        var songs = new List<SongMetaData>();
 
         songs.Add(GetRandomSong(specialCharactersToBeIncluded));
 
@@ -359,7 +370,7 @@ public class LettersCommand : MaiCommandBase
 
             SendMessage(source,
             [
-                new CqReplyMsg(source.MessageId), $"开出歌曲：\"{song.Title}\" [{song.Type.ToUpper()}]"
+                new CqReplyMsg(source.MessageId), $"开出歌曲：\"{song.Title}\" [{GetSongType(song.SongId)}]"
             ]);
             AnnounceAnswer(keyValuePair.Item1, source.GroupId.ToString(), source.MessageId, false);
             return;
@@ -371,8 +382,8 @@ public class LettersCommand : MaiCommandBase
     private class SongList
     {
         public readonly List<char> GuessedLetters = new();
-        public readonly List<SongDto> GuessedSongs = new();
-        public SongDto[] AllSongs;
+        public readonly List<SongMetaData> GuessedSongs = new();
+        public SongMetaData[] AllSongs;
     }
 
     private enum SpecialCharactersToBeIncluded

@@ -5,14 +5,14 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.MaiCommands;
-using Lapis.Commands.GroupCommands.MaiCommands.AliasCommands;
 using Lapis.Commands.UniversalCommands;
-using Lapis.Miscellaneous;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
+using Lapis.Operations.MaiScoreOperation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -38,9 +38,17 @@ public abstract class MaiCommandBase : GroupCommand
         Sssp
     }
 
-    protected static MaiCommand MaiCommandInstance;
+    public enum SongType
+    {
+        DX,
+        SD
+    }
+
+    public static MaiCommand MaiCommandInstance;
     protected readonly Regex IdHeadRegex = new(@"^id\s|^id|^ID\s|^ID");
     protected readonly Regex IdRegex = new(@"(^id\s|^id|^ID\s|^ID)-?[0-9]+");
+
+    public readonly MaiScoreOperator MaiScoreOperator = new();
 
     protected void DivingFishErrorHelp(CqGroupMessagePostContext source)
     {
@@ -58,6 +66,15 @@ public abstract class MaiCommandBase : GroupCommand
             new CqReplyMsg(source.MessageId),
             new CqTextMsg("您没有绑定“舞萌 DX | 中二节奏查分器”账户，请前往 https://www.diving-fish.com/maimaidx/prober 进行绑定")
         ]);
+    }
+
+    public static SongType GetSongType(int songId)
+    {
+        return songId switch
+        {
+            >= 10000 => SongType.DX,
+            < 10000 => SongType.SD
+        };
     }
 
     protected void ForbiddenErrorHelp(CqGroupMessagePostContext source)
@@ -78,22 +95,23 @@ public abstract class MaiCommandBase : GroupCommand
         ]);
     }
 
-    public string GetMultiAliasesMatchedInformationString(SongDto[] songs,
+    public string GetMultiAliasesMatchedInformationString(SongMetaData[] songs,
         CommandBehaviorInformationDataObject behaviorInformation)
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("该别称有多首歌曲匹配：");
 
-        foreach (var song in songs) stringBuilder.AppendLine($"ID {song.Id} - {song.Title} [{song.Type}]");
+        foreach (var song in songs)
+            stringBuilder.AppendLine($"ID {song.SongId} - {song.Title} [{GetSongType(song.SongId)}]");
 
         stringBuilder.Append(
             behaviorInformation.ExtraParameterStrings == null
-                ? $"*发送 \"lps mai {behaviorInformation.CommandString} ID{songs[0].Id}\" 指令即可查询歌曲 {songs[0].Title} [{songs[0].Type}] 的{behaviorInformation.FunctionString}"
-                : $"*发送 \"lps mai {behaviorInformation.CommandString} ID{songs[0].Id} {
+                ? $"*发送 \"lps mai {behaviorInformation.CommandString} ID{songs[0].SongId}\" 指令即可查询歌曲 {songs[0].Title} [{GetSongType(songs[0].SongId)}] 的{behaviorInformation.FunctionString}"
+                : $"*发送 \"lps mai {behaviorInformation.CommandString} ID{songs[0].SongId} {
                     behaviorInformation.ExtraParameterStrings.Aggregate(
                         new StringBuilder(), (builder, item) => builder.Append(item).Append(' ')
                     ).ToString().Trim()
-                }\" 指令即可{(behaviorInformation.ContentModification ? "为歌曲" : "查询歌曲")} {songs[0].Title} [{songs[0].Type}] {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}"
+                }\" 指令即可{(behaviorInformation.ContentModification ? "为歌曲" : "查询歌曲")} {songs[0].Title} [{GetSongType(songs[0].SongId)}] {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}"
         );
 
         return stringBuilder.ToString();
@@ -119,10 +137,10 @@ public abstract class MaiCommandBase : GroupCommand
                 var exampleSong = searchResult.AllSongs[0];
                 stringBuilder.Append(
                     behaviorInformation.ExtraParameterStrings == null
-                        ? $"*发送 \"lps mai {behaviorInformation.CommandString} ID{exampleSong.Id}\" 指令即可查询歌曲 {exampleSong.Title} [{exampleSong.Type}] 的{behaviorInformation.FunctionString}"
-                        : $"*发送 \"lps mai {behaviorInformation.CommandString} ID{exampleSong.Id} {behaviorInformation.ExtraParameterStrings.Aggregate(
+                        ? $"*发送 \"lps mai {behaviorInformation.CommandString} ID{exampleSong.SongId}\" 指令即可查询歌曲 {exampleSong.Title} [{GetSongType(exampleSong.SongId)}] 的{behaviorInformation.FunctionString}"
+                        : $"*发送 \"lps mai {behaviorInformation.CommandString} ID{exampleSong.SongId} {behaviorInformation.ExtraParameterStrings.Aggregate(
                             new StringBuilder(), (builder, item) => builder.Append(item).Append(' ')
-                        ).ToString().Trim()}\" 指令即可{(behaviorInformation.ContentModification ? "为歌曲" : "查询歌曲")} {exampleSong.Title} [{exampleSong.Type}] {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}");
+                        ).ToString().Trim()}\" 指令即可{(behaviorInformation.ContentModification ? "为歌曲" : "查询歌曲")} {exampleSong.Title} [{GetSongType(exampleSong.SongId)}] {(behaviorInformation.ContentModification ? "" : "的")}{behaviorInformation.FunctionString}");
             }
             else
             {
@@ -139,7 +157,7 @@ public abstract class MaiCommandBase : GroupCommand
         return AppContext.BaseDirectory + "resource/tracks/" + id + ".mp3";
     }
 
-    protected static Rate GetRate(float achievement)
+    public static Rate GetRate(float achievement)
     {
         var rate = new Rate();
 
@@ -206,13 +224,13 @@ public class SongDto
 
     [JsonProperty("charts")] public ChartDto[] Charts;
 
-    public decimal[] FitRatings;
+    public float[] FitRatings;
 
     [JsonProperty("id")] public int Id;
 
     [JsonProperty("level")] public string[] Levels;
 
-    [JsonProperty("ds")] public decimal[] Ratings;
+    [JsonProperty("ds")] public float[] Ratings;
 
     [JsonProperty("title")] public string Title;
 
@@ -241,7 +259,7 @@ public class SongDto
     {
         [JsonProperty("artist")] public string Artist;
 
-        [JsonProperty("bpm")] public decimal Bpm;
+        [JsonProperty("bpm")] public float Bpm;
 
         [JsonProperty("from")] public string Version;
     }
@@ -253,7 +271,7 @@ public class ChartStatisticsDto
 
     public class ChartStatisticDto
     {
-        [JsonProperty("fit_diff")] public decimal FitRating;
+        [JsonProperty("fit_diff")] public float FitRating;
     }
 }
 
@@ -284,11 +302,6 @@ public class MaiCommand : MaiCommandBase
         { "14?", 45 }, { "14+?", 46 }, { "15?", 47 }
     };
 
-    private ChartStatisticsDto _chartStatistics;
-
-    public List<Alias> SongAliases = [];
-    public SongDto[] Songs;
-
     public MaiCommand()
     {
         MaiCommandInstance = this;
@@ -310,118 +323,110 @@ public class MaiCommand : MaiCommandBase
         ];
     }
 
-    public SongDto[] GetSongsUsingDifficultyString(string difficultyString)
+    public SongMetaData[] GetSongsUsingDifficultyString(string difficultyString)
     {
-        var isRating = float.TryParse(difficultyString, out _);
-        decimal.TryParse(difficultyString, out var rating);
+        var isRating = float.TryParse(difficultyString, out var rating);
 
-        var songs = Songs.Where(song =>
-                song.Levels.Contains(difficultyString) ||
-                (isRating && song.Ratings.Contains(rating) && song.Id < 100000))
-            .Select(song => song);
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
-        return songs.ToArray();
+        var charts = (isRating
+            ? db.ChartMetaDataSet.Where(x => x.Rating.Equals(rating))
+            : db.ChartMetaDataSet.Where(x => x.LevelName == difficultyString)).ToArray();
+
+        var songs = charts.Select(x => GetSongById(x.SongId)).ToHashSet().ToArray();
+
+        return songs;
     }
 
-    private Alias[] GetAliasByAliasString(string alias)
+    private SongAlias GetAliasByAliasString(string alias)
     {
-        alias = alias.ToLower();
-        var aliases = new List<Alias>();
-        foreach (var valueAlias in SongAliases)
-        foreach (var valueAliasString in valueAlias.Aliases)
-            if (valueAliasString.ToLower().Equals(alias.ToLower()))
-                aliases.Add(valueAlias);
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+        var dataSet = db.SongAliasDataSet.Include(x => x.Aliases).ToList();
 
-        var localAlias = LocalAliasManager.Instance;
-        foreach (var e1 in localAlias.GetIds())
+        var findResult = dataSet.FirstOrDefault(x => x.Aliases.Exists(y => y.Alias.ToLower() == alias.ToLower()));
+
+        if (findResult == null)
+            return null;
+
+        return GetAliasById(findResult.SimplifiedSongId);
+    }
+
+    public SongAlias GetAliasById(int id)
+    {
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+        return db.SongAliasDataSet.Include(x => x.Aliases).FirstOrDefault(x => (id - x.SimplifiedSongId) % 10000 == 0);
+    }
+
+    public SongDto ToSongDto(SongMetaData song)
+    {
+        var chart = song.Charts;
+
+        return new SongDto
         {
-            var a = LocalAliasManager.Instance.Get(e1);
-            if (a == null)
-                continue;
-            foreach (var aliasString in a)
-                if (aliasString.ToLower() == alias)
-                {
-                    var temp = new Alias { Aliases = [] };
-                    temp.Id = e1;
-
-                    foreach (var e2 in a) temp.Aliases.Add(e2);
-
-                    aliases.Add(temp);
-                }
-        }
-
-        return aliases.ToArray();
-    }
-
-    public Alias GetAliasById(int id)
-    {
-        var valueAlias = new Alias { Id = id, Aliases = [] };
-        foreach (var alias in SongAliases)
-            if (alias.Id == id)
+            BasicInfo = new SongDto.BasicInfoDto
             {
-                valueAlias = alias;
-                break;
-            }
-
-        var tempAlias = new Alias { Id = id, Aliases = [] };
-        foreach (var aliasString in valueAlias.Aliases) tempAlias.Aliases.Add(aliasString);
-
-        var local = LocalAliasManager.Instance.Get(id);
-        if (local != null)
-            foreach (var e in local)
-                if (!valueAlias.Aliases.Contains(e))
-                    tempAlias.Aliases.Add(e);
-
-        return tempAlias;
+                Artist = song.Artist,
+                Bpm = song.Bpm,
+                Version = song.Version
+            },
+            Charts = chart.Select(x => new SongDto.ChartDto
+            {
+                Charter = x.CharterName,
+                MaxDxScore = x.MaxDxScore,
+                Notes = [x.TapCount, x.HoldCount, x.SlideCount, x.TouchCount, x.BreakCount]
+            }).ToArray(),
+            FitRatings = chart.Select(x => x.FitRating).ToArray(),
+            Ratings = chart.Select(x => x.Rating).ToArray(),
+            Id = song.SongId,
+            Levels = chart.Select(x => x.LevelName).ToArray(),
+            Title = song.Title,
+            Type = GetSongType(song.SongId).ToString()
+        };
     }
 
-    private int GetSongIndexById(int id)
+    private SongMetaData[] GetSongsBySimplifiedId(int simplifiedId)
     {
-        for (var i = 0; i < Songs.Length; i++)
-            if (Songs[i].Id == id)
-                return i;
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
-        return -1;
+        return db.SongMetaDataSet.Include(x => x.Charts).Where(x => x.SongId - simplifiedId % 10000 == 0).ToArray();
     }
 
-    private int GetSongIndexByTitle(string title)
+    public SongMetaData GetSongById(int id)
     {
-        for (var i = 0; i < Songs.Length; i++)
-            if (title.ToLower() == Songs[i].Title.ToLower())
-                return i;
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
-        return -1;
+        var songDbItem =
+            db.SongMetaDataSet.Include(x => x.Charts).FirstOrDefault(x => x.SongId == id);
+
+        return songDbItem;
     }
 
-    public SongDto GetSong(int id)
-    {
-        return Songs[GetSongIndexById(id)];
-    }
-
-    public bool TryGetSongs(string inputString, out SongDto[] songs,
+    public bool TryGetSongs(string inputString, out SongMetaData[] songs,
         CommandBehaviorInformationDataObject commandBehaviorInformationDataObject = null,
         CqMessagePostContext source = null,
         bool noUtage = false) // Return false when no song is matched, and send error message to the group.
     {
         inputString = inputString.ToLower();
-        var aliases = GetAliasByAliasString(inputString);
+        var aliasItem = GetAliasByAliasString(inputString);
 
-        if (aliases.Length != 0)
+        if (aliasItem != null && aliasItem.Aliases.Count != 0)
         {
-            var songsList = new List<SongDto>();
-            foreach (var alias in aliases)
+            var songsSet = new HashSet<SongMetaData>();
+            foreach (var alias in aliasItem.Aliases)
             {
-                if (GetSongIndexById((int)alias.Id) == -1)
+                var songsByAlias = GetSongsBySimplifiedId(aliasItem.SimplifiedSongId);
+
+                if (songsByAlias.Length == 0)
                     continue;
-                if (!songsList.Contains(Songs[GetSongIndexById((int)alias.Id)]))
-                    songsList.Add(Songs[GetSongIndexById((int)alias.Id)]);
+
+                foreach (var songMetaData in songsByAlias) songsSet.Add(songMetaData);
             }
 
-            var utageSongs = songsList.Where(x => x.Id > 100000).Select(x => x).ToArray();
+            var utageSongs = songsSet.Where(x => x.SongId > 100000).Select(x => x).ToArray();
 
             if (utageSongs.Length != 0)
             {
-                var standardSongs = songsList
+                var standardSongs = songsSet
                     .Where(x => utageSongs[0].Title.Contains(x.Title) && utageSongs[0].Title != x.Title)
                     .Select(x => x)
                     .ToArray();
@@ -433,9 +438,9 @@ public class MaiCommand : MaiCommandBase
                 }
             }
 
-            if (songsList.Count != 0)
+            if (songsSet.Count != 0)
             {
-                songs = songsList.ToArray();
+                songs = songsSet.ToArray();
                 return true;
             }
         }
@@ -444,10 +449,10 @@ public class MaiCommand : MaiCommandBase
             try
             {
                 var id = int.Parse(IdHeadRegex.Replace(inputString.ToLower(), string.Empty, 1));
-                var index = GetSongIndexById(id);
-                if (index != -1)
+                var song = GetSongById(id);
+                if (song != null)
                 {
-                    songs = [Songs[index]];
+                    songs = [song];
 
                     return true;
                 }
@@ -475,16 +480,16 @@ public class MaiCommand : MaiCommandBase
                 return false;
             }
 
-        var songIndex = GetSongIndexByTitle(inputString);
-        if (songIndex != -1)
+        var songsByTitle = GetSongsByTitle(inputString);
+        if (songsByTitle.Length != 0)
         {
-            songs = [Songs[songIndex]];
+            songs = songsByTitle;
             return true;
         }
 
         var searchedSongsList = SearchCommand.SearchCommandInstance.Search(inputString).AllSongs;
 
-        var searchedSongsHashSet = new HashSet<SongDto>();
+        var searchedSongsHashSet = new HashSet<SongMetaData>();
         foreach (var searchedSong in searchedSongsList) searchedSongsHashSet.Add(searchedSong);
 
         var dereplicatedSearchedSongsList = searchedSongsHashSet.ToList();
@@ -493,7 +498,7 @@ public class MaiCommand : MaiCommandBase
 
         if (dereplicatedSearchedSongsList.Count > 1)
         {
-            var utageSongsList = new List<SongDto>();
+            var utageSongsList = new List<SongMetaData>();
             foreach (var searchedSong in dereplicatedSearchedSongsList)
                 if (utageRegex.IsMatch(searchedSong.Title))
                     utageSongsList.Add(searchedSong);
@@ -518,6 +523,13 @@ public class MaiCommand : MaiCommandBase
         return false;
     }
 
+    private SongMetaData[] GetSongsByTitle(string title)
+    {
+        using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+
+        return db.SongMetaDataSet.Include(x => x.Charts).Where(x => x.Title == title).ToArray();
+    }
+
     private void Reload(object sender, EventArgs e)
     {
         Start();
@@ -525,153 +537,7 @@ public class MaiCommand : MaiCommandBase
 
     private void Start()
     {
-        try
-        {
-            var responseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/chart_stats", 60);
-
-            if (responseContent.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"Unexpected status code: {responseContent.StatusCode}", null,
-                    responseContent.StatusCode);
-
-            _chartStatistics =
-                JsonConvert.DeserializeObject<ChartStatisticsDto>(responseContent.Result);
-        }
-        catch (Exception ex)
-        {
-            Program.Logger.LogWarning(
-                ex.InnerException is TaskCanceledException or HttpRequestException
-                    ? "Error occurred when trying to get chart statistics from DivingFish, check if DivingFish URL is correct."
-                    : "Unknown error occurred when trying to get chart statistics from DivingFish."
-            );
-            _chartStatistics = new ChartStatisticsDto();
-        }
-
-        try
-        {
-            var response = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
-                "api/maimaidxprober/music_data", 60);
-
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"Unexpected status code: {response.StatusCode}", null,
-                    response.StatusCode);
-
-            Songs = (SongDto[])JsonConvert.DeserializeObject(response.Result, typeof(SongDto[]));
-        }
-        catch (Exception ex)
-        {
-            Program.Logger.LogWarning(
-                ex.InnerException is TaskCanceledException or HttpRequestException
-                    ? "Error occurred when trying to get song metadata from DivingFish, check if DivingFish URL is correct."
-                    : "Unknown error occurred when trying to get song metadata from DivingFish."
-            );
-
-            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
-            Start();
-            return;
-        }
-
-        if (Songs == null)
-        {
-            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
-            Start();
-            return;
-        }
-
-        foreach (var song in Songs)
-        {
-            if (song.Id < 100000)
-                continue;
-            for (var i = 0; i < song.Levels.Length; i++)
-                if (!song.Levels[i].Contains('?'))
-                    song.Levels[i] += '?';
-        }
-
-        AliasDto aliasDto;
-
-        try
-        {
-            var responseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 60);
-
-            if (responseContent.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"Unexpected status code: {responseContent.StatusCode}", null,
-                    responseContent.StatusCode);
-
-            aliasDto =
-                JsonConvert.DeserializeObject<AliasDto>(
-                    responseContent.Result);
-        }
-        catch (Exception ex)
-        {
-            Program.Logger.LogWarning(
-                ex.InnerException is TaskCanceledException or HttpRequestException
-                    ? "Error occurred when trying to get alias data from Lxns, check if alias URL is correct."
-                    : "Unknown error occurred when trying to get alias data from Lxns."
-            );
-
-            Program.Logger.LogInformation("maimai related commands initializing failed, retrying...");
-            Start();
-            return;
-        }
-
-        var songAliasItemDtos = aliasDto.Content.ToList();
-
-        foreach (var aliasItemDto in songAliasItemDtos)
-        {
-            if (GetSongIndexById(aliasItemDto.Id) == -1)
-                aliasItemDto.Id += 10000;
-
-            if (aliasItemDto.Id == 11422)
-            {
-                var invalidAliasStrings = new List<string>();
-
-                foreach (var aliasString in aliasItemDto.Aliases)
-                    if (aliasString == "\u200e\u200e" || aliasString == "　" || aliasString == "\u3000" ||
-                        aliasString == string.Empty || aliasString == "\n")
-                        invalidAliasStrings.Add(aliasString);
-
-                foreach (var invalidAlias in invalidAliasStrings) aliasItemDto.Aliases.Remove(invalidAlias);
-            }
-
-            if (GetSongIndexById(aliasItemDto.Id + 10000) != -1)
-                SongAliases.Add(new Alias
-                {
-                    Id = aliasItemDto.Id + 10000,
-                    Aliases = aliasItemDto.Aliases.ToHashSet()
-                });
-
-            for (var i = 0; i < 10; i++)
-                if (GetSongIndexById(aliasItemDto.Id + 100000 + i * 10000) != -1)
-                    SongAliases.Add(new Alias
-                    {
-                        Id = aliasItemDto.Id + 100000 + i * 10000,
-                        Aliases = aliasItemDto.Aliases.ToHashSet()
-                    });
-
-            SongAliases.Add(new Alias
-            {
-                Id = aliasItemDto.Id,
-                Aliases = aliasItemDto.Aliases.ToHashSet()
-            });
-        }
-
-        foreach (var song in Songs)
-        {
-            foreach (var chart in song.Charts)
-            foreach (var notes in chart.Notes)
-                chart.MaxDxScore += notes * 3;
-
-            _chartStatistics.Charts.TryGetValue(song.Id.ToString(), out var chartStatistics);
-            List<decimal> fitRatings = new();
-            if (chartStatistics != null)
-                foreach (var chartStatistic in chartStatistics)
-                    fitRatings.Add(chartStatistic.FitRating);
-            else
-                foreach (var rating in song.Ratings)
-                    fitRatings.Add(rating);
-
-            song.FitRatings = fitRatings.ToArray();
-        }
+        //UpdateSongDatabase();
 
         foreach (var command in SubCommands) command.Initialize();
     }
@@ -681,5 +547,73 @@ public class MaiCommand : MaiCommandBase
         Program.DateChanged += Reload;
 
         Start();
+    }
+
+    private void UpdateSongDatabase()
+    {
+        try
+        {
+            var chartStatsResponse = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/chart_stats", 60);
+
+            if (chartStatsResponse.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {chartStatsResponse.StatusCode}", null,
+                    chartStatsResponse.StatusCode);
+
+            var chartStatisticsResult =
+                JsonConvert.DeserializeObject<ChartStatisticsDto>(chartStatsResponse.Result);
+
+            var songMetaResult = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/music_data", 60);
+
+            if (songMetaResult.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {songMetaResult.StatusCode}", null,
+                    songMetaResult.StatusCode);
+
+            var songs = (SongDto[])JsonConvert.DeserializeObject(songMetaResult.Result, typeof(SongDto[]));
+
+            if (songs != null)
+                foreach (var song in songs)
+                {
+                    foreach (var chart in song.Charts)
+                    foreach (var notes in chart.Notes)
+                        chart.MaxDxScore += notes * 3;
+
+                    chartStatisticsResult.Charts.TryGetValue(song.Id.ToString(), out var chartStatistics);
+                    List<float> fitRatings = new();
+                    if (chartStatistics != null)
+                        foreach (var chartStatistic in chartStatistics)
+                            fitRatings.Add(chartStatistic.FitRating);
+                    else
+                        foreach (var rating in song.Ratings)
+                            fitRatings.Add(rating);
+
+                    song.FitRatings = fitRatings.ToArray();
+
+                    if (song.Id < 100000)
+                        continue;
+                    for (var i = 0; i < song.Levels.Length; i++)
+                        if (!song.Levels[i].Contains('?'))
+                            song.Levels[i] += '?';
+                }
+
+            var aliasResponseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 60);
+
+            if (aliasResponseContent.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"Unexpected status code: {aliasResponseContent.StatusCode}", null,
+                    aliasResponseContent.StatusCode);
+
+            var aliasDto =
+                JsonConvert.DeserializeObject<AliasDto>(
+                    aliasResponseContent.Result);
+
+            using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+
+            DatabaseHandler.Instance.SongMetaDatabaseOperator.InsertSongs(songs, aliasDto.Content, db);
+        }
+        catch (Exception e)
+        {
+            Program.Logger.LogWarning("Song database update failed");
+        }
     }
 }

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.GroupMemberCommands.MemberAliasCommands;
-using Lapis.Miscellaneous;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
@@ -31,6 +32,7 @@ public class MemberAliasCommand : MemberAliasCommandBase
         var memberFound =
             GroupMemberCommandInstance.TryGetMember(arguments[0],
                 out var members, source);
+
         if (!memberFound)
         {
             var message =
@@ -43,6 +45,8 @@ public class MemberAliasCommand : MemberAliasCommandBase
                     message
                 ]
             );
+
+            return;
         }
 
         if (members.Length == 1)
@@ -50,8 +54,8 @@ public class MemberAliasCommand : MemberAliasCommandBase
             SendMessage(source,
                 [
                     new CqReplyMsg(source.MessageId),
-                    GetAliasesInText(GroupMemberCommandInstance.GetAliasById(members[0].Id, source.GroupId),
-                        source.GroupId)
+                    GetAliasesInText(GroupMemberCommandInstance.GetAliasById(members[0].QqId, source.GroupId),
+                        source.GroupId, members[0].QqId)
                 ]
             );
             return;
@@ -66,14 +70,14 @@ public class MemberAliasCommand : MemberAliasCommandBase
         );
     }
 
-    private string GetAliasesInText(Alias alias, long groupId)
+    private string GetAliasesInText(MemberAlias alias, long groupId, long qqId)
     {
-        if (!TryGetNickname(alias.Id, groupId, out var nickname)) return "该群友已退群！";
+        if (!TryGetNickname(qqId, groupId, out var nickname)) return "该群友已退群！";
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine($"群友 {nickname} 有如下别称：");
-        if (alias.Aliases.Count != 0)
+        if (alias.Aliases == null || alias.Aliases.Count != 0)
         {
-            var hashSet = new HashSet<string>(alias.Aliases);
+            var hashSet = new HashSet<string>(alias.Aliases.Select(x => x.Alias));
 
             foreach (var aliasString in hashSet) stringBuilder.AppendLine(aliasString);
 

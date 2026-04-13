@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using EleCho.GoCqHttpSdk;
@@ -8,10 +6,8 @@ using EleCho.GoCqHttpSdk.Action;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.GroupMemberCommands;
-using Lapis.Commands.GroupCommands.GroupMemberCommands.MemberAliasCommands;
-using Lapis.Miscellaneous;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Lapis.Operations.DatabaseOperation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lapis.Commands.GroupCommands;
 
@@ -55,7 +51,21 @@ public abstract class GroupMemberCommandBase : GroupCommand
         return true;
     }
 
-    public string GetMultiAliasesMatchedInformationString(GroupMemberCommand.GroupMember[] members,
+    public bool TryGetNickname(long id, out string nickname)
+    {
+        var memberInformation = Program.Session.GetStrangerInformation(id);
+
+        if (memberInformation == null || memberInformation.Status == CqActionStatus.Failed)
+        {
+            nickname = null;
+            return false;
+        }
+
+        nickname = memberInformation.Nickname;
+        return true;
+    }
+
+    public string GetMultiAliasesMatchedInformationString(GroupMember[] members,
         CommandBehaviorInformationDataObject behaviorInformation,
         long groupId)
     {
@@ -64,22 +74,22 @@ public abstract class GroupMemberCommandBase : GroupCommand
 
         foreach (var member in members)
         {
-            if (!TryGetNickname(member.Id, groupId, out var nickname))
+            if (!TryGetNickname(member.QqId, groupId, out var nickname))
                 continue;
-            stringBuilder.AppendLine($"{member.Id} - {nickname}");
+            stringBuilder.AppendLine($"{member.QqId} - {nickname}");
         }
 
         var j = 0;
         var exampleNickname = "";
         for (var i = 0; i < members.Length; i++)
         {
-            if (!TryGetNickname(members[i].Id, groupId, out exampleNickname))
+            if (!TryGetNickname(members[i].QqId, groupId, out exampleNickname))
                 continue;
             j = i;
             break;
         }
 
-        var memberId = members[j].Id;
+        var memberId = members[j].QqId;
 
         stringBuilder.Append(
             behaviorInformation.ExtraParameterStrings == null
@@ -121,14 +131,14 @@ public abstract class GroupMemberCommandBase : GroupCommand
                 var exampleNickname = "";
                 for (var i = 0; i < searchResult.MembersMatchedByAlias.Count; i++)
                 {
-                    if (!TryGetNickname(searchResult.MembersMatchedByAlias.Keys.ToArray()[i].Id, groupId,
+                    if (!TryGetNickname(searchResult.MembersMatchedByAlias.Keys.ToArray()[i].QqId, groupId,
                             out exampleNickname))
                         continue;
                     j = i;
                     break;
                 }
 
-                var memberId = searchResult.MembersMatchedByAlias.Keys.ToArray()[j].Id;
+                var memberId = searchResult.MembersMatchedByAlias.Keys.ToArray()[j].QqId;
 
                 stringBuilder.Append(
                     behaviorInformation.ExtraParameterStrings == null
@@ -155,12 +165,6 @@ public abstract class GroupMemberCommandBase : GroupCommand
 
 public class GroupMemberCommand : GroupMemberCommandBase
 {
-    public HashSet<Group> Groups =
-        File.Exists(Path.Combine(AppContext.BaseDirectory, "data/groups.json"))
-            ? JsonConvert.DeserializeObject<HashSet<Group>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,
-                "data/groups.json")))
-            : [];
-
     public GroupMemberCommand()
     {
         SubCommands =
@@ -173,57 +177,27 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
     public override void RespondWithoutParsingCommand(string command, CqGroupMessagePostContext source)
     {
-        Groups.Add(new Group(source.GroupId));
-        if (!Groups.TryGetValue(new Group(source.GroupId), out var group))
-            return;
-
-        group.Members.Add(new GroupMember(source.UserId));
-        if (!group.Members.TryGetValue(new GroupMember(source.UserId), out _))
-            return;
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+        DatabaseHandler.Instance.GroupMemberDatabaseOperator.AddMember(source.UserId, source.GroupId, db);
     }
 
-    public bool RemoveMember(long id, long groupId)
+    public void RemoveMember(long id, long groupId)
     {
-        if (Groups.TryGetValue(new Group(groupId), out var group))
-            return group.Members.Remove(new GroupMember(id));
-        return false;
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+        DatabaseHandler.Instance.GroupMemberDatabaseOperator.RemoveMember(id, groupId, db);
     }
 
-    public override void Initialize()
+    public void AgreeWithEula(long userId, long groupId)
     {
-        Program.DateChanged += DateChanged;
-    }
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
 
-    private void DateChanged(object sender, EventArgs e)
-    {
-        SaveData();
-    }
+        var member = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetMember(userId, groupId, db);
 
-    private void SaveData()
-    {
-        Program.Logger.LogInformation("Group member data have been saved");
-        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "data/groups.json"),
-            JsonConvert.SerializeObject(Groups));
-    }
-
-    public override void Unload()
-    {
-        SaveData();
-    }
-
-    public bool AgreeWithEula(long userId, long groupId)
-    {
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId), out var group))
-            return false;
-
-        foreach (var groupMember in group.Members)
-            if (groupMember.Id == userId)
-            {
-                groupMember.AgreedWithEula = true;
-                return true;
-            }
-
-        return false;
+        if (member != null)
+        {
+            member.AgreedEula = true;
+            db.SaveChanges();
+        }
     }
 
     public bool TryGetMember(string userIdentificationString, out GroupMember[] members,
@@ -235,8 +209,8 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
         members = [];
 
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId),
-                out var group))
+        /*if (!GroupMemberCommandInstance.Groups.TryGetValue(new Group(groupId),
+                     out var group))
         {
             members = [];
 
@@ -248,51 +222,57 @@ public class GroupMemberCommand : GroupMemberCommandBase
                         findAgreedWithEula)
                 ]);
             return false;
-        }
+        }*/
 
-        if (long.TryParse(userIdentificationString, out var userNumber) &&
-            group.Members.TryGetValue(new GroupMember(userNumber), out var foundMember))
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+
+        if (long.TryParse(userIdentificationString, out var userNumber))
         {
-            members = [foundMember];
+            var foundMember = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetMember(userNumber, groupId, db);
 
-            if (findAgreedWithEula)
-                members = members.Where(x => x.AgreedWithEula).Select(x => x).ToArray();
-
-            if (members.Length == 0)
+            if (foundMember != null)
             {
-                if (sendMessage)
-                    SendMessage(source,
-                    [
-                        new CqReplyMsg(source.MessageId),
-                        GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation, groupId,
-                            findAgreedWithEula)
-                    ]);
-                return false;
-            }
+                members = [foundMember];
 
-            return true;
+                if (findAgreedWithEula)
+                    members = members.Where(x => x.AgreedEula).Select(x => x).ToArray();
+
+                if (members.Length == 0)
+                {
+                    if (sendMessage)
+                        SendMessage(source,
+                        [
+                            new CqReplyMsg(source.MessageId),
+                            GetMultiSearchResultInformationString(userIdentificationString, behaviorInformation,
+                                groupId,
+                                findAgreedWithEula)
+                        ]);
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         var memberHashset = new HashSet<GroupMember>();
 
-        foreach (var singleMember in group.Members)
-        {
-            var alias = GetAliasById(singleMember.Id, groupId);
+        var dataset = db.MemberAliasesDataSet.ToList();
 
-            if (alias == null)
-                continue;
+        var aliases =
+            dataset.Where(x => x.Aliases.Exists(y => y.Alias.ToLower() == userIdentificationString?.ToLower()) &&
+                               x.GroupId == groupId)
+                .ToArray();
 
-            foreach (var aliasString in alias.Aliases)
-                if (aliasString.Equals(userIdentificationString))
-                    memberHashset.Add(singleMember);
-        }
+        foreach (var singleAlias in aliases)
+            memberHashset.Add(
+                DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetMember(singleAlias.QqId, groupId, db));
 
         if (memberHashset.Count != 0)
         {
             members = memberHashset.ToArray();
 
             if (findAgreedWithEula)
-                members = members.Where(x => x.AgreedWithEula).Select(x => x).ToArray();
+                members = members.Where(x => x.AgreedEula).Select(x => x).ToArray();
 
             if (members.Length == 0)
             {
@@ -318,7 +298,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
             members = searchedMembers.ToArray();
 
             if (findAgreedWithEula)
-                members = members.Where(x => x.AgreedWithEula).Select(x => x).ToArray();
+                members = members.Where(x => x.AgreedEula).Select(x => x).ToArray();
 
             if (members.Length == 0)
             {
@@ -346,53 +326,13 @@ public class GroupMemberCommand : GroupMemberCommandBase
         return false;
     }
 
-    public Alias GetAliasById(long id, long groupId)
+    public MemberAlias GetAliasById(long id, long groupId)
     {
-        var aliases = MemberAliasManager.Instance.GetMemberAliasManager(groupId).AliasCollection.Aliases;
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
 
-        foreach (var alias in aliases)
-            if (alias.Id == id)
-                return alias;
+        var aliases = db.MemberAliasesDataSet.Include(x => x.Aliases)
+            .FirstOrDefault(x => x.GroupId == groupId && x.QqId == id);
 
-        return new Alias
-        {
-            Id = id,
-            Aliases = []
-        };
-    }
-
-    public class GroupMember(long id)
-    {
-        public bool AgreedWithEula;
-
-        public int RapedTimes;
-
-        public long Id { get; } = id;
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is GroupMember other && Id == other.Id;
-        }
-    }
-
-    public class Group(long groupId)
-    {
-        public long GroupId = groupId;
-        public HashSet<GroupMember> Members = [];
-
-        public override int GetHashCode()
-        {
-            return GroupId.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Group other && GroupId == other.GroupId;
-        }
+        return aliases;
     }
 }

@@ -3,6 +3,7 @@ using System.Text;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lapis.Commands.GroupCommands.GroupMemberCommands;
 
@@ -20,18 +21,24 @@ public class RapeRankCommand : GroupMemberCommandBase
     {
         Program.WeekChanged += (_, _) =>
         {
-            foreach (var group in GroupMemberCommandInstance.Groups)
-            foreach (var member in group.Members)
-                member.RapedTimes = 0;
+            using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
+
+            db.GroupMembersDataSet.ForEachAsync(x =>
+                x.RapedTimes = 0);
+
+            db.SaveChanges();
         };
     }
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
-        if (!GroupMemberCommandInstance.Groups.TryGetValue(new GroupMemberCommand.Group(source.GroupId), out var group))
-            return;
+        using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
 
-        var memberList = group.Members.ToList();
+        var groupMembers =
+            db.GroupMembersDataSet.Where(x =>
+                x.GroupId == source.GroupId).ToArray();
+
+        var memberList = groupMembers.ToList();
 
         memberList.Sort((x, y) => x.RapedTimes > y.RapedTimes ? -1 : 1);
 
@@ -43,10 +50,10 @@ public class RapeRankCommand : GroupMemberCommandBase
 
         for (var i = 0;
              i < memberList.Count && memberList[i].RapedTimes != 0 &&
-             TryGetNickname(memberList[i].Id, source.GroupId, out var nickname);
+             TryGetNickname(memberList[i].QqId, source.GroupId, out var nickname);
              i++)
         {
-            stringBuilder.AppendLine($"{i + 1}.群友 {nickname} ({memberList[i].Id}) 被透 {
+            stringBuilder.AppendLine($"{i + 1}.群友 {nickname} ({memberList[i].QqId}) 被透 {
                 memberList[i].RapedTimes
             } 次");
 

@@ -44,15 +44,16 @@ public class RandomCommand : MaiCommandBase
             SendMessage(source,
             [
                 new CqReplyMsg(source.MessageId),
-                new CqImageMsg("base64://" + new InfoImageGenerator().Generate(songs[j], "随机歌曲", null,
+                new CqImageMsg("base64://" + new InfoImageGenerator().Generate(MaiCommandInstance.ToSongDto(songs[j]),
+                    "随机歌曲", null,
                     isCompressed))
             ]);
 
             if (SettingsPool.GetValue(new SettingsIdentifierPair("random", "2"), source.GroupId) &&
-                File.Exists(GetSongPath(songs[j].Id)))
+                File.Exists(GetSongPath(songs[j].SongId)))
                 SendMessage(source,
                 [
-                    new CqRecordMsg("file:///" + GetSongPath(songs[j].Id))
+                    new CqRecordMsg("file:///" + GetSongPath(songs[j].SongId))
                 ]);
         }
     }

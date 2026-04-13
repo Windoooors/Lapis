@@ -49,8 +49,8 @@ public class DictionaryCommand : VocabularyCommandBase
 
         var hasBucket = VocabularyCommandInstance.LargeVocabulary.Words.TryGetValue(bucketHeader, out var words);
 
-        if ( !hasBucket
-             ||  words == null|| words.Length == 0)
+        if (!hasBucket
+            || words == null || words.Length == 0)
         {
             wordItem = LookUpInCustomizedDictionary(word);
             return wordItem != null;

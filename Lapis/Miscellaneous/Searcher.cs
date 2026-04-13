@@ -31,6 +31,24 @@ public class Searcher
         return true;
     }
 
+    public string[] GetSplitWords(string keyword)
+    {
+        var cjkChar = (SharedConsts.ChineseCharacterRegexString.TrimEnd(']') +
+                       SharedConsts.JapaneseCharacterRegexString.TrimStart('[')).TrimStart('[').TrimEnd(']');
+        var nonCjkChar = $"^{cjkChar}";
+        var regexPattern = @$"[{nonCjkChar}\s]+|[{cjkChar}]";
+
+        var filteredInput = keyword;
+
+        foreach (var specialCharacter in SharedConsts.SpecialCharacters)
+            filteredInput = filteredInput.Replace(specialCharacter, string.Empty);
+
+        var matchResult =
+            new Regex(regexPattern)
+                .Matches(filteredInput);
+
+        return matchResult.Select(x => x.Value).ToArray();
+    }
 
     private bool IsMatchBase(string pattern, string input)
     {
