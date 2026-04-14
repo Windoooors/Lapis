@@ -83,7 +83,7 @@ public class MaiScoreOperator
         return db.Scores.FirstOrDefault(x => x.QqId == qqId) != null;
     }
 
-    public ChartScoreData[] GetScoreByVersionFromLapis(string[] versions,long qqId)
+    public ChartScoreData[] GetScoreByVersionFromLapis(string[] versions, long qqId)
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
         return DatabaseHandler.Instance.SongMetaDatabaseOperator.GetScoresByVersions(versions, db, qqId)
@@ -93,7 +93,7 @@ public class MaiScoreOperator
     public bool TryGetB50FromLapis(long qqId, out BestDto result)
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
-        
+
         var previousVersionScores =
             DatabaseHandler.Instance.SongMetaDatabaseOperator.GetUserScores(qqId, db).ToList();
 

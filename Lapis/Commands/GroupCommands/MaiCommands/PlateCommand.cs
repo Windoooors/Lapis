@@ -76,8 +76,9 @@ public class PlateCommand : MaiCommandBase
         string userName;
 
         var cachedInLapis = MaiScoreOperator.UserDataCached(source.UserId);
-        
+
         if (!cachedInLapis)
+        {
             try
             {
                 ApiOperator.RequestResult content;
@@ -147,10 +148,11 @@ public class PlateCommand : MaiCommandBase
                     UnboundErrorHelp(source);
                 return;
             }
+        }
         else
         {
             var hasName = GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(source.UserId, out userName);
-            userName = hasName? userName : source.UserId.ToString();
+            userName = hasName ? userName : source.UserId.ToString();
         }
 
         var versionCharacter =
@@ -176,7 +178,7 @@ public class PlateCommand : MaiCommandBase
                 "maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS", "maimai ORANGE",
                 "maimai ORANGE PLUS",
                 "maimai PiNK", "maimai PiNK PLUS", "maimai MURASAKi", "maimai MURASAKi PLUS", "maimai MiLK",
-                "maimai MiLK PLUS",
+                "MiLK PLUS",
                 "maimai FiNALE"
             ];
             plateVersionIndex = 12;
@@ -200,7 +202,7 @@ public class PlateCommand : MaiCommandBase
 
         using var songDb = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
         var songMetaDb = songDb.SongMetaDataSet;
-        
+
         ScoresDto scoresInReality;
 
         var useAvatar = true;
@@ -308,26 +310,22 @@ public class PlateCommand : MaiCommandBase
         {
             var charts = song.Charts;
             foreach (var chart in charts)
-            {
                 if (Math.Round(chart.Rating, 1) > 13.5)
                 {
                     var songToBeDisplayed = GetSongToBeDisplayed(command, chart, scoresInReality, song);
                     if (songToBeDisplayed != null)
                         songsToBeDisplayed.Add(songToBeDisplayed);
                 }
-            }
         }
 
         var allSongs = new List<SongToBeDisplayed>();
 
         foreach (var song in songs)
+        foreach (var chart in song.Charts)
         {
-            foreach (var chart in song.Charts)
-            {
-                var songToBeDisplayed = GetSongToBeDisplayed(command, chart, scoresInReality, song);
-                if (songToBeDisplayed != null)
-                    allSongs.Add(songToBeDisplayed);
-            }
+            var songToBeDisplayed = GetSongToBeDisplayed(command, chart, scoresInReality, song);
+            if (songToBeDisplayed != null)
+                allSongs.Add(songToBeDisplayed);
         }
 
         PlateCategories category;
@@ -415,7 +413,8 @@ public class PlateCommand : MaiCommandBase
         ParseWithArgument([command], originalCommandString, source);
     }
 
-    private SongToBeDisplayed GetSongToBeDisplayed(string command, ChartMetaData chart, ScoresDto scoresInReality, SongMetaData song)
+    private SongToBeDisplayed GetSongToBeDisplayed(string command, ChartMetaData chart, ScoresDto scoresInReality,
+        SongMetaData song)
     {
         var scoreDto = new ScoresDto.ScoreDto();
         foreach (var realScore in scoresInReality.ScoreDtos)
@@ -458,9 +457,9 @@ public class PlateCommand : MaiCommandBase
     private ScoresDto GetScoresFromLapis(string[] versions, long qqId)
     {
         var scoresFromLapis = MaiScoreOperator.GetScoreByVersionFromLapis(versions, qqId);
-        var result = new ScoresDto()
+        var result = new ScoresDto
         {
-            ScoreDtos = scoresFromLapis.Select(x => new ScoresDto.ScoreDto()
+            ScoreDtos = scoresFromLapis.Select(x => new ScoresDto.ScoreDto
             {
                 Achievements = x.Achievements,
                 Fc = x.Fc,
