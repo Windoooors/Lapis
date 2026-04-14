@@ -5,6 +5,7 @@ using System.Linq;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.GroupCommands.MaiCommands;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Operations.ImageOperation;
 
 namespace Lapis.ImageGenerators;
@@ -18,7 +19,7 @@ public class PlateImageGenerator : ImageGenerator
         var difficulties = new Dictionary<string, List<PlateCommand.SongToBeDisplayed>>();
         foreach (var song in songsToBeDisplayed)
         {
-            var rating = Math.Round(song.SongDto.Ratings[song.LevelIndex], 1);
+            var rating = Math.Round(song.Song.Charts[song.LevelIndex].Rating, 1);
             if ((rating > 13.5) & (rating < 14.0))
             {
                 if (!difficulties.ContainsKey("13+"))
@@ -99,7 +100,7 @@ public class PlateImageGenerator : ImageGenerator
 
         using var image = new Image(700, totalHeight);
 
-        using var backgroundImage = new Image(GetSongCoverPath(sortedDifficulties.Values.ToArray()[0][0].SongDto.Id));
+        using var backgroundImage = new Image(GetSongCoverPath(sortedDifficulties.Values.ToArray()[0][0].Song.SongId));
 
         backgroundImage.Resize(75, 75);
 
@@ -136,7 +137,7 @@ public class PlateImageGenerator : ImageGenerator
 
         foreach (var song in sortedDifficulties.Values.ToArray()[0])
         {
-            using var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);
+            using var item = GenerateItem(song.Song, song.LevelIndex, song.ScoreDto, category);
             itemsInFirstGroup.DrawImage(item, i * 100, 171 + j * 100);
             i++;
             if (i % 7 == 0)
@@ -205,7 +206,7 @@ public class PlateImageGenerator : ImageGenerator
             var itemGroup = new Image(700, totalHeight);
             foreach (var song in sortedDifficulties.Values.ToArray()[k])
             {
-                using var item = GenerateItem(song.SongDto, song.LevelIndex, song.ScoreDto, category);
+                using var item = GenerateItem(song.Song, song.LevelIndex, song.ScoreDto, category);
                 itemGroup.DrawImage(item, i * 100, top + j * 100);
                 i++;
                 if (i % 7 == 0)
@@ -371,10 +372,10 @@ public class PlateImageGenerator : ImageGenerator
         return result;
     }
 
-    private Image GenerateItem(SongDto songDto, int levelIndex, ScoresDto.ScoreDto scoreDto,
+    private Image GenerateItem(SongMetaData song, int levelIndex, ScoresDto.ScoreDto scoreDto,
         PlateCommand.PlateCategories category)
     {
-        var image = new Image(GetSongCoverPath(songDto.Id));
+        var image = new Image(GetSongCoverPath(song.SongId));
         var gradient = new Image(AppContext.BaseDirectory + "resource/plate/gradient.png");
 
         var dominantColor = image.GetDominantColor();
@@ -440,7 +441,7 @@ public class PlateImageGenerator : ImageGenerator
         if (category == PlateCommand.PlateCategories.Wuwu && (scoreDto.Fs == "fsd" || scoreDto.Fs == "fsdp"))
             indicatorText = scoreDto.Fs.Length > 2 ? scoreDto.Fs.Replace("p", "+").ToUpper() : scoreDto.Fs.ToUpper();
 
-        textLayer.DrawText(songDto.Title, textColor, 18, FontWeight.Regular, 7.6f, 37.2f);
+        textLayer.DrawText(song.Title, textColor, 18, FontWeight.Regular, 7.6f, 37.2f);
 
         var gradientText = new Image(AppContext.BaseDirectory + "resource/plate/gradient_text.png");
 
@@ -448,9 +449,9 @@ public class PlateImageGenerator : ImageGenerator
 
         gradientText.Dispose();
 
-        textLayer.DrawText("ID " + songDto.Id, new Color(textColor.R, textColor.G, textColor.B, textColor.A / 2), 10,
+        textLayer.DrawText("ID " + song.SongId, new Color(textColor.R, textColor.G, textColor.B, textColor.A / 2), 10,
             FontWeight.Regular, 7.6f, 18.2f);
-        textLayer.DrawText(songDto.Type + " " + difficulty, textColor, 10,
+        textLayer.DrawText(MaiCommandBase.GetSongType(song.SongId) + " " + difficulty, textColor, 10,
             FontWeight.Heavy, 7.6f, 50.2f);
 
         if (indicatorText != "")

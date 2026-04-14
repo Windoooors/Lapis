@@ -13,8 +13,7 @@ public class SongMetaDatabaseOperator
     {
         Db = new SongMetaDatabaseContext();
     }
-
-
+    
     public SongMetaDatabaseContext GetDb => new();
 
     ~SongMetaDatabaseOperator()
@@ -118,6 +117,16 @@ public class SongMetaDatabaseOperator
         db.Scores.RemoveRange(scores);
 
         db.SaveChanges();
+    }
+
+    public ChartScoreData[] GetScoresByVersions(string[] versions, SongMetaDatabaseContext db, long qqId)
+    {
+        var scores =
+            db.Scores.Include(x => x.Song.Charts);
+        var result =
+            scores.Where(x => versions.Any(y => x.Song.Version == y) && x.QqId == qqId).ToList();
+        
+        return result.ToArray();
     }
 
     public void UpsertScores(ChartScoreData[] input)

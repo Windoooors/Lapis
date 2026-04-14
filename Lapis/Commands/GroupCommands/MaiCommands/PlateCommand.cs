@@ -11,7 +11,9 @@ using Lapis.Commands.UniversalCommands;
 using Lapis.ImageGenerators;
 using Lapis.Miscellaneous;
 using Lapis.Operations.ApiOperation;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -72,80 +74,88 @@ public class PlateCommand : MaiCommandBase
         var bazheRegex = new Regex("^霸者$");
 
         string userName;
-        try
-        {
-            ApiOperator.RequestResult content;
 
-            if (arguments.Length > 1)
+        var cachedInLapis = MaiScoreOperator.UserDataCached(source.UserId);
+        
+        if (!cachedInLapis)
+            try
             {
-                var isGroupMember =
-                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
-                        out var groupMembers, source) && groupMembers.Length == 1;
-                var isQqId = long.TryParse(arguments[1], out _);
-                content = isGroupMember
-                    ? ApiOperator.Instance.Post(
-                        BotConfiguration.Instance.DivingFishUrl,
-                        "api/maimaidxprober/query/player",
-                        new { qq = groupMembers[0].QqId.ToString() },
-                        [
-                            new KeyValuePair<string, string>("Developer-Token",
-                                BotConfiguration.Instance.DivingFishDevToken)
-                        ])
-                    : isQqId
+                ApiOperator.RequestResult content;
+
+                if (arguments.Length > 1)
+                {
+                    var isGroupMember =
+                        GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
+                            out var groupMembers, source) && groupMembers.Length == 1;
+                    var isQqId = long.TryParse(arguments[1], out _);
+                    content = isGroupMember
                         ? ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
                             "api/maimaidxprober/query/player",
-                            new { qq = arguments[1] },
+                            new { qq = groupMembers[0].QqId.ToString() },
                             [
                                 new KeyValuePair<string, string>("Developer-Token",
                                     BotConfiguration.Instance.DivingFishDevToken)
                             ])
-                        : ApiOperator.Instance.Post(
-                            BotConfiguration.Instance.DivingFishUrl,
-                            "api/maimaidxprober/query/player",
-                            new { username = arguments[1] },
-                            [
-                                new KeyValuePair<string, string>("Developer-Token",
-                                    BotConfiguration.Instance.DivingFishDevToken)
-                            ]);
+                        : isQqId
+                            ? ApiOperator.Instance.Post(
+                                BotConfiguration.Instance.DivingFishUrl,
+                                "api/maimaidxprober/query/player",
+                                new { qq = arguments[1] },
+                                [
+                                    new KeyValuePair<string, string>("Developer-Token",
+                                        BotConfiguration.Instance.DivingFishDevToken)
+                                ])
+                            : ApiOperator.Instance.Post(
+                                BotConfiguration.Instance.DivingFishUrl,
+                                "api/maimaidxprober/query/player",
+                                new { username = arguments[1] },
+                                [
+                                    new KeyValuePair<string, string>("Developer-Token",
+                                        BotConfiguration.Instance.DivingFishDevToken)
+                                ]);
 
-                if (content.StatusCode != HttpStatusCode.OK)
-                    throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
-                        content.StatusCode);
-            }
-            else
-            {
-                content = ApiOperator.Instance.Post(
-                    BotConfiguration.Instance.DivingFishUrl,
-                    "api/maimaidxprober/query/player",
-                    new { qq = source.Sender.UserId.ToString() },
-                    [
-                        new KeyValuePair<string, string>("Developer-Token",
-                            BotConfiguration.Instance.DivingFishDevToken)
-                    ]);
-            }
+                    if (content.StatusCode != HttpStatusCode.OK)
+                        throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
+                            content.StatusCode);
+                }
+                else
+                {
+                    content = ApiOperator.Instance.Post(
+                        BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/player",
+                        new { qq = source.Sender.UserId.ToString() },
+                        [
+                            new KeyValuePair<string, string>("Developer-Token",
+                                BotConfiguration.Instance.DivingFishDevToken)
+                        ]);
+                }
 
-            userName = JsonConvert.DeserializeObject<BestDto>(content.Result).Username;
-        }
-        catch (Exception ex)
-        {
-            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+                userName = JsonConvert.DeserializeObject<BestDto>(content.Result).Username;
+            }
+            catch (Exception ex)
             {
-                DivingFishErrorHelp(source);
+                if (ex.InnerException is TaskCanceledException or HttpRequestException)
+                {
+                    DivingFishErrorHelp(source);
+                    return;
+                }
+
+                if (arguments.Length > 1)
+                    ObjectUserUnboundErrorHelp(source);
+                else
+                    UnboundErrorHelp(source);
                 return;
             }
-
-            if (arguments.Length > 1)
-                ObjectUserUnboundErrorHelp(source);
-            else
-                UnboundErrorHelp(source);
-            return;
+        else
+        {
+            var hasName = GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(source.UserId, out userName);
+            userName = hasName? userName : source.UserId.ToString();
         }
 
         var versionCharacter =
             wuwuRegex.Replace(shenRegex.Replace(jiangRegex.Replace(jiRegex.Replace(command, "", 1), "", 1), "", 1), "",
                 1);
-        ;
 
         SharedConsts.Characters.TryGetValue(versionCharacter, out var versionCharacterInJapanese);
 
@@ -188,23 +198,77 @@ public class PlateCommand : MaiCommandBase
             return;
         }
 
-        ScoresDto scores;
-        if (!(command == "霸者" || command.StartsWith("舞")))
+        using var songDb = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+        var songMetaDb = songDb.SongMetaDataSet;
+        
+        ScoresDto scoresInReality;
+
+        var useAvatar = true;
+
+        if (!cachedInLapis)
         {
-            ApiOperator.RequestResult content;
             try
             {
-                content = ApiOperator.Instance.Post(BotConfiguration.Instance.DivingFishUrl,
-                    "api/maimaidxprober/query/plate",
-                    new { username = "maxscore", version },
-                    [
-                        new KeyValuePair<string, string>("Developer-Token",
-                            BotConfiguration.Instance.DivingFishDevToken)
-                    ]);
+                if (arguments.Length > 1)
+                {
+                    var isGroupMember =
+                        GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
+                            out var groupMembers, source) && groupMembers.Length == 1;
+                    var isQqId = long.TryParse(arguments[1], out _);
+                    var scoresInRealityContent = isGroupMember
+                        ? ApiOperator.Instance.Post(
+                            BotConfiguration.Instance.DivingFishUrl,
+                            "api/maimaidxprober/query/plate",
+                            new { qq = groupMembers[0].QqId.ToString(), version },
+                            [
+                                new KeyValuePair<string, string>("Developer-Token",
+                                    BotConfiguration.Instance.DivingFishDevToken)
+                            ])
+                        : isQqId
+                            ? ApiOperator.Instance.Post(
+                                BotConfiguration.Instance.DivingFishUrl,
+                                "api/maimaidxprober/query/plate",
+                                new { qq = arguments[1], version },
+                                [
+                                    new KeyValuePair<string, string>("Developer-Token",
+                                        BotConfiguration.Instance.DivingFishDevToken)
+                                ])
+                            : ApiOperator.Instance.Post(
+                                BotConfiguration.Instance.DivingFishUrl,
+                                "api/maimaidxprober/query/plate",
+                                new { username = arguments[1], version },
+                                [
+                                    new KeyValuePair<string, string>("Developer-Token",
+                                        BotConfiguration.Instance.DivingFishDevToken)
+                                ]);
 
-                if (content.StatusCode != HttpStatusCode.OK)
-                    throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
-                        content.StatusCode);
+                    if (scoresInRealityContent.StatusCode != HttpStatusCode.OK)
+                        throw new HttpRequestException($"Unexpected status code: {scoresInRealityContent.StatusCode}",
+                            null,
+                            scoresInRealityContent.StatusCode);
+
+                    scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(scoresInRealityContent.Result);
+
+                    useAvatar = false;
+                }
+                else
+                {
+                    var scoresInRealityContent = ApiOperator.Instance.Post(
+                        BotConfiguration.Instance.DivingFishUrl,
+                        "api/maimaidxprober/query/plate",
+                        new { qq = source.Sender.UserId.ToString(), version },
+                        [
+                            new KeyValuePair<string, string>("Developer-Token",
+                                BotConfiguration.Instance.DivingFishDevToken)
+                        ]);
+
+                    if (scoresInRealityContent.StatusCode != HttpStatusCode.OK)
+                        throw new HttpRequestException($"Unexpected status code: {scoresInRealityContent.StatusCode}",
+                            null,
+                            scoresInRealityContent.StatusCode);
+
+                    scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(scoresInRealityContent.Result);
+                }
             }
             catch (Exception ex)
             {
@@ -221,193 +285,52 @@ public class PlateCommand : MaiCommandBase
                 return;
             }
 
-            scores = JsonConvert.DeserializeObject<ScoresDto>(content.Result);
+            if (scoresInReality.ScoreDtos == null)
+            {
+                if (arguments.Length > 1)
+                    ObjectUserUnboundErrorHelp(source);
+                else
+                    UnboundErrorHelp(source);
+                return;
+            }
         }
         else
         {
-            using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
-
-            var list = new List<ScoresDto.ScoreDto>();
-            foreach (var song in db.SongMetaDataSet)
-                if (song.SongId < 1000)
-                    for (var i = 0; i < 5; i++)
-                        list.Add(new ScoresDto.ScoreDto
-                            { Id = song.SongId, LevelIndex = i });
-
-            scores = new ScoresDto { ScoreDtos = list.ToArray() };
-        }
-
-        ScoresDto scoresInReality;
-
-        var useAvatar = true;
-
-        try
-        {
-            if (arguments.Length > 1)
-            {
-                var isGroupMember =
-                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
-                        out var groupMembers, source) && groupMembers.Length == 1;
-                var isQqId = long.TryParse(arguments[1], out _);
-                var scoresInRealityContent = isGroupMember
-                    ? ApiOperator.Instance.Post(
-                        BotConfiguration.Instance.DivingFishUrl,
-                        "api/maimaidxprober/query/plate",
-                        new { qq = groupMembers[0].QqId.ToString(), version },
-                        [
-                            new KeyValuePair<string, string>("Developer-Token",
-                                BotConfiguration.Instance.DivingFishDevToken)
-                        ])
-                    : isQqId
-                        ? ApiOperator.Instance.Post(
-                            BotConfiguration.Instance.DivingFishUrl,
-                            "api/maimaidxprober/query/plate",
-                            new { qq = arguments[1], version },
-                            [
-                                new KeyValuePair<string, string>("Developer-Token",
-                                    BotConfiguration.Instance.DivingFishDevToken)
-                            ])
-                        : ApiOperator.Instance.Post(
-                            BotConfiguration.Instance.DivingFishUrl,
-                            "api/maimaidxprober/query/plate",
-                            new { username = arguments[1], version },
-                            [
-                                new KeyValuePair<string, string>("Developer-Token",
-                                    BotConfiguration.Instance.DivingFishDevToken)
-                            ]);
-
-                if (scoresInRealityContent.StatusCode != HttpStatusCode.OK)
-                    throw new HttpRequestException($"Unexpected status code: {scoresInRealityContent.StatusCode}", null,
-                        scoresInRealityContent.StatusCode);
-
-                scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(scoresInRealityContent.Result);
-
-                useAvatar = false;
-            }
-            else
-            {
-                var scoresInRealityContent = ApiOperator.Instance.Post(
-                    BotConfiguration.Instance.DivingFishUrl,
-                    "api/maimaidxprober/query/plate",
-                    new { qq = source.Sender.UserId.ToString(), version },
-                    [
-                        new KeyValuePair<string, string>("Developer-Token",
-                            BotConfiguration.Instance.DivingFishDevToken)
-                    ]);
-
-                if (scoresInRealityContent.StatusCode != HttpStatusCode.OK)
-                    throw new HttpRequestException($"Unexpected status code: {scoresInRealityContent.StatusCode}", null,
-                        scoresInRealityContent.StatusCode);
-
-                scoresInReality = JsonConvert.DeserializeObject<ScoresDto>(scoresInRealityContent.Result);
-            }
-        }
-        catch (Exception ex)
-        {
-            if (ex.InnerException is TaskCanceledException or HttpRequestException)
-            {
-                DivingFishErrorHelp(source);
-                return;
-            }
-
-            if (arguments.Length > 1)
-                ObjectUserUnboundErrorHelp(source);
-            else
-                UnboundErrorHelp(source);
-            return;
-        }
-
-        if (scoresInReality.ScoreDtos == null)
-        {
-            if (arguments.Length > 1)
-                ObjectUserUnboundErrorHelp(source);
-            else
-                UnboundErrorHelp(source);
-            return;
+            scoresInReality = GetScoresFromLapis(version, source.Sender.UserId);
         }
 
         var songsToBeDisplayed = new List<SongToBeDisplayed>();
 
-        foreach (var score in scores.ScoreDtos)
+        var songs = songMetaDb.Include(x => x.Charts)
+            .Where(x => version.Any(y => x.Version == y)).ToArray();
+
+        foreach (var song in songs)
         {
-            var song = MaiCommandInstance.GetSongById(score.Id);
             var charts = song.Charts;
-            if (Math.Round(charts[score.LevelIndex].Rating, 1) > 13.5)
+            foreach (var chart in charts)
             {
-                var scoreDto = new ScoresDto.ScoreDto();
-                foreach (var realScore in scoresInReality.ScoreDtos)
-                    if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
-                        scoreDto = realScore;
-
-                if (_excludedSongs.Contains(charts[0].SongId))
-                    if (!((command == "霸者" || command.StartsWith("舞")) && charts[0].SongId == 70))
-                        continue;
-
-                if (charts[0].SongId >= 100000)
-                    continue;
-
-                if (command == "霸者" || command.StartsWith("舞"))
+                if (Math.Round(chart.Rating, 1) > 13.5)
                 {
-                    if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(charts[0].SongId))
-                        songsToBeDisplayed.Add(new SongToBeDisplayed
-                        {
-                            LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song),
-                            ScoreDto = scoreDto
-                        });
-                    else if (score.LevelIndex != 4)
-                        songsToBeDisplayed.Add(new SongToBeDisplayed
-                        {
-                            LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song),
-                            ScoreDto = scoreDto
-                        });
-                }
-                else if (score.LevelIndex != 4)
-                {
-                    songsToBeDisplayed.Add(new SongToBeDisplayed
-                    {
-                        LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
-                    });
+                    var songToBeDisplayed = GetSongToBeDisplayed(command, chart, scoresInReality, song);
+                    if (songToBeDisplayed != null)
+                        songsToBeDisplayed.Add(songToBeDisplayed);
                 }
             }
         }
 
         var allSongs = new List<SongToBeDisplayed>();
 
-        foreach (var score in scores.ScoreDtos)
+        foreach (var song in songs)
         {
-            var song = MaiCommandInstance.GetSongById(score.Id);
-            var scoreDto = new ScoresDto.ScoreDto();
-            foreach (var realScore in scoresInReality.ScoreDtos)
-                if (score.Id == realScore.Id && score.LevelIndex == realScore.LevelIndex)
-                    scoreDto = realScore;
-
-            if (_excludedSongs.Contains(song.SongId))
-                if (!((command == "霸者" || command.StartsWith("舞")) && song.SongId == 70))
-                    continue;
-
-            if (command == "霸者" || command.StartsWith("舞"))
+            foreach (var chart in song.Charts)
             {
-                if (score.LevelIndex == 4 && _includedRemasterSongs.Contains(song.SongId))
-                    allSongs.Add(new SongToBeDisplayed
-                    {
-                        LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
-                    });
-                else if (score.LevelIndex != 4)
-                    allSongs.Add(new SongToBeDisplayed
-                    {
-                        LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
-                    });
-            }
-            else if (score.LevelIndex != 4)
-            {
-                allSongs.Add(new SongToBeDisplayed
-                {
-                    LevelIndex = score.LevelIndex, SongDto = MaiCommandInstance.ToSongDto(song), ScoreDto = scoreDto
-                });
+                var songToBeDisplayed = GetSongToBeDisplayed(command, chart, scoresInReality, song);
+                if (songToBeDisplayed != null)
+                    allSongs.Add(songToBeDisplayed);
             }
         }
 
-        var category = PlateCategories.Ji;
+        PlateCategories category;
 
         if (jiRegex.IsMatch(command))
         {
@@ -492,6 +415,64 @@ public class PlateCommand : MaiCommandBase
         ParseWithArgument([command], originalCommandString, source);
     }
 
+    private SongToBeDisplayed GetSongToBeDisplayed(string command, ChartMetaData chart, ScoresDto scoresInReality, SongMetaData song)
+    {
+        var scoreDto = new ScoresDto.ScoreDto();
+        foreach (var realScore in scoresInReality.ScoreDtos)
+            if (chart.SongId == realScore.Id && chart.LevelIndex == realScore.LevelIndex)
+                scoreDto = realScore;
+
+        if (_excludedSongs.Contains(chart.SongId))
+            if (!((command == "霸者" || command.StartsWith("舞")) && chart.SongId == 70))
+                return null;
+
+        if (chart.SongId >= 100000)
+            return null;
+
+        if (command == "霸者" || command.StartsWith("舞"))
+        {
+            if (chart.LevelIndex == 4 && _includedRemasterSongs.Contains(chart.SongId))
+                return new SongToBeDisplayed
+                {
+                    LevelIndex = chart.LevelIndex, Song = song,
+                    ScoreDto = scoreDto
+                };
+            if (chart.LevelIndex != 4)
+                return new SongToBeDisplayed
+                {
+                    LevelIndex = chart.LevelIndex, Song = song,
+                    ScoreDto = scoreDto
+                };
+        }
+        else if (chart.LevelIndex != 4)
+        {
+            return new SongToBeDisplayed
+            {
+                LevelIndex = chart.LevelIndex, Song = song, ScoreDto = scoreDto
+            };
+        }
+
+        return null;
+    }
+
+    private ScoresDto GetScoresFromLapis(string[] versions, long qqId)
+    {
+        var scoresFromLapis = MaiScoreOperator.GetScoreByVersionFromLapis(versions, qqId);
+        var result = new ScoresDto()
+        {
+            ScoreDtos = scoresFromLapis.Select(x => new ScoresDto.ScoreDto()
+            {
+                Achievements = x.Achievements,
+                Fc = x.Fc,
+                Fs = x.Fs,
+                Id = x.SongId,
+                LevelIndex = x.LevelIndex
+            }).ToArray()
+        };
+
+        return result;
+    }
+
     public class UsernameDto
     {
         [JsonProperty("username")] public string Username;
@@ -501,6 +482,6 @@ public class PlateCommand : MaiCommandBase
     {
         public int LevelIndex;
         public ScoresDto.ScoreDto ScoreDto;
-        public SongDto SongDto;
+        public SongMetaData Song;
     }
 }
