@@ -27,24 +27,25 @@ public class SearchMemberCommand : GroupMemberCommandBase
     {
         var membersMatchedByAlias = new Dictionary<GroupMember, List<string>>();
 
-        var splitWords = Searcher.Instance.GetSplitWords(keyWord.ToLower());
-        var queryString = string.Join(" AND ", splitWords);
+        var matchPattern = $"%{keyWord?.ToLower().Replace(" ", "%")}%";
 
         using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
-
-        var aliasList = db.MemberAliasesDataSet.Include(x => x.Aliases).ToList();
-
-        var matchedAlias = aliasList.Where(x =>
-            x.Aliases.Exists(y => y.Alias.ToLower().Contains(keyWord.ToLower())) && x.GroupId == groupId).ToList();
-
-        if (matchedAlias.Count == 0)
+        
+        var aliasesSet = db.MemberAliasesDataSet.Include(x => x.Aliases);
+        
+        var matchedAliases = aliasesSet
+            .SelectMany(x => x.Aliases) 
+            .Where(y => EF.Functions.Like(y.Alias, matchPattern) && y.GroupId == groupId)
+            .Select(y => new AliasMemberIdPair(y.Alias, y.MemberQqId))
+            .ToArray();
+        
+        if (matchedAliases.Length == 0)
             return new SearchResult([]);
-
-        foreach (var aliasItem in matchedAlias)
-        foreach (var alias in aliasItem.Aliases)
+        
+        foreach (var alias in matchedAliases)
         {
             var groupMember =
-                DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetMember(aliasItem.QqId, groupId, db);
+                DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetMember(alias.Id, groupId, db);
 
             var added = membersMatchedByAlias.TryAdd(groupMember, [alias.Alias]);
             if (!added && membersMatchedByAlias.TryGetValue(groupMember, out var value)) value.Add(alias.Alias);
@@ -58,6 +59,12 @@ public class SearchMemberCommand : GroupMemberCommandBase
         (
             membersMatchedByAlias
         );
+    }
+
+    private class AliasMemberIdPair(string alias, long id)
+    {
+        public string Alias = alias;
+        public long Id = id;
     }
 
     public StringBuilder GetMultiSearchResults(SearchResult searchResult, long groupId)

@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Linq;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.GroupCommands.MaiCommands;
@@ -90,7 +92,7 @@ public class MaiScoreOperator
             .ToArray();
     }
 
-    public bool TryGetB50FromLapis(long qqId, out BestDto result)
+    private bool TryGetB50Core(long qqId, out BestDto result, Comparison<BestItem> comparison)
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
@@ -122,8 +124,8 @@ public class MaiScoreOperator
                 x.Song
             )).ToList();
 
-        currentBestItems.Sort((x, y) => -x.Rating.CompareTo(y.Rating));
-        previousBestItems.Sort((x, y) => -x.Rating.CompareTo(y.Rating));
+        currentBestItems.Sort((x,y) => -comparison(x, y));
+        previousBestItems.Sort((x,y) => -comparison(x, y));
 
         var currentVersionBestItemsRanked = currentBestItems.GetRange(0, 15);
         var previousVersionBestItemsRanked = previousBestItems.GetRange(0, 35);
@@ -177,6 +179,17 @@ public class MaiScoreOperator
         };
 
         return true;
+    }
+
+    public bool TryGetB50FromLapis(long qqId, out BestDto result)
+    {
+        return TryGetB50Core(qqId, out result, (x, y) => x.Rating.CompareTo(y.Rating));
+    }
+
+    public bool TryGetPc50(long qqId, out BestDto result)
+    {
+        return TryGetB50Core(qqId, out result, (x, y) => 
+            x.ChartScore.PlayCount.CompareTo(y.ChartScore.PlayCount));
     }
 
     private class BestItem

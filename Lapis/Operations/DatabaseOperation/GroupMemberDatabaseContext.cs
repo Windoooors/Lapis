@@ -11,7 +11,7 @@ public class GroupMemberDatabaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(BotConfiguration.Instance.SqlServerConnectionString);
+        optionsBuilder.UseNpgsql(BotConfiguration.Instance.SqlConnectionString);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,7 +27,7 @@ public class GroupMemberDatabaseContext : DbContext
         singleAliasEntityBuilder
             .HasOne(a => a.Member)
             .WithMany(m => m.Aliases)
-            .HasForeignKey(a => new { a.MemberQqId, a.GroupId });
+            .HasForeignKey(a => new { a.GroupId, a.MemberQqId });
 
         singleAliasEntityBuilder.HasKey(x => x.AliasId);
     }

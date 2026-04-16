@@ -6,6 +6,7 @@ using EleCho.GoCqHttpSdk.Post;
 using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp.ColorSpaces;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
@@ -31,21 +32,27 @@ public class SearchCommand : MaiCommandBase
         var isBpm = float.TryParse(keyWord, out var bpm);
 
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
+        var songSet =
+            db.SongMetaDataSet.Include(x => x.Charts);
 
         songsMatchedByTitle
-            .AddRange(db.SongMetaDataSet.Where(x => EF.Functions.Like(x.Title, $"%{keyWord}%")
+            .AddRange(songSet.Where(x => EF.Functions.Like(x.Title.ToLower(), $"%{keyWord.ToLower().Replace(" ", "%")}%")
             ));
 
-        var aliasesSet = db.SongAliasDataSet.Include(x => x.Aliases).ToList();
+        var matchPattern = $"%{keyWord?.ToLower().Replace(" ", "%")}%";
 
-        var aliases = aliasesSet.Where(x =>
-            x.Aliases.Exists(y => y.Alias.ToLower().Contains(keyWord?.ToLower() ?? "滚木")));
+        songsMatchedByArtist.AddRange(songSet.Where(x =>
+            EF.Functions.Like(x.Artist.ToLower(), matchPattern)));
 
-        songsMatchedByArtist.AddRange(db.SongMetaDataSet.Where(x =>
-            EF.Functions.Like(x.Artist, $"%{keyWord}%")));
-
-        foreach (var aliasItem in aliases)
-        foreach (var alias in aliasItem.Aliases)
+        var aliasesSet = db.SongAliasDataSet.Include(x => x.Aliases);
+        
+        var matchedAliases = aliasesSet
+            .SelectMany(x => x.Aliases) 
+            .Where(y => EF.Functions.Like(y.Alias, matchPattern))
+            .Select(y => new AliasSongIdPair(y.Alias, y.SongId))
+            .ToArray();
+            
+        foreach (var aliasItem in matchedAliases)
         {
             HashSet<SongMetaData> songs =
             [
@@ -68,16 +75,25 @@ public class SearchCommand : MaiCommandBase
 
             foreach (var songMetaData in songs)
             {
-                var added = songsMatchedByAlias.TryAdd(songMetaData, [alias.Alias]);
-                if (!added && songsMatchedByAlias.TryGetValue(songMetaData, out var value)) value.Add(alias.Alias);
+                if (songMetaData == null)
+                    continue;
+
+                var added = songsMatchedByAlias.TryAdd(songMetaData, [aliasItem.Alias]);
+                if (!added && songsMatchedByAlias.TryGetValue(songMetaData, out var value)) value.Add(aliasItem.Alias);
             }
         }
 
         if (isBpm)
-            songsMatchedByBpm.AddRange(db.SongMetaDataSet.Where(x => x.Bpm.Equals(bpm)));
+            songsMatchedByBpm.AddRange(songSet.Where(x => x.Bpm.Equals(bpm)));
 
         return new SearchResult(songsMatchedByArtist.ToArray(), songsMatchedByTitle.ToArray(),
             songsMatchedByBpm.ToArray(), songsMatchedByAlias);
+    }
+
+    private class AliasSongIdPair(string alias, int id)
+    {
+        public string Alias { get; set; } = alias;
+        public int SimplifiedSongId { get; set; } = id;
     }
 
     public StringBuilder GetMultiSearchResults(SearchResult searchResult)

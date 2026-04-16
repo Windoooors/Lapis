@@ -25,6 +25,20 @@ public static class SettingsItems
                 },
                 new SettingsItemsOfACommand
                 {
+                    DisplayName = "Play Count Top 50",
+                    Identifier = "pc50",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
                     DisplayName = "歌曲信息",
                     Identifier = "info",
                     Items =
@@ -409,7 +423,21 @@ public static class SettingsItems
                             DefaultValue = true
                         }
                     ]
-                }
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "Wordle",
+                    Identifier = "wordle",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
             ]
         },
         new()

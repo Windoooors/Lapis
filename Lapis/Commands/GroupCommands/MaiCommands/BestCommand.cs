@@ -51,7 +51,7 @@ public class BestCommand : MaiCommandBase
 
                 if (hasB50FromLapis)
                 {
-                    Process(source, b50FromLapis, true);
+                    Process(source, b50FromLapis, false);
 
                     return;
                 }
@@ -103,7 +103,7 @@ public class BestCommand : MaiCommandBase
 
                 if (hasB50FromLapis)
                 {
-                    Process(source, b50FromLapis, true);
+                    Process(source, b50FromLapis, false);
 
                     return;
                 }

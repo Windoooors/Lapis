@@ -47,7 +47,7 @@ public class DictionaryCommand : VocabularyCommandBase
         if (word.Length > 1)
             bucketHeader += word[1];
 
-        var hasBucket = VocabularyCommandInstance.LargeVocabulary.Words.TryGetValue(bucketHeader, out var words);
+        var hasBucket = VocabularyCommandInstance.BigVocabulary.Words.TryGetValue(bucketHeader, out var words);
 
         if (!hasBucket
             || words == null || words.Length == 0)

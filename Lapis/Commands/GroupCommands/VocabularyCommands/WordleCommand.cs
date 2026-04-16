@@ -177,7 +177,7 @@ public class WordleCommand : VocabularyCommandBase
         {
             var totalLength = 0;
 
-            VocabularyCommandInstance.LargeVocabulary.Words.ToList().ForEach(x
+            VocabularyCommandInstance.BigVocabulary.Words.ToList().ForEach(x
                 =>
             {
                 totalLength += x.Value.Length;
@@ -189,14 +189,14 @@ public class WordleCommand : VocabularyCommandBase
 
             var categoryIndex = 0;
 
-            for (var i = 0; i < VocabularyCommandInstance.LargeVocabulary.Words.Count; i++)
+            for (var i = 0; i < VocabularyCommandInstance.BigVocabulary.Words.Count; i++)
             {
                 if (currentIndex < wordRandomIndex)
-                    currentIndex += VocabularyCommandInstance.LargeVocabulary.Words.ToList()[i].Value.Length;
+                    currentIndex += VocabularyCommandInstance.BigVocabulary.Words.ToList()[i].Value.Length;
 
                 if (currentIndex > wordRandomIndex)
                 {
-                    currentIndex -= VocabularyCommandInstance.LargeVocabulary.Words.ToList()[i].Value.Length;
+                    currentIndex -= VocabularyCommandInstance.BigVocabulary.Words.ToList()[i].Value.Length;
 
                     categoryIndex = i;
 
@@ -204,7 +204,7 @@ public class WordleCommand : VocabularyCommandBase
                 }
             }
 
-            var word = VocabularyCommandInstance.LargeVocabulary.Words.ToList()[categoryIndex]
+            var word = VocabularyCommandInstance.BigVocabulary.Words.ToList()[categoryIndex]
                 .Value[wordRandomIndex - currentIndex];
 
             if (word.Word.Length == wordLength && word.Word.ToList().All(char.IsLetter) &&

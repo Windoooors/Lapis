@@ -48,7 +48,7 @@ public class AliasCommand : AliasCommandBase
         var song = MaiCommandInstance.GetSongById(songId);
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine($"歌曲 {song.Title} [{GetSongType(songId)}] 有如下别称：");
-        if (alias.Aliases.Count != 0)
+        if (alias?.Aliases != null && alias.Aliases.Count != 0)
         {
             var hashSet = new HashSet<string>(alias.Aliases.Select(x => x.Alias));
 

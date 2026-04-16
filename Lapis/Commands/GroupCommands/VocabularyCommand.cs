@@ -36,7 +36,7 @@ public abstract class VocabularyCommandBase : GroupCommand
 public class VocabularyCommand : VocabularyCommandBase
 {
     public readonly List<Vocabulary> Vocabularies = [];
-    public LargeVocabulary LargeVocabulary;
+    public LargeVocabulary BigVocabulary;
 
     public VocabularyCommand()
     {
@@ -56,7 +56,7 @@ public class VocabularyCommand : VocabularyCommandBase
 
         var largeVocabularyPath = Path.Combine(AppContext.BaseDirectory, "resource/large_vocabulary.json");
 
-        LargeVocabulary = new LargeVocabulary
+        BigVocabulary = new LargeVocabulary
         {
             Words = JsonConvert.DeserializeObject<Dictionary<string, WordDto[]>>(File.ReadAllText(largeVocabularyPath))
         };

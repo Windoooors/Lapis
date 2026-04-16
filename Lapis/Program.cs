@@ -37,7 +37,7 @@ public class BotConfiguration
     [JsonProperty] public string DivingFishDevToken;
     [JsonProperty] public string DivingFishUrl;
 
-    [JsonProperty] public string SqlServerConnectionString;
+    [JsonProperty] public string SqlConnectionString;
     [JsonProperty] public string WahlapConnectiveKitsUrl;
 }
 
@@ -54,7 +54,7 @@ public class DatabaseHandler
         InitializeDatabase(GroupMemberDatabaseOperator.Db, SongMetaDatabaseOperator.Db);
     }
 
-    public void InitializeDatabase(params DbContext[] contexts)
+    private void InitializeDatabase(params DbContext[] contexts)
     {
         if (contexts.Length == 0) return;
 
@@ -162,7 +162,7 @@ public class Program
             AccessToken = _botConfiguration.AccessToken
         });
 
-        Session.StartAsync();
+        Session.Start();
 
         Console.CancelKeyPress += Console_CancelKeyPress;
 

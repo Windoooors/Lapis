@@ -256,7 +256,7 @@ public class GroupMemberCommand : GroupMemberCommandBase
 
         var memberHashset = new HashSet<GroupMember>();
 
-        var dataset = db.MemberAliasesDataSet.ToList();
+        var dataset = db.MemberAliasesDataSet.Include(x => x.Aliases).ToList();
 
         var aliases =
             dataset.Where(x => x.Aliases.Exists(y => y.Alias.ToLower() == userIdentificationString?.ToLower()) &&

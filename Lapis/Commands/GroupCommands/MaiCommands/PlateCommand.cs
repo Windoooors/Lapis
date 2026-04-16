@@ -299,6 +299,7 @@ public class PlateCommand : MaiCommandBase
         else
         {
             scoresInReality = GetScoresFromLapis(version, source.Sender.UserId);
+            useAvatar = arguments.Length == 1;
         }
 
         var songsToBeDisplayed = new List<SongToBeDisplayed>();

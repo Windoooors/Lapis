@@ -297,7 +297,7 @@ public class BestImageGenerator : ImageGenerator
         info.DrawText(score.Achievements.ToString("0.0000") + "%", fontColor, 20, FontWeight.Heavy, 102, 50);
         info.DrawText(score.DifficultyFactor.ToString("0.0") + "·" + score.Rating, fontColor, 20, FontWeight.Heavy,
             102, 69);
-        info.DrawText("#" + rank + "·ID " + score.Id, new Color(fontColor.R, fontColor.G, fontColor.B, 0.6f), 15,
+        info.DrawText("#" + rank + "·ID " + score.Id + (score.PlayCount == -1 ? "" : $"·PC {score.PlayCount}"), new Color(fontColor.R, fontColor.G, fontColor.B, 0.6f), 15,
             FontWeight.Regular, 102, 87);
 
         using var scoreLayerMask =

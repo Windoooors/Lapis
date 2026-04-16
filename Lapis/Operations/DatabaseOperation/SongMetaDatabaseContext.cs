@@ -14,7 +14,7 @@ public class SongMetaDatabaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(BotConfiguration.Instance.SqlServerConnectionString);
+        optionsBuilder.UseNpgsql(BotConfiguration.Instance.SqlConnectionString);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

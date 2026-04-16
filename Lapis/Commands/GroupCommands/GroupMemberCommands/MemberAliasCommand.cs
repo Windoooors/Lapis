@@ -75,7 +75,7 @@ public class MemberAliasCommand : MemberAliasCommandBase
         if (!TryGetNickname(qqId, groupId, out var nickname)) return "该群友已退群！";
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine($"群友 {nickname} 有如下别称：");
-        if (alias.Aliases == null || alias.Aliases.Count != 0)
+        if (alias?.Aliases != null && alias.Aliases.Count != 0)
         {
             var hashSet = new HashSet<string>(alias.Aliases.Select(x => x.Alias));
 
