@@ -143,7 +143,7 @@ public class LettersCommand : MaiCommandBase
                 var isSongGuessed = false;
 
                 foreach (var guessedSong in songs.GuessedSongs)
-                    if (song == guessedSong)
+                    if (song.Equals(guessedSong))
                     {
                         songDisplay = guessedSong.Title;
                         isSongGuessed = true;
@@ -253,7 +253,7 @@ public class LettersCommand : MaiCommandBase
     {
         var command = arguments[0];
 
-        var specialCharactersToBeIncluded = SpecialCharactersToBeIncluded.Both;
+        SpecialCharactersToBeIncluded specialCharactersToBeIncluded;
 
         if (command.ToLower().StartsWith("both"))
         {
@@ -348,7 +348,7 @@ public class LettersCommand : MaiCommandBase
 
         foreach (var song in songs)
         {
-            if (keyValuePair.Item1.AllSongs[index - 1] != song)
+            if (!keyValuePair.Item1.AllSongs[index - 1].Equals(song))
                 continue;
 
             if (keyValuePair.Item1.GuessedSongs.Contains(song))

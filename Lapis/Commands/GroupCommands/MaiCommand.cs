@@ -358,7 +358,9 @@ public class MaiCommand : MaiCommandBase
     public SongAlias GetAliasById(int id)
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
-        return db.SongAliasDataSet.Include(x => x.Aliases).FirstOrDefault(x => (id - x.SimplifiedSongId) % 10000 == 0);
+        var result = db.SongAliasDataSet.Include(x => x.Aliases)
+            .FirstOrDefault(x => (id - x.SimplifiedSongId) % 10000 == 0);
+        return result;
     }
 
     public SongDto ToSongDto(SongMetaData song)
@@ -554,8 +556,8 @@ public class MaiCommand : MaiCommandBase
             
             if (!sameSong) return songs;
 
-            var dxSong = songs.FirstOrDefault(x => x.SongId > 10000 & x.SongId < 100000);
-            var sdSong = songs.FirstOrDefault(x => x.SongId < 1000);
+            var dxSong = songs.FirstOrDefault(x => x.SongId >= 10000 & x.SongId < 100000);
+            var sdSong = songs.FirstOrDefault(x => x.SongId < 10000);
 
             return typeState switch
             {

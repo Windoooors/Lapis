@@ -23,9 +23,14 @@ public class SongMetaDatabaseOperator
 
     public void InsertSongs(SongDto[] songDtos, MaiCommandBase.AliasItemDto[] aliases, SongMetaDatabaseContext db)
     {
-        db.SongMetaDataSet.ExecuteDelete();
+        var songDataSet =
+            db.SongMetaDataSet.Include(x => x.Charts);
 
-        db.SongMetaDataSet.AddRange(songDtos.Select(x => new SongMetaData
+        var existedSongs = songDataSet.ToList();
+        var newSongs = 
+            songDtos.Where(x => !existedSongs.Exists(y => y.SongId == x.Id));
+        
+        db.SongMetaDataSet.AddRange(newSongs.Select(x => new SongMetaData
         {
             SongId = x.Id,
             Title = x.Title,
@@ -34,26 +39,48 @@ public class SongMetaDatabaseOperator
             Version = x.BasicInfo.Version
         }));
 
-        db.ChartMetaDataSet.ExecuteDelete();
-        foreach (var songDto in songDtos)
-            db.ChartMetaDataSet.AddRange(songDto.Charts.Select(x => new ChartMetaData
-            {
-                TapCount = x.Notes[0],
-                HoldCount = x.Notes[1],
-                SlideCount = x.Notes[2],
-                TouchCount = songDto.Type == "DX" ? x.Notes[3] : 0,
-                BreakCount = x.Notes[songDto.Type == "DX" ? 4 : 3],
-                LevelIndex = songDto.Charts.IndexOf(x),
-                SongId = songDto.Id,
-                Rating = songDto.Ratings[songDto.Charts.IndexOf(x)],
-                FitRating = songDto.FitRatings[songDto.Charts.IndexOf(x)],
-                CharterName = x.Charter,
-                MaxDxScore = 3 * (songDto.Type == "DX"
-                    ? x.Notes[0] + x.Notes[1] + x.Notes[2] + x.Notes[3] + x.Notes[4]
-                    : x.Notes[0] + x.Notes[1] + x.Notes[2] + x.Notes[3]),
-                LevelName = songDto.Levels[songDto.Charts.IndexOf(x)]
-            }));
+        var existedChartsQueryable = songDataSet.SelectMany(x => x.Charts);
+        
+        foreach (var chartMetaData in existedChartsQueryable)
+        {
+            var findResult = songDtos.FirstOrDefault(x => x.Id == chartMetaData.SongId);
 
+            if (findResult == null)
+                continue;
+
+            chartMetaData.Rating = chartMetaData.LevelIndex < findResult.Ratings.Length
+                ? findResult.Ratings[chartMetaData.LevelIndex]
+                : 0;
+            chartMetaData.FitRating = chartMetaData.LevelIndex < findResult.FitRatings.Length
+                ? findResult.FitRatings[chartMetaData.LevelIndex]
+                : chartMetaData.Rating;
+        }
+        
+        var existedCharts = existedChartsQueryable.ToList();
+        var newCharts = 
+            songDtos.Where(x => !existedCharts.Exists(y => y.SongId == x.Id))
+                .SelectMany(songDto =>
+                songDto.Charts.Select(x => new ChartMetaData
+                {
+                    TapCount = x.Notes[0],
+                    HoldCount = x.Notes[1],
+                    SlideCount = x.Notes[2],
+                    TouchCount = songDto.Type == "DX" ? x.Notes[3] : 0,
+                    BreakCount = x.Notes[songDto.Type == "DX" ? 4 : 3],
+                    LevelIndex = songDto.Charts.IndexOf(x),
+                    SongId = songDto.Id,
+                    Rating = songDto.Ratings[songDto.Charts.IndexOf(x)],
+                    FitRating = songDto.FitRatings[songDto.Charts.IndexOf(x)],
+                    CharterName = x.Charter,
+                    MaxDxScore = 3 * (songDto.Type == "DX"
+                        ? x.Notes[0] + x.Notes[1] + x.Notes[2] + x.Notes[3] + x.Notes[4]
+                        : x.Notes[0] + x.Notes[1] + x.Notes[2] + x.Notes[3]),
+                    LevelName = songDto.Levels[songDto.Charts.IndexOf(x)]
+                }))
+            .ToList();
+        
+        db.ChartMetaDataSet.AddRange(newCharts);
+        
         var aliasDbSet = db.SongAliasDataSet;
         var aliasList = aliasDbSet.Include(x => x.Aliases).ToList();
 
