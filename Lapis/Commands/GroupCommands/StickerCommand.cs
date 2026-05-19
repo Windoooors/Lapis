@@ -15,7 +15,8 @@ public class StickerCommand : StickerCommandBase
         SubCommands =
         [
             new FortuneCommand(),
-            new ObituaryCommand()
+            new ObituaryCommand(),
+            new SymmetryCommand()
         ];
         StickerCommandInstance = this;
     }

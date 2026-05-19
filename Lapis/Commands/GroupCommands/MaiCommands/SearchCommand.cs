@@ -6,7 +6,6 @@ using EleCho.GoCqHttpSdk.Post;
 using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 using Microsoft.EntityFrameworkCore;
-using SixLabors.ImageSharp.ColorSpaces;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
@@ -36,7 +35,8 @@ public class SearchCommand : MaiCommandBase
             db.SongMetaDataSet.Include(x => x.Charts);
 
         songsMatchedByTitle
-            .AddRange(songSet.Where(x => EF.Functions.Like(x.Title.ToLower(), $"%{keyWord.ToLower().Replace(" ", "%")}%")
+            .AddRange(songSet.Where(x =>
+                EF.Functions.Like(x.Title.ToLower(), $"%{keyWord.ToLower().Replace(" ", "%")}%")
             ));
 
         var matchPattern = $"%{keyWord?.ToLower().Replace(" ", "%")}%";
@@ -45,13 +45,13 @@ public class SearchCommand : MaiCommandBase
             EF.Functions.Like(x.Artist.ToLower(), matchPattern)));
 
         var aliasesSet = db.SongAliasDataSet.Include(x => x.Aliases);
-        
+
         var matchedAliases = aliasesSet
-            .SelectMany(x => x.Aliases) 
-            .Where(y => EF.Functions.Like(y.Alias, matchPattern))
+            .SelectMany(x => x.Aliases)
+            .Where(y => EF.Functions.Like(y.Alias.ToLower(), matchPattern))
             .Select(y => new AliasSongIdPair(y.Alias, y.SongId))
             .ToArray();
-            
+
         foreach (var aliasItem in matchedAliases)
         {
             HashSet<SongMetaData> songs =
@@ -88,12 +88,6 @@ public class SearchCommand : MaiCommandBase
 
         return new SearchResult(songsMatchedByArtist.ToArray(), songsMatchedByTitle.ToArray(),
             songsMatchedByBpm.ToArray(), songsMatchedByAlias);
-    }
-
-    private class AliasSongIdPair(string alias, int id)
-    {
-        public string Alias { get; set; } = alias;
-        public int SimplifiedSongId { get; set; } = id;
     }
 
     public StringBuilder GetMultiSearchResults(SearchResult searchResult)
@@ -168,6 +162,12 @@ public class SearchCommand : MaiCommandBase
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(stringBuilder.ToString())
         ]);
+    }
+
+    private class AliasSongIdPair(string alias, int id)
+    {
+        public string Alias { get; } = alias;
+        public int SimplifiedSongId { get; } = id;
     }
 
     public class SearchResult

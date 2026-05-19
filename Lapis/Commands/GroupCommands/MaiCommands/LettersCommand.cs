@@ -190,7 +190,7 @@ public class LettersCommand : MaiCommandBase
             var messageStringBuilder = new StringBuilder();
             messageStringBuilder.AppendLine("本次游戏尚未结束，要提前结束游戏，请发送指令 \"lps mai letters answer\"");
             messageStringBuilder.AppendLine("要开字母 a，请发送指令 \"开 a\"");
-            messageStringBuilder.Append("要猜编号为 \\\"1\\\" 的歌曲为 [SD] LUCIA, 请发送指令 \\\"1.LUCIA\\\"");
+            messageStringBuilder.Append("要猜编号为 \"1\" 的歌曲为 [SD] LUCIA, 请发送指令 \"1.LUCIA\"");
 
             SendMessage(source, [
                 new CqReplyMsg(source.MessageId),

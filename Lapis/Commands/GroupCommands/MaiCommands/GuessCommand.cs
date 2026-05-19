@@ -202,7 +202,7 @@ public class GuessCommand : MaiCommandBase
 
         var image = new InfoImageGenerator().Generate(
             MaiCommandInstance.ToSongDto(MaiCommandInstance.GetSongById(keyIdDateTimePair.Item1)),
-            "谜底", null, isCompressed);
+            "谜底", null,0,false, isCompressed);
 
         if (messageId == 0)
             SendMessage(long.Parse(groupId),

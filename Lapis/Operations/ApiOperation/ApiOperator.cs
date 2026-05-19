@@ -101,14 +101,29 @@ public class ApiOperator
             JsonConvert.SerializeObject(content), timeOut);
     }
 
-    public Image UrlToImage(string url)
+    public bool TryUrlToImage(string url, out Image image, int maxLength = 0)
     {
         var client = new HttpClient();
         var bytes = client.GetByteArrayAsync(url).Result;
+        
         using var stream = new MemoryStream(bytes);
-        var outputImg = new Image(stream);
+
+        var imageInfo = SixLabors.ImageSharp.Image.Identify(stream);
+
+        var imagePixelCount = imageInfo.FrameCount * imageInfo.Height * imageInfo.Width;
+        
+        if (maxLength != 0 && imagePixelCount > maxLength)
+        {
+            image = null;
+            client.Dispose();
+            return false;
+        }
+
+        stream.Position = 0;
+        
+        image = new Image(stream);
         client.Dispose();
-        return outputImg;
+        return true;
     }
 
     private RequestResult DeleteCore(string url, int timeOut)

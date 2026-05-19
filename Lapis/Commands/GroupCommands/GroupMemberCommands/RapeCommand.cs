@@ -28,12 +28,16 @@ public class BeingRapedCommand : RapeCommandBase
     {
         if (!TryGetNickname(member.QqId, source.GroupId, out var nickname)) return false;
 
+        ApiOperator.Instance.TryUrlToImage(GetQqAvatarUrl(member.QqId), out var image);
+        
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.QqId)).ToBase64()),
+            new CqImageMsg("base64://" + image.ToBase64()),
             $"群友 {nickname} ({member.QqId}) 透到你啦(*¯︶¯*)"
         ]);
+        
+        image.Dispose();
 
         return true;
     }
@@ -83,12 +87,16 @@ public class RapeCommand : RapeCommandBase
     {
         if (!TryGetNickname(member.QqId, source.GroupId, out var nickname)) return false;
 
+        ApiOperator.Instance.TryUrlToImage(GetQqAvatarUrl(member.QqId), out var image);
+        
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(member.QqId)).ToBase64()),
+            new CqImageMsg("base64://" + image.ToBase64()),
             $"群友 {nickname} ({member.QqId}) 被你透啦(*¯︶¯*)"
         ]);
+        
+        image.Dispose();
 
         member.RapedTimes++;
 

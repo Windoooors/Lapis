@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using EleCho.GoCqHttpSdk;
-using EleCho.GoCqHttpSdk.Message;
 using Lapis.Commands;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.PrivateCommands;
@@ -192,16 +191,16 @@ public class Program
         Session.UseFriendRequest(async (context, next) =>
         {
             await Session.ApproveFriendRequestAsync(context.Flag, "");
-            var thread = new Task(() => Welcome(context.UserId));
-            thread.Start();
+            /*var thread = new Task(() => Welcome(context.UserId));
+            thread.Start();*/
             await next.Invoke();
         });
 
-        Session.UseGroupRequest(async (context, next) =>
+        /*Session.UseGroupRequest(async (context, next) =>
         {
             await Session.ApproveGroupRequestAsync(context.Flag, context.GroupRequestType);
             await next.Invoke();
-        });
+        });*/
 
         if (File.Exists(Path.Combine(AppContext.BaseDirectory, "data/date.json")))
             _lastDailyRefreshTime =
@@ -221,7 +220,7 @@ public class Program
         return Task.CompletedTask;
     }
 
-    private static void Welcome(long userId)
+    /*private static void Welcome(long userId)
     {
         Thread.Sleep(3000);
         Session.SendPrivateMessageAsync(userId,
@@ -229,7 +228,7 @@ public class Program
             new CqTextMsg(
                 $"感谢使用！请邀请 {BotConfiguration.Instance.BotName} 进入您的群聊！\n若要保存表情，请直接将表情发送给 {BotConfiguration.Instance.BotName}")
         ]);
-    }
+    }*/
 
     private static void SaveDate()
     {

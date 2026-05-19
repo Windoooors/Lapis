@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
@@ -10,11 +8,9 @@ using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands.MaiCommands;
 using Lapis.Commands.PrivateCommands;
 using Lapis.Commands.UniversalCommands;
-using Lapis.Operations.ApiOperation;
 using Lapis.Operations.DatabaseOperation;
 using Lapis.Operations.MaiScoreOperation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Lapis.Commands.GroupCommands;
@@ -100,7 +96,7 @@ public abstract class MaiCommandBase : GroupCommand
         CommandBehaviorInformationDataObject behaviorInformation)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("该别称有多首歌曲匹配：");
+        stringBuilder.AppendLine("有多首歌曲匹配：");
 
         foreach (var song in songs)
             stringBuilder.AppendLine($"ID {song.SongId} - {song.Title} [{GetSongType(song.SongId)}]");
@@ -283,6 +279,10 @@ public class AliasDto
 
 public class MaiCommand : MaiCommandBase
 {
+    private static readonly Regex DxRegex = new("^dx");
+    private static readonly Regex SdRegex = new("^sd|^std|^标|^标准");
+    private static readonly Regex BothTypeRegex = new("^dx|^sd|^std|^标|^标准");
+
     public readonly Dictionary<string, int> LevelDictionary = new()
     {
         { "1", 0 }, { "2", 1 }, { "3", 2 },
@@ -322,7 +322,10 @@ public class MaiCommand : MaiCommandBase
             new CutoffPointCommand(),
             new PlayerInfoCommand(),
             new UpdateMaiDataCommand(),
-            new PlayCountTop50Command()
+            new PlayCountTop50Command(),
+            new FitBest50Command(),
+            new SimulatedNewVersionB50Command(),
+            new AllPerfectB50()
         ];
     }
 
@@ -346,7 +349,7 @@ public class MaiCommand : MaiCommandBase
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
         var dataSet = db.SongAliasDataSet.Include(x => x.Aliases).ToList();
 
-        var findResult = 
+        var findResult =
             dataSet.Where(x => x.Aliases.Exists(y => y.Alias.ToLower() == alias.ToLower())).ToArray();
 
         if (findResult.Length == 0)
@@ -365,8 +368,8 @@ public class MaiCommand : MaiCommandBase
 
     public SongDto ToSongDto(SongMetaData song)
     {
-        var chart = song.Charts;
-
+        var chart = song.Charts.OrderBy(x => x.LevelIndex).ToList();
+        
         return new SongDto
         {
             BasicInfo = new SongDto.BasicInfoDto
@@ -407,10 +410,6 @@ public class MaiCommand : MaiCommandBase
         return songDbItem;
     }
 
-    private static readonly Regex DxRegex = new Regex("^dx");
-    private static readonly Regex SdRegex = new Regex("^sd|^std|^标|^标准");
-    private static readonly Regex BothTypeRegex = new Regex("^dx|^sd|^std|^标|^标准");
-
     public bool TryGetSongs(string inputString, out SongMetaData[] songs,
         CommandBehaviorInformationDataObject commandBehaviorInformationDataObject = null,
         CqMessagePostContext source = null,
@@ -429,7 +428,7 @@ public class MaiCommand : MaiCommandBase
             (false, true) => 2,
             _ => 0
         };
-        
+
         var aliasItems = GetAliasesByAliasString(inputString);
 
         if (aliasItems != null && aliasItems.Length != 0)
@@ -529,7 +528,7 @@ public class MaiCommand : MaiCommandBase
             foreach (var utageSong in utageSongsList) dereplicatedSearchedSongsList.Remove(utageSong);
         }
 
-        if (dereplicatedSearchedSongsList.Count == 1)
+        if (dereplicatedSearchedSongsList.Count == 1 || IsOfSameSong(dereplicatedSearchedSongsList.ToArray()))
         {
             songs = ClampSongs(dereplicatedSearchedSongsList.ToArray());
             return true;
@@ -545,25 +544,30 @@ public class MaiCommand : MaiCommandBase
             ]);
         return false;
 
+        bool IsOfSameSong(SongMetaData[] songs)
+        {
+            return songs.Length == 2 && songs[0].SongId % 10000 == songs[1].SongId % 10000;
+        }
+
         SongMetaData[] ClampSongs(SongMetaData[] songs)
         {
             if (songs.Length == 1)
                 return songs;
 
             var firstId = songs[0].SongId % 10000;
-            
+
             var sameSong = songs.All(x => x.SongId % 10000 == firstId);
-            
+
             if (!sameSong) return songs;
 
-            var dxSong = songs.FirstOrDefault(x => x.SongId >= 10000 & x.SongId < 100000);
+            var dxSong = songs.FirstOrDefault(x => (x.SongId >= 10000) & (x.SongId < 100000));
             var sdSong = songs.FirstOrDefault(x => x.SongId < 10000);
 
             return typeState switch
             {
                 1 => dxSong is null ? [] : [dxSong],
                 2 => sdSong is null ? [] : [sdSong],
-                _ => songs,
+                _ => songs
             };
         }
     }

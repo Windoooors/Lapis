@@ -3,6 +3,8 @@ using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.GroupCommands;
 using Lapis.Settings;
+using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp.Diagnostics;
 
 namespace Lapis.Commands;
 

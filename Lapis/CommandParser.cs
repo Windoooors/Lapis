@@ -19,7 +19,7 @@ public class CommandParser
     {
         try
         {
-            var commandString = source.Message.Text;
+            var commandString = source.Message.Text.TrimStart();
             var originalCommandString = commandString;
             /*var mentionedUserIdsList = new List<long>();
             foreach (var messageElement in source.Message)

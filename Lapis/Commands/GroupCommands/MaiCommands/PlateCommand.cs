@@ -75,20 +75,29 @@ public class PlateCommand : MaiCommandBase
 
         string userName;
 
-        var cachedInLapis = MaiScoreOperator.UserDataCached(source.UserId);
+        var cachedInLapis = false;
+        long qqId = 0;
 
-        if (!cachedInLapis)
+        try
         {
-            try
-            {
-                ApiOperator.RequestResult content;
+            ApiOperator.RequestResult content = null;
 
-                if (arguments.Length > 1)
+            if (arguments.Length > 1)
+            {
+                var isGroupMember =
+                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
+                        out var groupMembers, source) && groupMembers.Length == 1;
+                var isQqId = long.TryParse(arguments[1], out var qqIdArgument);
+
+                if (isGroupMember || isQqId)
                 {
-                    var isGroupMember =
-                        GroupMemberCommandBase.GroupMemberCommandInstance.TryGetMember(arguments[1],
-                            out var groupMembers, source) && groupMembers.Length == 1;
-                    var isQqId = long.TryParse(arguments[1], out _);
+                    qqId = isGroupMember ? groupMembers[0].QqId : qqIdArgument;
+
+                    cachedInLapis = MaiScoreOperator.UserDataCached(qqId);
+                }
+
+                if (!cachedInLapis)
+                {
                     content = isGroupMember
                         ? ApiOperator.Instance.Post(
                             BotConfiguration.Instance.DivingFishUrl,
@@ -120,8 +129,13 @@ public class PlateCommand : MaiCommandBase
                         throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
                             content.StatusCode);
                 }
-                else
-                {
+            }
+            else
+            {
+                qqId = source.Sender.UserId;
+                cachedInLapis = MaiScoreOperator.UserDataCached(source.Sender.UserId);
+
+                if (!cachedInLapis)
                     content = ApiOperator.Instance.Post(
                         BotConfiguration.Instance.DivingFishUrl,
                         "api/maimaidxprober/query/player",
@@ -130,29 +144,32 @@ public class PlateCommand : MaiCommandBase
                             new KeyValuePair<string, string>("Developer-Token",
                                 BotConfiguration.Instance.DivingFishDevToken)
                         ]);
-                }
+            }
 
+            if (!cachedInLapis)
+            {
                 userName = JsonConvert.DeserializeObject<BestDto>(content.Result).Username;
             }
-            catch (Exception ex)
+            else
             {
-                if (ex.InnerException is TaskCanceledException or HttpRequestException)
-                {
-                    DivingFishErrorHelp(source);
-                    return;
-                }
-
-                if (arguments.Length > 1)
-                    ObjectUserUnboundErrorHelp(source);
-                else
-                    UnboundErrorHelp(source);
-                return;
+                var hasName =
+                    GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(source.UserId, out userName);
+                userName = hasName ? userName : source.UserId.ToString();
             }
         }
-        else
+        catch (Exception ex)
         {
-            var hasName = GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(source.UserId, out userName);
-            userName = hasName ? userName : source.UserId.ToString();
+            if (ex.InnerException is TaskCanceledException or HttpRequestException)
+            {
+                DivingFishErrorHelp(source);
+                return;
+            }
+
+            if (arguments.Length > 1)
+                ObjectUserUnboundErrorHelp(source);
+            else
+                UnboundErrorHelp(source);
+            return;
         }
 
         var versionCharacter =
@@ -298,7 +315,7 @@ public class PlateCommand : MaiCommandBase
         }
         else
         {
-            scoresInReality = GetScoresFromLapis(version, source.Sender.UserId);
+            scoresInReality = GetScoresFromLapis(version, qqId);
             useAvatar = arguments.Length == 1;
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using EleCho.GoCqHttpSdk.Message;
@@ -24,18 +23,19 @@ public class UpdateMaiDataCommand : PrivateCommand
     {
         if (source.Sender.UserId != BotConfiguration.Instance.AdministratorQqNumber)
             return;
-        
+
         SendMessage(source, [new CqReplyMsg(source.MessageId), "更新中..."]);
 
         try
         {
             UpdateSongDatabase();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             SendMessage(source, [new CqReplyMsg(source.MessageId), "更新失败"]);
 
-            Program.Logger.LogError($"Failed to update maimai metadata. Message: {e.Message} StackTrace: {e.StackTrace}");
+            Program.Logger.LogError(
+                $"Failed to update maimai metadata. Message: {e.Message} StackTrace: {e.StackTrace}");
             return;
         }
 

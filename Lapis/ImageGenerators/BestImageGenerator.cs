@@ -14,7 +14,7 @@ public class BestImageGenerator : ImageGenerator
         Image head;
         if (usingHead)
         {
-            head = ApiOperator.Instance.UrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640");
+            ApiOperator.Instance.TryUrlToImage("https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640", out head);
         }
         else
         {
@@ -28,7 +28,7 @@ public class BestImageGenerator : ImageGenerator
         var image = GenerateBackground(best);
         var nameForm = new Image(500, 65);
 
-        nameForm.DrawText(best.Username, Color.White, 36, FontWeight.Light, 2, 59);
+        nameForm.DrawText(best.Username, Color.White, 36, FontWeight.Light, 2, 50);
 
         image.DrawImage(nameForm, 74, 25);
 
@@ -39,77 +39,77 @@ public class BestImageGenerator : ImageGenerator
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_regular.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), Color.White, 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), Color.White, 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 999 and <= 1999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_blue.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0, 0.24f, 0.36f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0, 0.24f, 0.36f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 1999 and <= 3999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_green.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.25f, 0.38f, 0.09f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.25f, 0.38f, 0.09f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 3999 and <= 6999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_yellow.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.30f, 0.24f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.30f, 0.24f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 6999 and <= 9999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_red.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(1, 0.71f, 0.71f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(1, 0.71f, 0.71f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 9999 and <= 11999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_purple.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.73f, 0.56f, 1f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.73f, 0.56f, 1f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 11999 and <= 12999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_bronze.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.18f, 0.07f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.18f, 0.07f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 12999 and <= 13999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_silver.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.1f, 0.1f, 0.1f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.1f, 0.1f, 0.1f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 13999 and <= 14499)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_gold.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.3f, 0.24f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.3f, 0.24f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating is > 14499 and <= 14999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_platinum.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.3f, 0.24f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.36f, 0.3f, 0.24f, 1), 36, FontWeight.Light, 74, 147);
         }
         else if (best.Rating > 14999)
         {
             using var ratingBackground =
                 new Image(Path.Combine(AppContext.BaseDirectory, "resource/best50/score_background_rainbow.png"));
             image.DrawImage(ratingBackground, 73, 90);
-            image.DrawText(best.Rating.ToString(), new Color(0.1f, 0f, 0.37f, 1), 36, FontWeight.Light, 74, 150);
+            image.DrawText(best.Rating.ToString(), new Color(0.1f, 0f, 0.37f, 1), 36, FontWeight.Light, 74, 147);
         }
 
         image.DrawImage(head, 8, 25);
@@ -297,7 +297,8 @@ public class BestImageGenerator : ImageGenerator
         info.DrawText(score.Achievements.ToString("0.0000") + "%", fontColor, 20, FontWeight.Heavy, 102, 50);
         info.DrawText(score.DifficultyFactor.ToString("0.0") + "·" + score.Rating, fontColor, 20, FontWeight.Heavy,
             102, 69);
-        info.DrawText("#" + rank + "·ID " + score.Id + (score.PlayCount == -1 ? "" : $"·PC {score.PlayCount}"), new Color(fontColor.R, fontColor.G, fontColor.B, 0.6f), 15,
+        info.DrawText("#" + rank + "·ID " + score.Id + (score.PlayCount == -1 ? "" : $"·PC {score.PlayCount}"),
+            new Color(fontColor.R, fontColor.G, fontColor.B, 0.6f), 15,
             FontWeight.Regular, 102, 87);
 
         using var scoreLayerMask =

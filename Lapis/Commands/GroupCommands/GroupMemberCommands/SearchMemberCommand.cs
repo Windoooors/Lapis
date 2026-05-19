@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
-using Lapis.Miscellaneous;
 using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 using Microsoft.EntityFrameworkCore;
@@ -30,18 +29,18 @@ public class SearchMemberCommand : GroupMemberCommandBase
         var matchPattern = $"%{keyWord?.ToLower().Replace(" ", "%")}%";
 
         using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
-        
+
         var aliasesSet = db.MemberAliasesDataSet.Include(x => x.Aliases);
-        
+
         var matchedAliases = aliasesSet
-            .SelectMany(x => x.Aliases) 
-            .Where(y => EF.Functions.Like(y.Alias, matchPattern) && y.GroupId == groupId)
+            .SelectMany(x => x.Aliases)
+            .Where(y => EF.Functions.Like(y.Alias.ToLower(), matchPattern) && y.GroupId == groupId)
             .Select(y => new AliasMemberIdPair(y.Alias, y.MemberQqId))
             .ToArray();
-        
+
         if (matchedAliases.Length == 0)
             return new SearchResult([]);
-        
+
         foreach (var alias in matchedAliases)
         {
             var groupMember =
@@ -59,12 +58,6 @@ public class SearchMemberCommand : GroupMemberCommandBase
         (
             membersMatchedByAlias
         );
-    }
-
-    private class AliasMemberIdPair(string alias, long id)
-    {
-        public string Alias = alias;
-        public long Id = id;
     }
 
     public StringBuilder GetMultiSearchResults(SearchResult searchResult, long groupId)
@@ -116,6 +109,12 @@ public class SearchMemberCommand : GroupMemberCommandBase
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(stringBuilder.ToString().Trim())
         ]);
+    }
+
+    private class AliasMemberIdPair(string alias, long id)
+    {
+        public readonly string Alias = alias;
+        public readonly long Id = id;
     }
 
     public class SearchResult(Dictionary<GroupMember, List<string>> membersMatchedByAlias)

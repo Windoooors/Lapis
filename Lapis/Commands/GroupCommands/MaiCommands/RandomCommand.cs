@@ -45,7 +45,7 @@ public class RandomCommand : MaiCommandBase
             [
                 new CqReplyMsg(source.MessageId),
                 new CqImageMsg("base64://" + new InfoImageGenerator().Generate(MaiCommandInstance.ToSongDto(songs[j]),
-                    "随机歌曲", null,
+                    "随机歌曲", null,0,false,
                     isCompressed))
             ]);
 

@@ -25,8 +25,50 @@ public static class SettingsItems
                 },
                 new SettingsItemsOfACommand
                 {
-                    DisplayName = "Play Count Top 50",
+                    DisplayName = "游玩次数 B50",
                     Identifier = "pc50",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "拟合定数 B50",
+                    Identifier = "fit50",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "AP B50",
+                    Identifier = "ap50",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "DX2026 B50",
+                    Identifier = "new50",
                     Items =
                     [
                         new SettingsItem
@@ -251,6 +293,20 @@ public static class SettingsItems
                             DefaultValue = true
                         }
                     ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "对称贴纸",
+                    Identifier = "symmetry",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
                 }
             ]
         },
@@ -437,7 +493,7 @@ public static class SettingsItems
                             DefaultValue = true
                         }
                     ]
-                },
+                }
             ]
         },
         new()
@@ -455,7 +511,7 @@ public static class SettingsItems
                         {
                             Identifier = "1",
                             DisplayName = "启用",
-                            DefaultValue = false
+                            DefaultValue = true
                         }
                     ]
                 },

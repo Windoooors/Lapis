@@ -108,6 +108,27 @@ public class ChartMetaData
     public int MaxDxScore { get; set; }
 
     [MaxLength(1024)] public string LevelName { get; init; }
+
+    public ChartMetaData Clone()
+    {
+        return new ChartMetaData()
+        {
+            ChartId = ChartId,
+            SongId = SongId,
+            SongMetaData = SongMetaData,
+            LevelIndex = LevelIndex,
+            TapCount = TapCount,
+            HoldCount = HoldCount,
+            TouchCount = TouchCount,
+            SlideCount = SlideCount,
+            BreakCount = BreakCount,
+            Rating = Rating,
+            FitRating = FitRating,
+            CharterName = CharterName,
+            MaxDxScore = MaxDxScore,
+            LevelName = LevelName
+        };
+    }
 }
 
 public class SongAlias

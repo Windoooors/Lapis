@@ -130,12 +130,16 @@ public class MarryCommand : GroupMemberCommandBase
             return false;
         }
 
+        ApiOperator.Instance.TryUrlToImage(GetQqAvatarUrl(memberId), out var image);
+
         SendMessage(source,
         [
             new CqReplyMsg(source.MessageId),
-            new CqImageMsg("base64://" + ApiOperator.Instance.UrlToImage(GetQqAvatarUrl(memberId)).ToBase64()),
+            new CqImageMsg("base64://" + image.ToBase64()),
             $"您今天的对象是 {nickname} ({memberId}) ！"
         ]);
+        
+        image.Dispose();
 
         return true;
     }

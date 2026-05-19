@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Linq;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.GroupCommands.MaiCommands;
@@ -62,6 +61,7 @@ public class MaiScoreOperator
 
         var songDto = MaiCommandBase.MaiCommandInstance.ToSongDto(scores[0].Song);
 
+        var nicknameResult = GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(qqId, out var nickname);
         result = new InfoCommand.GetScore.ScoreData(scores.Select(x => new InfoCommand.GetScore.LevelDto
         {
             LevelIndex = x.LevelIndex,
@@ -73,7 +73,7 @@ public class MaiScoreOperator
             Rating = GetRating(x.Song.Charts.FirstOrDefault(y => y.LevelIndex == x.LevelIndex)?.Rating ?? 0,
                 x.Achievements),
             Rate = MaiCommandBase.GetRate(x.Achievements)
-        }).ToArray(), songDto);
+        }).ToArray(), songDto, nicknameResult ? nickname : "Unknown");
 
         return true;
     }
@@ -92,7 +92,9 @@ public class MaiScoreOperator
             .ToArray();
     }
 
-    private bool TryGetB50Core(long qqId, out BestDto result, Comparison<BestItem> comparison)
+    private bool TryGetB50Core(long qqId, out BestDto result, Comparison<BestItem> comparison,
+        Func<SongMetaDatabaseContext, Func<ChartScoreData, BestItem>> bestItemFactory,Func<ChartScoreData, bool> whereClause ,
+        string currentVersionName = CurrentVersion )
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
@@ -105,30 +107,18 @@ public class MaiScoreOperator
             return false;
         }
 
-        var currentVersionScores = previousVersionScores.Where(x => x.Song.Version == CurrentVersion).ToList();
+        var currentVersionScores = previousVersionScores.Where(x => x.Song.Version == currentVersionName).ToList();
         previousVersionScores.RemoveAll(currentVersionScores.Contains);
 
-        var currentBestItems = currentVersionScores.Select(x =>
-            new BestItem(
-                x,
-                db.ChartMetaDataSet.FirstOrDefault(y =>
-                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
-                x.Song
-            )).ToList();
+        var currentBestItems = currentVersionScores.Where(whereClause).Select(bestItemFactory(db)).ToList();
 
-        var previousBestItems = previousVersionScores.Select(x =>
-            new BestItem(
-                x,
-                db.ChartMetaDataSet.FirstOrDefault(y =>
-                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
-                x.Song
-            )).ToList();
+        var previousBestItems = previousVersionScores.Where(whereClause).Select(bestItemFactory(db)).ToList();
 
-        currentBestItems.Sort((x,y) => -comparison(x, y));
-        previousBestItems.Sort((x,y) => -comparison(x, y));
+        currentBestItems.Sort((x, y) => -comparison(x, y));
+        previousBestItems.Sort((x, y) => -comparison(x, y));
 
-        var currentVersionBestItemsRanked = currentBestItems.GetRange(0, 15);
-        var previousVersionBestItemsRanked = previousBestItems.GetRange(0, 35);
+        var currentVersionBestItemsRanked = currentBestItems.GetRange(0, 15 > currentBestItems.Count ? currentBestItems.Count : 15);
+        var previousVersionBestItemsRanked = previousBestItems.GetRange(0, 35 >  previousBestItems.Count ? previousBestItems.Count : 35);
 
         var hasName = GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(qqId, out var nickname);
 
@@ -183,13 +173,73 @@ public class MaiScoreOperator
 
     public bool TryGetB50FromLapis(long qqId, out BestDto result)
     {
-        return TryGetB50Core(qqId, out result, (x, y) => x.Rating.CompareTo(y.Rating));
+        return TryGetB50Core(qqId, out result, (x, y) => x.Rating.CompareTo(y.Rating),
+            db => x => new BestItem(
+                x,
+                db.ChartMetaDataSet.FirstOrDefault(y =>
+                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
+                x.Song
+            ), _ => true
+        );
     }
 
     public bool TryGetPc50(long qqId, out BestDto result)
     {
-        return TryGetB50Core(qqId, out result, (x, y) => 
-            x.ChartScore.PlayCount.CompareTo(y.ChartScore.PlayCount));
+        return TryGetB50Core(qqId, out result, (x, y) =>
+                x.ChartScore.PlayCount.CompareTo(y.ChartScore.PlayCount),
+            db => x => new BestItem(
+                x,
+                db.ChartMetaDataSet.FirstOrDefault(y =>
+                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
+                x.Song
+            ), _ => true
+        );
+    }
+
+    public bool TryGetFit50(long qqId, out BestDto result)
+    {
+        return TryGetB50Core(qqId, out result, (x, y) =>
+            GetRating(x.ChartMetaData.FitRating, x.ChartScore.Achievements)
+                .CompareTo(GetRating(y.ChartMetaData.FitRating, y.ChartScore.Achievements)),
+            db => x =>
+        {
+            var chartMetaData = db.ChartMetaDataSet.FirstOrDefault(y =>
+                y.LevelIndex == x.LevelIndex && y.SongId == x.SongId);
+
+            if (chartMetaData != null)
+            {
+                chartMetaData = chartMetaData.Clone();
+                chartMetaData.Rating = chartMetaData.FitRating;
+            }
+
+            return new BestItem(
+                x, chartMetaData,
+                x.Song
+            );
+        }, _ => true);
+    }
+
+    public bool TryGetSimulatedNextVersionB50(long qqId, out BestDto result)
+    {
+        return TryGetB50Core(qqId, out result, (x, y) => x.Rating.CompareTo(y.Rating),
+            db => x => new BestItem(
+                x,
+                db.ChartMetaDataSet.FirstOrDefault(y =>
+                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
+                x.Song
+            ),_ => true, "滚木"
+        );
+    }
+    
+    public bool TryGetAllPerfectB50(long qqId, out BestDto result)
+    {
+        return TryGetB50Core(qqId, out result, (x, y) => x.Rating.CompareTo(y.Rating),
+            db => x => new BestItem(
+                x,
+                db.ChartMetaDataSet.FirstOrDefault(y =>
+                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
+                x.Song
+            ), x => x.Fc.ToLower() is "ap" or "app");
     }
 
     private class BestItem

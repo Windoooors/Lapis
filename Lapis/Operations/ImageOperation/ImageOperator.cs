@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -31,6 +32,14 @@ public static class FontFamilies
 public class Image : IDisposable
 {
     private readonly Image<Rgba32> _imageSharpImage;
+
+    private Image(Image<Rgba32> imageSharpImage)
+    {
+        _imageSharpImage = imageSharpImage;
+
+        Width = _imageSharpImage.Width;
+        Height = _imageSharpImage.Height;
+    }
 
     public Image(string path)
     {
@@ -69,6 +78,11 @@ public class Image : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    public Image Clone()
+    {
+        return new Image(_imageSharpImage.Clone());
+    }
+
     public bool isWhiteOnDark()
     {
         var color = GetDominantColor();
@@ -79,24 +93,31 @@ public class Image : IDisposable
 
     public void DrawText(string text, Color color, float fontSize, FontWeight fontWeight, float left, float top)
     {
-        DrawText(text, color, fontSize, fontWeight, HorizontalAlignment.Left, left, top);
+        DrawText(text, color, fontSize, fontWeight, HorizontalAlignment.Left, VerticalAlignment.Middle, left, top);
+    }
+    
+    public void DrawText(string text, Color color, float fontSize, FontWeight fontWeight,
+        HorizontalAlignment horizontalAlignment, 
+        float left, float top)
+    {
+        DrawText(text, color, fontSize, fontWeight, horizontalAlignment, VerticalAlignment.Middle, left, top);
     }
 
     public void DrawText(string text, Color color, float fontSize, FontWeight fontWeight,
-        HorizontalAlignment horizontalAlignment,
+        HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment,
         float left, float top)
     {
         var font = GetFont(fontWeight, fontSize);
-
         var textOptions = new RichTextOptions(font)
         {
-            Origin = new PointF(left, top - 2),
-            VerticalAlignment = VerticalAlignment.Center,
+            Origin = new PointF(left, top - 4),
+            
+            VerticalAlignment = (SixLabors.Fonts.VerticalAlignment)verticalAlignment,
             HorizontalAlignment = (SixLabors.Fonts.HorizontalAlignment)horizontalAlignment,
             FallbackFontFamilies = [FontFamilies.Emoji]
         };
 
-        _imageSharpImage.Mutate(x => x.DrawText(textOptions, text, ColorToRgba32(color)));
+        _imageSharpImage.Mutate(x => x.DrawText(textOptions, text, ColorToImageSharpColor(color)));
 
         Width = _imageSharpImage.Width;
         Height = _imageSharpImage.Height;
@@ -151,6 +172,24 @@ public class Image : IDisposable
         Height = _imageSharpImage.Height;
     }
 
+    public void Crop(int width, int height, int x, int y)
+    {
+        _imageSharpImage.Mutate(image => image.Crop(new Rectangle(x, y, width, height)));
+
+        Width = _imageSharpImage.Width;
+        Height = _imageSharpImage.Height;
+    }
+
+    public void FlipHorizontally()
+    {
+        _imageSharpImage.Mutate(x => x.Flip(FlipMode.Horizontal));
+    }
+
+    public void FlipVertically()
+    {
+        _imageSharpImage.Mutate(x => x.Flip(FlipMode.Vertical));
+    }
+
     public void Scale(int percentageWidth, int percentageHeight)
     {
         _imageSharpImage.Mutate(x =>
@@ -168,13 +207,27 @@ public class Image : IDisposable
         Height = _imageSharpImage.Height;
     }
 
+    public void DrawImage(Image image, int left, int top, int width, int height)
+    {
+        _imageSharpImage.Mutate(x => x.DrawImage(image._imageSharpImage, new Point(left + width, top+ height), 1f));
+        
+        Width = _imageSharpImage.Width;
+        Height = _imageSharpImage.Height;
+    }
+
     public void DrawImage(Image image, int left, int top, CompositeOperator compositeOperator)
     {
         _imageSharpImage.Mutate(x => x.DrawImage(image._imageSharpImage, new Point(left, top), new GraphicsOptions
             {
-                AlphaCompositionMode = compositeOperator == CompositeOperator.DstOut
-                    ? PixelAlphaCompositionMode.DestOut
-                    : PixelAlphaCompositionMode.DestOver
+                AlphaCompositionMode = compositeOperator switch
+                {
+                    CompositeOperator.DstOut => PixelAlphaCompositionMode.DestOut,
+                    CompositeOperator.DstOver => PixelAlphaCompositionMode.DestOver,
+                    CompositeOperator.SrcOut => PixelAlphaCompositionMode.SrcOut,
+                    CompositeOperator.SrcOver => PixelAlphaCompositionMode.SrcOver,
+                    CompositeOperator.Src => PixelAlphaCompositionMode.Src,
+                    _ => PixelAlphaCompositionMode.DestOver
+                }
             }
         ));
 
@@ -265,20 +318,30 @@ public class Image : IDisposable
 
     public static float MeasureString(string text, FontWeight fontWeight, float fontSize)
     {
-        return TextMeasurer.MeasureSize(text, new TextOptions(GetFont(fontWeight, fontSize))).Width;
+        return TextMeasurer.Measure(text, new TextOptions(GetFont(fontWeight, fontSize))).Bounds.Width;
     }
 
-    public string ToBase64(bool toBeCompressed = false)
+    public string ToBase64(bool toBeCompressed = false, bool saveMotion = false)
     {
-        using (var ms = new MemoryStream())
-        {
-            if (toBeCompressed)
-                _imageSharpImage.Save(ms, new JpegEncoder { Quality = 90 });
-            else
-                _imageSharpImage.SaveAsPng(ms);
+        using var ms = new MemoryStream();
 
+        if (saveMotion && _imageSharpImage.Frames.Count > 1)
+        {
+            _imageSharpImage.SaveAsGif(ms);
             return Convert.ToBase64String(ms.ToArray());
         }
+
+        if (toBeCompressed)
+            _imageSharpImage.Save(ms, new JpegEncoder { Quality = 90 });
+        else
+            _imageSharpImage.SaveAsPng(ms);
+
+        return Convert.ToBase64String(ms.ToArray());
+    }
+
+    private SixLabors.ImageSharp.Color ColorToImageSharpColor(Color color)
+    {
+        return SixLabors.ImageSharp.Color.FromScaledVector(new Vector4(color.R, color.G, color.B, color.A));
     }
 }
 
@@ -289,9 +352,20 @@ public enum HorizontalAlignment
     Center
 }
 
+public enum VerticalAlignment
+{
+    Top,
+    Middle,
+    Bottom
+}
+
 public enum CompositeOperator
 {
-    DstOut
+    DstOut,
+    DstOver,
+    SrcOut,
+    SrcOver,
+    Src
 }
 
 public enum FontWeight

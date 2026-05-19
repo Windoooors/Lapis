@@ -105,7 +105,7 @@ public class AddCommand : AliasCommandBase
             var id = matchedSong.SongId;
 
             var alias = MaiCommandInstance.GetAliasById(id);
-            
+
             var success = ((alias != null && !alias.Aliases
                               .Exists(x => x.Alias == intendedAliasString)) || alias == null) &&
                           TryAddAlias(id, intendedAliasString);

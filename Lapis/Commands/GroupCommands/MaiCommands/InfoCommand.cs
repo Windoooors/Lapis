@@ -86,7 +86,7 @@ public class InfoCommand : MaiCommandBase
                 else if (ex.InnerException is TaskCanceledException)
                     DivingFishErrorHelp(source);
 
-                scoreData = new GetScore.ScoreData([], null);
+                scoreData = new GetScore.ScoreData([], null, "Unknown");
             }
         }
         else
@@ -102,7 +102,7 @@ public class InfoCommand : MaiCommandBase
                 else if (ex.InnerException is TaskCanceledException)
                     DivingFishErrorHelp(source);
 
-                scoreData = new GetScore.ScoreData([], null);
+                scoreData = new GetScore.ScoreData([], null, "Unknown");
             }
         }
 
@@ -112,7 +112,7 @@ public class InfoCommand : MaiCommandBase
             SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
         var image = new CqImageMsg("base64://" + generator.Generate(MaiCommandInstance.ToSongDto(songs[0]), "歌曲信息",
-            scoreData,
+            scoreData,source.Sender.UserId,arguments.Length <= 1,
             isCompressed));
 
         SendMessage(source, [new CqReplyMsg(source.MessageId), image]);
@@ -145,10 +145,21 @@ public class InfoCommand : MaiCommandBase
             if (content.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
                     content.StatusCode);
+            
+            var  userNameContent = ApiOperator.Instance.Post(
+                BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/query/player",
+                new { username = name },
+                [
+                    new KeyValuePair<string, string>("Developer-Token",
+                        BotConfiguration.Instance.DivingFishDevToken)
+                ]);
+           
+            var userName = JsonConvert.DeserializeObject<BestDto>(userNameContent.Result).Username;
 
             return new ScoreData(
                 JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0],
-                MaiCommandInstance.ToSongDto(song));
+                MaiCommandInstance.ToSongDto(song), userName);
         }
 
         private static ScoreData Get(long userId, SongMetaData song)
@@ -164,13 +175,25 @@ public class InfoCommand : MaiCommandBase
                 new { qq = userId.ToString(), music_id = song.SongId.ToString() },
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
+           var  userNameContent = ApiOperator.Instance.Post(
+                BotConfiguration.Instance.DivingFishUrl,
+                "api/maimaidxprober/query/player",
+                new { qq = userId.ToString() },
+                [
+                    new KeyValuePair<string, string>("Developer-Token",
+                        BotConfiguration.Instance.DivingFishDevToken)
+                ]);
+           
+           var userName = JsonConvert.DeserializeObject<BestDto>(userNameContent.Result).Username;
+            
+            
             if (content.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
                     content.StatusCode);
 
             return new ScoreData(
                 JsonConvert.DeserializeObject<Dictionary<string, LevelDto[]>>(content.Result).Values.ToArray()[0],
-                MaiCommandInstance.ToSongDto(song));
+                MaiCommandInstance.ToSongDto(song), userName);
         }
 
         public class LevelDto
@@ -185,9 +208,10 @@ public class InfoCommand : MaiCommandBase
             [JsonProperty("ra")] public int Rating;
         }
 
-        public class ScoreData(LevelDto[] levels, SongDto song)
+        public class ScoreData(LevelDto[] levels, SongDto song, string userName)
         {
             public readonly LevelDto[] Levels = levels;
+            public readonly string UserName =  userName;
 
             public readonly bool UserExists = levels.Length > 0;
 

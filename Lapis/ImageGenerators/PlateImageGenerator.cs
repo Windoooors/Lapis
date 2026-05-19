@@ -19,7 +19,8 @@ public class PlateImageGenerator : ImageGenerator
         var difficulties = new Dictionary<string, List<PlateCommand.SongToBeDisplayed>>();
         foreach (var song in songsToBeDisplayed)
         {
-            var rating = Math.Round(song.Song.Charts[song.LevelIndex].Rating, 1);
+            var rating = Math.Round(song.Song.Charts.FirstOrDefault(x => x.LevelIndex == song.LevelIndex)?.Rating ?? 0,
+                1);
             if ((rating > 13.5) & (rating < 14.0))
             {
                 if (!difficulties.ContainsKey("13+"))
@@ -157,8 +158,8 @@ public class PlateImageGenerator : ImageGenerator
         Image head;
         if (usingHead)
         {
-            head = ApiOperator.Instance.UrlToImage(
-                "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640");
+            ApiOperator.Instance.TryUrlToImage(
+                "https://q.qlogo.cn/g?b=qq&nk=" + userId + "&s=640", out head);
         }
         else
         {
@@ -189,7 +190,7 @@ public class PlateImageGenerator : ImageGenerator
 
         using var nameForm = new Image(500, 65);
 
-        nameForm.DrawText(username, new Color(1, 1, 1, 1), 36, FontWeight.Light, 4, 59);
+        nameForm.DrawText(username, new Color(1, 1, 1, 1), 36, FontWeight.Light, 4, 52);
 
         image.DrawImage(nameForm, 74, 25);
         image.DrawImage(head, 12, 25);

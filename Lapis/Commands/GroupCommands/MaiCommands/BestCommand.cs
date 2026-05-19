@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ public class BestCommand : MaiCommandBase
             score.Rate = GetRate(score.Achievements);
             var song = MaiCommandInstance.GetSongById(score.Id);
 
-            score.MaxDxScore = song.Charts[score.LevelIndex].MaxDxScore;
+            score.MaxDxScore = song.Charts.FirstOrDefault(x => x.LevelIndex == score.LevelIndex)?.MaxDxScore ?? 0;
         }
     }
 

@@ -5,19 +5,19 @@ using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
 
-public class PlayCountTop50Command : MaiCommandBase
+public class FitBest50Command : MaiCommandBase
 {
-    public PlayCountTop50Command()
+    public FitBest50Command()
     {
-        CommandHead = "pc50";
-        DirectCommandHead = "pc50";
-        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("pc50", "1");
+        CommandHead = "fit50|f50|拟合b50";
+        DirectCommandHead = "fit50|f50|拟合b50";
+        ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("fit50", "1");
         IntendedArgumentCount = 1;
     }
 
     private void Process(long id, CqGroupMessagePostContext source, bool useAvatar)
     {
-        var success = MaiScoreOperator.TryGetPc50(id, out var bestDto);
+        var success = MaiScoreOperator.TryGetFit50(id, out var bestDto);
 
         if (!success)
         {

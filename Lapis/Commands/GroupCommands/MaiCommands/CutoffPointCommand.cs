@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
+using Lapis.Operations.DatabaseOperation;
 using Lapis.Settings;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -136,7 +138,7 @@ public class CutoffPointCommand : MaiCommandBase
             return;
         }
 
-        var chart = charts[difficultyIndex];
+        var chart = charts.FirstOrDefault(x => x.LevelIndex == difficultyIndex) ?? new ChartMetaData();
 
         var stringBuilder =
             new StringBuilder(
