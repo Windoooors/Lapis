@@ -95,9 +95,9 @@ public class Image : IDisposable
     {
         DrawText(text, color, fontSize, fontWeight, HorizontalAlignment.Left, VerticalAlignment.Middle, left, top);
     }
-    
+
     public void DrawText(string text, Color color, float fontSize, FontWeight fontWeight,
-        HorizontalAlignment horizontalAlignment, 
+        HorizontalAlignment horizontalAlignment,
         float left, float top)
     {
         DrawText(text, color, fontSize, fontWeight, horizontalAlignment, VerticalAlignment.Middle, left, top);
@@ -111,7 +111,7 @@ public class Image : IDisposable
         var textOptions = new RichTextOptions(font)
         {
             Origin = new PointF(left, top - 4),
-            
+
             VerticalAlignment = (SixLabors.Fonts.VerticalAlignment)verticalAlignment,
             HorizontalAlignment = (SixLabors.Fonts.HorizontalAlignment)horizontalAlignment,
             FallbackFontFamilies = [FontFamilies.Emoji]
@@ -209,8 +209,8 @@ public class Image : IDisposable
 
     public void DrawImage(Image image, int left, int top, int width, int height)
     {
-        _imageSharpImage.Mutate(x => x.DrawImage(image._imageSharpImage, new Point(left + width, top+ height), 1f));
-        
+        _imageSharpImage.Mutate(x => x.DrawImage(image._imageSharpImage, new Point(left + width, top + height), 1f));
+
         Width = _imageSharpImage.Width;
         Height = _imageSharpImage.Height;
     }

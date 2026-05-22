@@ -93,8 +93,9 @@ public class MaiScoreOperator
     }
 
     private bool TryGetB50Core(long qqId, out BestDto result, Comparison<BestItem> comparison,
-        Func<SongMetaDatabaseContext, Func<ChartScoreData, BestItem>> bestItemFactory,Func<ChartScoreData, bool> whereClause ,
-        string currentVersionName = CurrentVersion )
+        Func<SongMetaDatabaseContext, Func<ChartScoreData, BestItem>> bestItemFactory,
+        Func<ChartScoreData, bool> whereClause,
+        string currentVersionName = CurrentVersion)
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
@@ -117,8 +118,10 @@ public class MaiScoreOperator
         currentBestItems.Sort((x, y) => -comparison(x, y));
         previousBestItems.Sort((x, y) => -comparison(x, y));
 
-        var currentVersionBestItemsRanked = currentBestItems.GetRange(0, 15 > currentBestItems.Count ? currentBestItems.Count : 15);
-        var previousVersionBestItemsRanked = previousBestItems.GetRange(0, 35 >  previousBestItems.Count ? previousBestItems.Count : 35);
+        var currentVersionBestItemsRanked =
+            currentBestItems.GetRange(0, 15 > currentBestItems.Count ? currentBestItems.Count : 15);
+        var previousVersionBestItemsRanked =
+            previousBestItems.GetRange(0, 35 > previousBestItems.Count ? previousBestItems.Count : 35);
 
         var hasName = GroupMemberCommandBase.GroupMemberCommandInstance.TryGetNickname(qqId, out var nickname);
 
@@ -199,24 +202,24 @@ public class MaiScoreOperator
     public bool TryGetFit50(long qqId, out BestDto result)
     {
         return TryGetB50Core(qqId, out result, (x, y) =>
-            GetRating(x.ChartMetaData.FitRating, x.ChartScore.Achievements)
-                .CompareTo(GetRating(y.ChartMetaData.FitRating, y.ChartScore.Achievements)),
+                GetRating(x.ChartMetaData.FitRating, x.ChartScore.Achievements)
+                    .CompareTo(GetRating(y.ChartMetaData.FitRating, y.ChartScore.Achievements)),
             db => x =>
-        {
-            var chartMetaData = db.ChartMetaDataSet.FirstOrDefault(y =>
-                y.LevelIndex == x.LevelIndex && y.SongId == x.SongId);
-
-            if (chartMetaData != null)
             {
-                chartMetaData = chartMetaData.Clone();
-                chartMetaData.Rating = chartMetaData.FitRating;
-            }
+                var chartMetaData = db.ChartMetaDataSet.FirstOrDefault(y =>
+                    y.LevelIndex == x.LevelIndex && y.SongId == x.SongId);
 
-            return new BestItem(
-                x, chartMetaData,
-                x.Song
-            );
-        }, _ => true);
+                if (chartMetaData != null)
+                {
+                    chartMetaData = chartMetaData.Clone();
+                    chartMetaData.Rating = chartMetaData.FitRating;
+                }
+
+                return new BestItem(
+                    x, chartMetaData,
+                    x.Song
+                );
+            }, _ => true);
     }
 
     public bool TryGetSimulatedNextVersionB50(long qqId, out BestDto result)
@@ -227,10 +230,10 @@ public class MaiScoreOperator
                 db.ChartMetaDataSet.FirstOrDefault(y =>
                     y.LevelIndex == x.LevelIndex && y.SongId == x.SongId),
                 x.Song
-            ),_ => true, "滚木"
+            ), _ => true, "滚木"
         );
     }
-    
+
     public bool TryGetAllPerfectB50(long qqId, out BestDto result)
     {
         return TryGetB50Core(qqId, out result, (x, y) => x.Rating.CompareTo(y.Rating),

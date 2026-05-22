@@ -111,7 +111,7 @@ public class ChartMetaData
 
     public ChartMetaData Clone()
     {
-        return new ChartMetaData()
+        return new ChartMetaData
         {
             ChartId = ChartId,
             SongId = SongId,

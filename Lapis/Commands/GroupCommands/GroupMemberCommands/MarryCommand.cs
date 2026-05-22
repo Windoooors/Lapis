@@ -138,7 +138,7 @@ public class MarryCommand : GroupMemberCommandBase
             new CqImageMsg("base64://" + image.ToBase64()),
             $"您今天的对象是 {nickname} ({memberId}) ！"
         ]);
-        
+
         image.Dispose();
 
         return true;

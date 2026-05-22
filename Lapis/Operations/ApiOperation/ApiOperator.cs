@@ -105,13 +105,13 @@ public class ApiOperator
     {
         var client = new HttpClient();
         var bytes = client.GetByteArrayAsync(url).Result;
-        
+
         using var stream = new MemoryStream(bytes);
 
         var imageInfo = SixLabors.ImageSharp.Image.Identify(stream);
 
         var imagePixelCount = imageInfo.FrameCount * imageInfo.Height * imageInfo.Width;
-        
+
         if (maxLength != 0 && imagePixelCount > maxLength)
         {
             image = null;
@@ -120,7 +120,7 @@ public class ApiOperator
         }
 
         stream.Position = 0;
-        
+
         image = new Image(stream);
         client.Dispose();
         return true;

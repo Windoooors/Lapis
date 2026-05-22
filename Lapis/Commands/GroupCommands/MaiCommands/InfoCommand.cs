@@ -112,7 +112,7 @@ public class InfoCommand : MaiCommandBase
             SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
         var image = new CqImageMsg("base64://" + generator.Generate(MaiCommandInstance.ToSongDto(songs[0]), "歌曲信息",
-            scoreData,source.Sender.UserId,arguments.Length <= 1,
+            scoreData, source.Sender.UserId, arguments.Length <= 1,
             isCompressed));
 
         SendMessage(source, [new CqReplyMsg(source.MessageId), image]);
@@ -145,8 +145,8 @@ public class InfoCommand : MaiCommandBase
             if (content.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
                     content.StatusCode);
-            
-            var  userNameContent = ApiOperator.Instance.Post(
+
+            var userNameContent = ApiOperator.Instance.Post(
                 BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/query/player",
                 new { username = name },
@@ -154,7 +154,7 @@ public class InfoCommand : MaiCommandBase
                     new KeyValuePair<string, string>("Developer-Token",
                         BotConfiguration.Instance.DivingFishDevToken)
                 ]);
-           
+
             var userName = JsonConvert.DeserializeObject<BestDto>(userNameContent.Result).Username;
 
             return new ScoreData(
@@ -175,7 +175,7 @@ public class InfoCommand : MaiCommandBase
                 new { qq = userId.ToString(), music_id = song.SongId.ToString() },
                 [new KeyValuePair<string, string>("Developer-Token", BotConfiguration.Instance.DivingFishDevToken)]);
 
-           var  userNameContent = ApiOperator.Instance.Post(
+            var userNameContent = ApiOperator.Instance.Post(
                 BotConfiguration.Instance.DivingFishUrl,
                 "api/maimaidxprober/query/player",
                 new { qq = userId.ToString() },
@@ -183,10 +183,10 @@ public class InfoCommand : MaiCommandBase
                     new KeyValuePair<string, string>("Developer-Token",
                         BotConfiguration.Instance.DivingFishDevToken)
                 ]);
-           
-           var userName = JsonConvert.DeserializeObject<BestDto>(userNameContent.Result).Username;
-            
-            
+
+            var userName = JsonConvert.DeserializeObject<BestDto>(userNameContent.Result).Username;
+
+
             if (content.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"Unexpected status code: {content.StatusCode}", null,
                     content.StatusCode);
@@ -211,9 +211,9 @@ public class InfoCommand : MaiCommandBase
         public class ScoreData(LevelDto[] levels, SongDto song, string userName)
         {
             public readonly LevelDto[] Levels = levels;
-            public readonly string UserName =  userName;
 
             public readonly bool UserExists = levels.Length > 0;
+            public readonly string UserName = userName;
 
             public SongDto Song = song;
         }

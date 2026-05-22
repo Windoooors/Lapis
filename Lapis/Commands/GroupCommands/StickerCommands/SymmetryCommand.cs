@@ -1,4 +1,3 @@
-using System.IO;
 using System.Linq;
 using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
@@ -11,6 +10,10 @@ namespace Lapis.Commands.GroupCommands.StickerCommands;
 
 public class SymmetryCommand : StickerCommandBase
 {
+    private const int MaxPictureTotalPixelCount = 5120 * 2560;
+
+    private bool _processing;
+
     public SymmetryCommand()
     {
         CommandHead = "symmetry|sym|对称";
@@ -20,10 +23,6 @@ public class SymmetryCommand : StickerCommandBase
 
         ActivationSettingsSettingsIdentifier = new SettingsIdentifierPair("symmetry", "1");
     }
-
-    private bool _processing = false;
-
-    private const int MaxPictureTotalPixelCount = 5120 * 2560;
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
@@ -55,12 +54,12 @@ public class SymmetryCommand : StickerCommandBase
         if (_processing)
         {
             SendMessage(source, [new CqReplyMsg(source.MessageId), "当前有图片正在处理中，请稍后再试"]);
-            
+
             return;
         }
-        
+
         _processing = true;
-        
+
         var symmetryType = SymmetryType.None;
 
         if (arguments.Length >= 1)
@@ -102,7 +101,7 @@ public class SymmetryCommand : StickerCommandBase
             _processing = false;
             return;
         }
-        
+
 
         var imageDownloaded = ApiOperator.Instance.TryUrlToImage(imageMessage.Url?.ToString() ?? "",
             out var image, MaxPictureTotalPixelCount);
@@ -113,7 +112,7 @@ public class SymmetryCommand : StickerCommandBase
             _processing = false;
             return;
         }
-        
+
         using var resultImage = image.Clone();
 
         switch (symmetryType)
@@ -159,7 +158,7 @@ public class SymmetryCommand : StickerCommandBase
                 break;
             }
         }
-        
+
         image.Dispose();
 
         SendMessage(source,
@@ -167,7 +166,7 @@ public class SymmetryCommand : StickerCommandBase
             new CqReplyMsg(source.MessageId),
             new CqImageMsg("base64://" + resultImage.ToBase64(false, true))
         ]);
-        
+
         _processing = false;
     }
 

@@ -369,7 +369,7 @@ public class MaiCommand : MaiCommandBase
     public SongDto ToSongDto(SongMetaData song)
     {
         var chart = song.Charts.OrderBy(x => x.LevelIndex).ToList();
-        
+
         return new SongDto
         {
             BasicInfo = new SongDto.BasicInfoDto
