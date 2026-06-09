@@ -390,7 +390,7 @@ public class PlateImageGenerator : ImageGenerator
         gradient.Dispose();
         colorImage.Dispose();
 
-        var whiteOnBlack = image.isWhiteOnDark();
+        var whiteOnBlack = image.IsWhiteOnDark();
 
         var textColor = whiteOnBlack ? new Color(1, 1, 1, 1) : new Color(0, 0, 0, 1);
 

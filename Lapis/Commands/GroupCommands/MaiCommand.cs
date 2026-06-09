@@ -333,6 +333,9 @@ public class MaiCommand : MaiCommandBase
     {
         var isRating = float.TryParse(difficultyString, out var rating);
 
+        if (LevelDictionary.ContainsKey(difficultyString ?? ""))
+            isRating = false;
+
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
         var charts = (isRating
@@ -444,12 +447,12 @@ public class MaiCommand : MaiCommandBase
                         songsSet.Add(songMetaData);
             }
 
-            var utageSongs = songsSet.Where(x => x.SongId > 100000).Select(x => x).ToArray();
+            var utageSongs = songsSet.Where(x => x.SongId > 100000).Select(x => x).ToList();
 
-            if (utageSongs.Length != 0)
+            if (utageSongs.Count != 0)
             {
                 var standardSongs = songsSet
-                    .Where(x => utageSongs[0].Title.Contains(x.Title) && utageSongs[0].Title != x.Title)
+                    .Where(x => !utageSongs.Exists(y => y.SongId == x.SongId))
                     .Select(x => x)
                     .ToArray();
 

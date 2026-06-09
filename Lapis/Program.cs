@@ -9,6 +9,7 @@ using Lapis.Commands.PrivateCommands;
 using Lapis.Commands.UniversalCommands;
 using Lapis.Operations.ApiOperation;
 using Lapis.Operations.DatabaseOperation;
+using Lapis.Operations.ImageOperation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -35,6 +36,7 @@ public class BotConfiguration
     [JsonProperty] public string DeepSeekUrl;
     [JsonProperty] public string DivingFishDevToken;
     [JsonProperty] public string DivingFishUrl;
+    [JsonProperty] public int HeartbeatInterval;
 
     [JsonProperty] public string SqlConnectionString;
     [JsonProperty] public string WahlapConnectiveKitsUrl;
@@ -113,6 +115,21 @@ public class Program
 
     private static bool _initializationStateLogged;
 
+    private static bool _heartBeating;
+
+    private static CommandParser _commandParser;
+
+    private static DateTime _lastHeartbeatTime;
+    
+    private static CqWsSession GetSession()
+    {
+        return new CqWsSession(new CqWsSessionOptions
+        {
+            BaseUri = new Uri("ws://" + _botConfiguration.Address),
+            AccessToken = _botConfiguration.AccessToken
+        });
+    }
+
     public static event EventHandler DateChanged;
 
     public static event EventHandler WeekChanged;
@@ -122,6 +139,81 @@ public class Program
     public static event EventHandler TimeChanged;
 
     public static event EventHandler OnApplicationExit;
+
+    private static async Task SessionLoop()
+    {
+        _lastHeartbeatTime = DateTime.Now;
+
+        while (true)
+        {
+            if (Session == null || !Session.IsConnected || !_heartBeating)
+            {
+                Logger.LogInformation(Session == null
+                    ? "Initializing NapCat session..."
+                    : "NapCat session has not been connected, trying to reconnect...");
+
+                if (Session != null)
+                    await Session.StopAsync();
+
+                Session?.Dispose();
+
+                Session = GetSession();
+
+                var sessionStartTask = Session.StartAsync();
+                var delayTask = Task.Delay(TimeSpan.FromSeconds(3));
+
+                var completedTask = await Task.WhenAny(sessionStartTask, delayTask);
+
+                if (completedTask == delayTask) continue;
+
+                if (Session.IsConnected)
+                {
+                    _heartBeating = true;
+                    _lastHeartbeatTime = DateTime.Now;
+                }
+
+                Session.UseGroupMessage(async (context, next) =>
+                {
+                    _commandParser.StartParsing(context);
+                    await next.Invoke();
+                });
+
+                Session.UsePrivateMessage(async (context, next) =>
+                {
+                    _commandParser.StartParsing(context);
+                    await next.Invoke();
+                });
+
+#if !RELEASE_CUSTOMIZED
+                Session.UseFriendRequest(async (context, next) =>
+                {
+                    await Session.ApproveFriendRequestAsync(context.Flag, "");
+                    /*var thread = new Task(() => Welcome(context.UserId));
+                    thread.Start();*/
+                    await next.Invoke();
+                });
+#endif
+
+                Session.UseHeartbeat(async (_, next) =>
+                {
+                    _lastHeartbeatTime = DateTime.Now;
+
+                    await next.Invoke();
+                    //Logger.LogInformation($"Heartbeat at {_lastHeartbeatTime}");
+                });
+
+#if !RELEASE_CUSTOMIZED
+                Session.UseGroupRequest(async (context, next) =>
+                {
+                    await Session.ApproveGroupRequestAsync(context.Flag, context.GroupRequestType);
+                    await next.Invoke();
+                });
+#endif
+            }
+
+            Thread.Sleep(5000);
+        }
+    }
 
     public static Task Main()
     {
@@ -155,14 +247,6 @@ public class Program
 
         _databaseHandler = new DatabaseHandler();
 
-        Session = new CqWsSession(new CqWsSessionOptions
-        {
-            BaseUri = new Uri("ws://" + _botConfiguration.Address),
-            AccessToken = _botConfiguration.AccessToken
-        });
-
-        Session.Start();
-
         Console.CancelKeyPress += Console_CancelKeyPress;
 
         Logger.LogInformation("Initializing...");
@@ -174,33 +258,9 @@ public class Program
             task.Start();
         }
 
-        var commandParser = new CommandParser();
+        _commandParser = new CommandParser();
 
-        Session.UseGroupMessage(async (context, next) =>
-        {
-            commandParser.StartParsing(context);
-            await next.Invoke();
-        });
-
-        Session.UsePrivateMessage(async (context, next) =>
-        {
-            commandParser.StartParsing(context);
-            await next.Invoke();
-        });
-
-        Session.UseFriendRequest(async (context, next) =>
-        {
-            await Session.ApproveFriendRequestAsync(context.Flag, "");
-            /*var thread = new Task(() => Welcome(context.UserId));
-            thread.Start();*/
-            await next.Invoke();
-        });
-
-        /*Session.UseGroupRequest(async (context, next) =>
-        {
-            await Session.ApproveGroupRequestAsync(context.Flag, context.GroupRequestType);
-            await next.Invoke();
-        });*/
+        Task.Run(SessionLoop);
 
         if (File.Exists(Path.Combine(AppContext.BaseDirectory, "data/date.json")))
             _lastDailyRefreshTime =
@@ -246,6 +306,9 @@ public class Program
             while (true)
             {
                 Thread.Sleep(1000);
+
+                if ((DateTime.Now - _lastHeartbeatTime).TotalMilliseconds > _botConfiguration.HeartbeatInterval)
+                    _heartBeating = false;
 
                 var completed = true;
 

@@ -29,7 +29,7 @@ public class FitBest50Command : MaiCommandBase
 
         var compressed = SettingsPool.GetValue(new SettingsIdentifierPair("compress", "1"), source.GroupId);
 
-        var image = imageGenerator.Generate(bestDto, source.Sender.UserId.ToString(), useAvatar, compressed);
+        var image = imageGenerator.Generate(bestDto, source.Sender.UserId.ToString(), useAvatar, compressed, "0.00");
 
         SendMessage(source, [new CqReplyMsg(source.MessageId), new CqImageMsg("base64://" + image)]);
     }

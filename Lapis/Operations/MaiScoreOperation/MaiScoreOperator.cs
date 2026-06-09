@@ -100,7 +100,8 @@ public class MaiScoreOperator
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
         var previousVersionScores =
-            DatabaseHandler.Instance.SongMetaDatabaseOperator.GetUserScores(qqId, db).ToList();
+            DatabaseHandler.Instance.SongMetaDatabaseOperator.GetUserScores(qqId, db).ToList()
+                .Where(x => x.SongId < 100000).ToList();
 
         if (previousVersionScores.Count == 0)
         {

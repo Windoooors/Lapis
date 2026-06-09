@@ -48,4 +48,15 @@ public class GroupCommand : Command
             Program.Session.SendGroupMessage(groupId, message);
         }
     }
+
+#if RELEASE_CUSTOMIZED
+    protected bool MemberPermissionCheck(CqGroupMessagePostContext source)
+    {
+        return source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber;
+    }
+#else
+    protected bool MemberPermissionCheck(CqGroupMessagePostContext source) =>
+        (source.Sender.Role is CqRole.Admin or CqRole.Owner ||
+         source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber);
+#endif
 }

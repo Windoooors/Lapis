@@ -58,10 +58,6 @@ public class TooLongDontReadCommand : GroupCommand
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
         CqGroupMessagePostContext source)
     {
-        if (string.Equals(arguments[0], "block", StringComparison.InvariantCultureIgnoreCase))
-        {
-        }
-
         if (uint.TryParse(arguments[0], NumberStyles.Number, CultureInfo.InvariantCulture, out var messageCount))
         {
             StartSummarizing(source, messageCount);
@@ -255,6 +251,8 @@ public class TooLongDontReadCommand : GroupCommand
 
         var path = Path.Combine(AppContext.BaseDirectory, $"data/tldr/{source.GroupId}.json");
 
+        var countPath = Path.Combine(AppContext.BaseDirectory, $"data/tldr/{source.GroupId}.count");
+
         var messageChain = source.Message;
 
         long repliedMessageId = 0;
@@ -283,7 +281,68 @@ public class TooLongDontReadCommand : GroupCommand
         var messageItem = new MessageItem(source.UserId, plainMessage, source.MessageId, repliedMessageId,
             atIds.ToArray(), hasPicture);
 
-        File.AppendAllLines(path, [JsonConvert.SerializeObject(messageItem)]);
+        var jsonLine = JsonConvert.SerializeObject(messageItem);
+        
+        if (!(File.Exists(countPath) && File.Exists(path) &&
+             int.TryParse(File.ReadAllText(countPath), out var currentLineCount)))
+            currentLineCount = File.Exists(path) ? File.ReadAllLines(path).Length : 0;
+
+        File.AppendAllLines(path, [jsonLine]);
+        currentLineCount++;
+
+        if (currentLineCount > 1000)
+        {
+            ClampFileLines(path);
+            currentLineCount = 1000;
+        }
+
+        File.WriteAllText(countPath, currentLineCount.ToString());
+    }
+
+    private static void ClampFileLines(string filePath)
+    {
+        const int bufferSize = 1024 * 64;
+        var buffer = new byte[bufferSize];
+        long targetPosition = -1;
+
+        var tempPath = filePath + ".tmp";
+
+        using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            var fileSize = fs.Length;
+            var position = fileSize;
+            var lineCount = 0;
+
+            while (position > 0 && lineCount < 1000)
+            {
+                var bytesToRead = (int)Math.Min(bufferSize, position);
+                position -= bytesToRead;
+
+                fs.Position = position;
+                var bytesRead = fs.Read(buffer, 0, bytesToRead);
+
+                for (var i = bytesRead - 1; i >= 0; i--)
+                    if (buffer[i] == (byte)'\n')
+                    {
+                        lineCount++;
+                        if (lineCount != 1000)
+                            continue;
+                        
+                        targetPosition = position + i + 1;
+                        break;
+                    }
+            }
+
+            if (lineCount >= 1000 && targetPosition > 0)
+            {
+                using var destStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write);
+
+                fs.Position = targetPosition;
+                fs.CopyTo(destStream);
+            }
+        }
+
+        if (File.Exists(tempPath)) File.Move(tempPath, filePath, true);
     }
 
     public override void Unload()

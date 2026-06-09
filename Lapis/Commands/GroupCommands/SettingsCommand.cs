@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using EleCho.GoCqHttpSdk;
 using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Commands.UniversalCommands;
@@ -29,8 +28,7 @@ public class SettingsCommand : GroupCommand
     public override void ParseWithArgument(string[] arguments, string originalPlainMessage,
         CqGroupMessagePostContext source)
     {
-        if (!(source.Sender.Role is CqRole.Admin or CqRole.Owner ||
-              source.Sender.UserId == BotConfiguration.Instance.AdministratorQqNumber))
+        if (!MemberPermissionCheck(source))
         {
             SendMessage(source,
                 [new CqReplyMsg(source.MessageId), new CqTextMsg("您无权执行该指令")]);

@@ -83,7 +83,7 @@ public class Image : IDisposable
         return new Image(_imageSharpImage.Clone());
     }
 
-    public bool isWhiteOnDark()
+    public bool IsWhiteOnDark()
     {
         var color = GetDominantColor();
         if (color.R * 0.3f + color.G * 0.59f + color.B * 0.11f < 0.6)

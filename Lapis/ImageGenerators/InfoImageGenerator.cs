@@ -167,8 +167,15 @@ public class InfoImageGenerator : ImageGenerator
                 709f + baseHeight);
             baseImage.DrawImage(rateImage, 1384, (int)(715 + baseHeight), -rateImage.Width, -rateImage.Height);
 
+            var fcIndicatorText = level.Fc.Length > 2
+                ? level.Fc.Remove(level.Fc.Length - 1).ToUpper() + "+"
+                : level.Fc.ToUpper();
+
+            var fsIndicatorText = level.Fs.Length > 2 ? level.Fs.Replace("p", "+").ToUpper() : level.Fs.ToUpper();
+
             var indicatorText =
-                $"{(level.PlayCount == -1 ? "" : "PC " + level.PlayCount + "·")} {level.Fc} {level.Fs}".Trim().Trim('·')
+                $"{(level.PlayCount == -1 ? "" : "PC " + level.PlayCount + "·")} {fcIndicatorText} {fsIndicatorText}"
+                    .Trim().Trim('·')
                     .ToUpper();
             baseImage.DrawText(indicatorText, Color.White, 28, FontWeight.Regular, HorizontalAlignment.Right, 1384,
                 675.4f + baseHeight);
@@ -212,6 +219,9 @@ public class InfoImageGenerator : ImageGenerator
         _maskImage = new Image(InfoMaskImagePath);
         _songAndChartInformationLayer = new Image(_maskImage.Width, _maskImage.Height);
         _starImage = new Image(Path.Combine(AppContext.BaseDirectory, "resource/info/star.png"));
+
+        if (_coverImage.Height < 400 || _coverImage.Width < 400)
+            _coverImage.Resize(400, 400);
 
         using var image = GetBaseImage(song);
 

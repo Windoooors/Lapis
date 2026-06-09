@@ -17,8 +17,7 @@ public class QuitCommand : GroupCommand
     public override void Parse(string originalPlainMessage,
         CqGroupMessagePostContext source)
     {
-        if (source.Sender.Role is not (CqRole.Admin or CqRole.Owner) &&
-            source.Sender.UserId != BotConfiguration.Instance.AdministratorQqNumber)
+        if (!MemberPermissionCheck(source))
         {
             SendMessage(source, [new CqReplyMsg(source.MessageId), "您无权执行该命令"]);
             return;

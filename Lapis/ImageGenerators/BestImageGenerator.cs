@@ -9,8 +9,13 @@ namespace Lapis.ImageGenerators;
 
 public class BestImageGenerator : ImageGenerator
 {
-    public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed)
+    private string _difficultyFactorFormat = "0.0";
+
+    public string Generate(BestDto best, string userId, bool usingHead, bool isCompressed,
+        string difficultyFactorFormat = "0.0")
     {
+        _difficultyFactorFormat = difficultyFactorFormat;
+
         Image head;
         if (usingHead)
         {
@@ -230,7 +235,6 @@ public class BestImageGenerator : ImageGenerator
 
         var fsIndicatorText = score.Fs.Length > 2 ? score.Fs.Replace("p", "+").ToUpper() : score.Fs.ToUpper();
 
-
         switch (score.LevelIndex)
         {
             case 0:
@@ -287,7 +291,7 @@ public class BestImageGenerator : ImageGenerator
 
         info.DrawText(score.Type, fontColor, 13, FontWeight.Heavy, 100, 26);
 
-        var isWhiteOnDark = background.isWhiteOnDark();
+        var isWhiteOnDark = background.IsWhiteOnDark();
 
         fontColor = isWhiteOnDark ? Color.White : Color.Black;
 
@@ -295,7 +299,8 @@ public class BestImageGenerator : ImageGenerator
 
         info.DrawText(score.Title, fontColor, 16, FontWeight.Regular, 126, 28);
         info.DrawText(score.Achievements.ToString("0.0000") + "%", fontColor, 20, FontWeight.Heavy, 102, 50);
-        info.DrawText(score.DifficultyFactor.ToString("0.0") + "·" + score.Rating, fontColor, 20, FontWeight.Heavy,
+        info.DrawText(score.DifficultyFactor.ToString(_difficultyFactorFormat) + "·" + score.Rating, fontColor, 20,
+            FontWeight.Heavy,
             102, 69);
         info.DrawText("#" + rank + "·ID " + score.Id + (score.PlayCount == -1 ? "" : $"·PC {score.PlayCount}"),
             new Color(fontColor.R, fontColor.G, fontColor.B, 0.6f), 15,

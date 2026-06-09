@@ -6,13 +6,26 @@
         <AssemblyVersion>1.1.2.0</AssemblyVersion>
         <AssemblyName>Lapis</AssemblyName>
         <RootNamespace>Lapis</RootNamespace>
+        <Configurations>Debug;Release;Release Customized</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PlatformTarget>AnyCPU</PlatformTarget>
+        <DefineConstants>TRACE
+RELEASE_CUSTOMIZED</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DefineConstants>TRACE</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseCustomized|AnyCPU' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DefineConstants>TRACE</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release Customized' ">
+        <Optimize>true</Optimize>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup>
@@ -41,6 +54,8 @@
         <PackageReference Include="NLog" Version="6.1.2"/>
         <PackageReference Include="NLog.Extensions.Logging" Version="6.1.2"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1"/>
+        <PackageReference Include="SkiaSharp" Version="4.147.0-preview.3.1" />
+        <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.147.0-preview.3.1" />
         <PackageReference Include="System.IO.Hashing" Version="8.0.0"/>
         <PackageReference Include="Xabe.FFmpeg" Version="6.0.2"/>
     </ItemGroup>
@@ -56,15 +71,15 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <Reference Include="SixLabors.Fonts">
-            <HintPath>..\Plugins\SixLabors.Fonts.dll</HintPath>
-        </Reference>
-        <Reference Include="SixLabors.ImageSharp">
-            <HintPath>..\Plugins\SixLabors.ImageSharp.dll</HintPath>
-        </Reference>
-        <Reference Include="SixLabors.ImageSharp.Drawing">
-            <HintPath>..\Plugins\SixLabors.ImageSharp.Drawing.dll</HintPath>
-        </Reference>
+      <Reference Include="SixLabors.Fonts">
+        <HintPath>..\Plugins\SixLabors.Fonts.dll</HintPath>
+      </Reference>
+      <Reference Include="SixLabors.ImageSharp">
+        <HintPath>..\Plugins\SixLabors.ImageSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="SixLabors.ImageSharp.Drawing">
+        <HintPath>..\Plugins\SixLabors.ImageSharp.Drawing.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
