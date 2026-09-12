@@ -21,7 +21,7 @@ public class AbuseCommand : GroupCommand
 
     public override void Parse(string originalPlainMessage, CqGroupMessagePostContext source)
     {
-        var i = new Random().Next(0, _dirtyWordsStrings.Length + 1);
+        var i = Program.Random.Next(0, _dirtyWordsStrings.Length + 1);
         SendMessage(source, [
             new CqReplyMsg(source.MessageId),
             new CqTextMsg(_dirtyWordsStrings[i])

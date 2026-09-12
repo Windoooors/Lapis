@@ -307,6 +307,20 @@ public static class SettingsItems
                             DefaultValue = true
                         }
                     ]
+                },
+                new SettingsItemsOfACommand
+                {
+                    DisplayName = "贴纸二值化",
+                    Identifier = "binarize",
+                    Items =
+                    [
+                        new SettingsItem
+                        {
+                            Identifier = "1",
+                            DisplayName = "启用",
+                            DefaultValue = true
+                        }
+                    ]
                 }
             ]
         },

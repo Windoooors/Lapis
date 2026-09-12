@@ -262,10 +262,10 @@ public abstract class RapeCommandBase : GroupMemberCommandBase
             .Where(x => x.AgreedEula || !SettingsPool.GetValue(EulaSettingsIdentifierPair, source.GroupId))
             .Select(x => x).ToArray();
 
-        var i = new Random().Next(0, memberArray.Length);
+        var i = Program.Random.Next(0, memberArray.Length);
 
         while (memberArray[i].QqId == source.Sender.UserId)
-            i = new Random().Next(0, memberArray.Length);
+            i = Program.Random.Next(0, memberArray.Length);
 
         if (!SendRapeMessage(memberArray[i], source))
             Parse(originalPlainMessage, source);

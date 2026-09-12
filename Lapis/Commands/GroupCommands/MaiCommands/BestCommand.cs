@@ -10,6 +10,7 @@ using Lapis.Commands.UniversalCommands;
 using Lapis.ImageGenerators;
 using Lapis.Operations.ApiOperation;
 using Lapis.Settings;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Lapis.Commands.GroupCommands.MaiCommands;
@@ -192,9 +193,11 @@ public class BestCommand : MaiCommandBase
                 Process(source, best, false);
             }
         }
-        catch (Exception)
+        catch (Exception e)
         {
             HelpCommand.Instance.UnexpectedErrorHelp(source);
+
+            Program.Logger.LogError(e.Message + " " + e.StackTrace);
         }
     }
 
@@ -247,9 +250,11 @@ public class BestCommand : MaiCommandBase
 
             Process(source, best, true);
         }
-        catch (Exception)
+        catch (Exception e)
         {
             HelpCommand.Instance.UnexpectedErrorHelp(source);
+
+            Program.Logger.LogError(e.Message + " " + e.StackTrace);
         }
     }
 
@@ -282,6 +287,8 @@ public class BestCommand : MaiCommandBase
             }
 
             HelpCommand.Instance.UnexpectedErrorHelp(source);
+            
+            Program.Logger.LogError(ex.Message + " " + ex.StackTrace);
         }
     }
 }

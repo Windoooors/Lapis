@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Lapis;
 
-public class ImageGenerator
+public abstract class ImageGeneratorBase
 {
     protected static string GetSongCoverPath(int id)
     {

@@ -10,7 +10,7 @@ namespace Lapis.Commands.GroupCommands.StickerCommands;
 
 public class SymmetryCommand : StickerCommandBase
 {
-    private const int MaxPictureTotalPixelCount = 5120 * 2560;
+    private const int MaxPictureTotalPixelCount = 5120 * 5120;
 
     private bool _processing;
 

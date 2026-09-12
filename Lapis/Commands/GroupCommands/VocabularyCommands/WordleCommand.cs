@@ -171,7 +171,7 @@ public class WordleCommand : VocabularyCommandBase
         }
 
         var game = new WordleGame(wordLength, maxTries);
-        var random = new Random();
+        var random = Program.Random;
 
         while (true)
         {

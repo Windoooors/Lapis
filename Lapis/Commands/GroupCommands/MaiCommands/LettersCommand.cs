@@ -47,7 +47,7 @@ public class LettersCommand : MaiCommandBase
                 break;
         }
 
-        var random = new Random();
+        var random = Program.Random;
 
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
         var count = db.SongMetaDataSet.Count();

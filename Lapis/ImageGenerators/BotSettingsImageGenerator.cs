@@ -5,7 +5,7 @@ using Lapis.Settings;
 
 namespace Lapis.ImageGenerators;
 
-public class BotSettingsImageGenerator : ImageGenerator
+public class BotSettingsImageGenerator : ImageGeneratorBase
 {
     public string Generate(long groupId, bool isCompressed)
     {

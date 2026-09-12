@@ -11,7 +11,7 @@ using HorizontalAlignment = Lapis.Operations.ImageOperation.HorizontalAlignment;
 
 namespace Lapis.ImageGenerators;
 
-public class InfoImageGenerator : ImageGenerator
+public class InfoImageGenerator : ImageGeneratorBase
 {
     private const float ItemHeight = 137;
 

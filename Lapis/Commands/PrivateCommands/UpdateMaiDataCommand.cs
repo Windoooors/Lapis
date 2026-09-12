@@ -35,7 +35,7 @@ public class UpdateMaiDataCommand : PrivateCommand
             SendMessage(source, [new CqReplyMsg(source.MessageId), "更新失败"]);
 
             Program.Logger.LogError(
-                $"Failed to update maimai metadata. Message: {e.Message} StackTrace: {e.StackTrace}");
+                $"Failed to update maimai metadata. Message: {e.Message} StackTrace: {e.StackTrace}\n {e.InnerException.Message} {e.InnerException.StackTrace}");
             return;
         }
 
@@ -45,7 +45,7 @@ public class UpdateMaiDataCommand : PrivateCommand
     private void UpdateSongDatabase()
     {
         var chartStatsResponse = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
-            "api/maimaidxprober/chart_stats", 60);
+            "api/maimaidxprober/chart_stats", 300);
 
         if (chartStatsResponse.StatusCode != HttpStatusCode.OK)
             throw new HttpRequestException($"Unexpected status code: {chartStatsResponse.StatusCode}", null,
@@ -55,7 +55,7 @@ public class UpdateMaiDataCommand : PrivateCommand
             JsonConvert.DeserializeObject<ChartStatisticsDto>(chartStatsResponse.Result);
 
         var songMetaResult = ApiOperator.Instance.Get(BotConfiguration.Instance.DivingFishUrl,
-            "api/maimaidxprober/music_data", 60);
+            "api/maimaidxprober/music_data", 300);
 
         if (songMetaResult.StatusCode != HttpStatusCode.OK)
             throw new HttpRequestException($"Unexpected status code: {songMetaResult.StatusCode}", null,
@@ -88,7 +88,7 @@ public class UpdateMaiDataCommand : PrivateCommand
                         song.Levels[i] += '?';
             }
 
-        var aliasResponseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 60);
+        var aliasResponseContent = ApiOperator.Instance.Get(BotConfiguration.Instance.AliasUrl, 300);
 
         if (aliasResponseContent.StatusCode != HttpStatusCode.OK)
             throw new HttpRequestException($"Unexpected status code: {aliasResponseContent.StatusCode}", null,

@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using Lapis.Operations.ImageOperation;
 using Newtonsoft.Json;
-using SkiaSharp;
 
 namespace Lapis.Operations.ApiOperation;
 
@@ -109,7 +108,9 @@ public class ApiOperator
 
         using var stream = new MemoryStream(bytes);
 
-        var imagePixelCount = GetImagePixelCount(stream);
+        var imageInfo = SixLabors.ImageSharp.Image.Identify(stream);
+
+        var imagePixelCount = imageInfo.FrameCount * imageInfo.Height * imageInfo.Width;
 
         if (maxLength != 0 && imagePixelCount > maxLength)
         {
@@ -119,38 +120,10 @@ public class ApiOperator
         }
 
         stream.Position = 0;
-
+        
         image = new Image(stream);
         client.Dispose();
         return true;
-    }
-    
-    public static int GetImagePixelCount(MemoryStream stream)
-    {
-        // 1. 重置流的位置，确保从头读取
-        stream.Position = 0;
-
-        // 2. 关键：使用 SKManagedStream 包装原始流
-        // 第二个参数传 false，代表在 codec 销毁时【不要】销毁底层的 stream
-        using var managedStream = new SKManagedStream(stream, false);
-
-        // 3. 使用包装后的流创建 codec
-        using var codec = SKCodec.Create(managedStream);
-        if (codec == null)
-        {
-            return 0; // 无法识别的图片格式
-        }
-
-        // 获取基本信息
-        int width = codec.Info.Width;
-        int height = codec.Info.Height;
-
-        // 获取总帧数（如果是静态图如 PNG/JPG，FrameCount 会是 1）
-        int frameCount = codec.FrameCount;
-        if (frameCount <= 0) frameCount = 1;
-
-        // 计算总像素点计算量
-        return frameCount * height * width;
     }
 
     private RequestResult DeleteCore(string url, int timeOut)

@@ -26,7 +26,7 @@ public class SearchMemberCommand : GroupMemberCommandBase
     {
         var membersMatchedByAlias = new Dictionary<GroupMember, List<string>>();
 
-        var matchPattern = $"%{keyWord?.ToLower().Replace(" ", "%")}%";
+        var matchPattern = $"%{DatabaseHandler.EscapeLikeString(keyWord?.ToLower()).Replace(" ", "%")}%";
 
         using var db = DatabaseHandler.Instance.GroupMemberDatabaseOperator.GetDb;
 
@@ -34,7 +34,7 @@ public class SearchMemberCommand : GroupMemberCommandBase
 
         var matchedAliases = aliasesSet
             .SelectMany(x => x.Aliases)
-            .Where(y => EF.Functions.Like(y.Alias.ToLower(), matchPattern) && y.GroupId == groupId)
+            .Where(y => EF.Functions.Like(y.Alias.ToLower(), matchPattern, @"\") && y.GroupId == groupId)
             .Select(y => new AliasMemberIdPair(y.Alias, y.MemberQqId))
             .ToArray();
 

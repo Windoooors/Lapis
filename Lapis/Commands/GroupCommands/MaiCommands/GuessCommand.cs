@@ -35,7 +35,7 @@ public static class AudioEditor
                 .Duration
                 .TotalSeconds;
 
-            var startTime = TimeSpan.FromSeconds(new Random().Next(10, duration - 13));
+            var startTime = TimeSpan.FromSeconds(Program.Random.Next(10, duration - 13));
 
             var outputDuration = TimeSpan.FromSeconds(3);
 
@@ -117,7 +117,7 @@ public class GuessCommand : MaiCommandBase
     {
         if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
-            var random = new Random();
+            var random = Program.Random;
             var songIndex = random.Next(0, songs.Length);
 
             if (!AudioEditor.TryConvert(songs[songIndex].SongId, out var clipPath))
@@ -157,7 +157,7 @@ public class GuessCommand : MaiCommandBase
     {
         if (!_guessingGroupsMap.ContainsKey(source.GroupId.ToString()))
         {
-            var random = new Random();
+            var random = Program.Random;
 
             using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
             var count = db.SongMetaDataSet.Count();

@@ -6,6 +6,8 @@ using System.Numerics;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -86,9 +88,14 @@ public class Image : IDisposable
     public bool IsWhiteOnDark()
     {
         var color = GetDominantColor();
-        if (color.R * 0.3f + color.G * 0.59f + color.B * 0.11f < 0.6)
+        if (GetGrayScale(color) < 0.6)
             return true;
         return false;
+    }
+
+    private float GetGrayScale(Color color)
+    {
+        return color.R * 0.3f + color.G * 0.59f + color.B * 0.11f;
     }
 
     public void DrawText(string text, Color color, float fontSize, FontWeight fontWeight, float left, float top)
@@ -321,13 +328,21 @@ public class Image : IDisposable
         return TextMeasurer.Measure(text, new TextOptions(GetFont(fontWeight, fontSize))).Bounds.Width;
     }
 
-    public string ToBase64(bool toBeCompressed = false, bool saveMotion = false)
+    public string ToBase64(bool toBeCompressed = false, bool saveMotion = false, bool useTransparency = true)
     {
         using var ms = new MemoryStream();
 
         if (saveMotion && _imageSharpImage.Frames.Count > 1)
         {
-            _imageSharpImage.SaveAsGif(ms);
+            var encoder = new GifEncoder
+            {
+                TransparentColorMode = TransparentColorMode.Clear
+            };
+            
+            if (!useTransparency)
+                _imageSharpImage.SaveAsGif(ms, encoder);
+            else 
+                _imageSharpImage.SaveAsGif(ms);
             return Convert.ToBase64String(ms.ToArray());
         }
 
@@ -337,6 +352,48 @@ public class Image : IDisposable
             _imageSharpImage.SaveAsPng(ms);
 
         return Convert.ToBase64String(ms.ToArray());
+    }
+
+    public void Binarize()
+    {
+        foreach (var imageFrame in _imageSharpImage.Frames)
+        {
+            var average = 0f;
+
+            var totalCount = imageFrame.Height * imageFrame.Width;
+            
+            for (var i = 0; i < imageFrame.Height; i++)
+            {
+                for (var j = 0; j < imageFrame.Width; j++)
+                {
+                    var color = Rgba32ToColor(imageFrame[j, i]);
+
+                    if (color.A == 0)
+                    {
+                        totalCount--;
+                        continue;
+                    }
+                    
+                    average += GetGrayScale(color);
+                }
+            }
+            
+            average /= totalCount;
+            
+            average = Math.Clamp(average, 0.2f, 0.8f);
+            
+            for (var i = 0; i < imageFrame.Height; i++)
+            {
+                for (var j = 0; j < imageFrame.Width; j++)
+                {
+                    var color = Rgba32ToColor(imageFrame[j, i]);
+
+                    imageFrame[j, i] =
+                        GetGrayScale(color) < average 
+                            ? new Rgba32(0, 0, 0, 255) : new Rgba32(255, 255, 255, 255);
+                }
+            }
+        }
     }
 
     private SixLabors.ImageSharp.Color ColorToImageSharpColor(Color color)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Lapis.Commands.GroupCommands;
 using Lapis.Commands.GroupCommands.MaiCommands;
@@ -8,7 +9,7 @@ namespace Lapis.Operations.MaiScoreOperation;
 
 public class MaiScoreOperator
 {
-    private const string CurrentVersion = "maimai でらっくす PRiSM";
+    private const string CurrentVersion = "maimai でらっくす PRiSM PLUS";
 
     private static float GetRatingFactor(float achievement)
     {
@@ -99,23 +100,32 @@ public class MaiScoreOperator
     {
         using var db = DatabaseHandler.Instance.SongMetaDatabaseOperator.GetDb;
 
-        var previousVersionScores =
+        var scoreList =
             DatabaseHandler.Instance.SongMetaDatabaseOperator.GetUserScores(qqId, db).ToList()
                 .Where(x => x.SongId < 100000).ToList();
 
-        if (previousVersionScores.Count == 0)
+        if (scoreList.Count == 0)
         {
             result = null;
             return false;
         }
+        
+        var currentBestItems = new List<BestItem>();
+        var previousBestItems = new List<BestItem>();
+        
+        foreach (var score in scoreList)
+        {
+            if (whereClause(score) && score.Song.Version == currentVersionName)
+            {
+                currentBestItems.Add(bestItemFactory(db).Invoke(score));
+            }
 
-        var currentVersionScores = previousVersionScores.Where(x => x.Song.Version == currentVersionName).ToList();
-        previousVersionScores.RemoveAll(currentVersionScores.Contains);
-
-        var currentBestItems = currentVersionScores.Where(whereClause).Select(bestItemFactory(db)).ToList();
-
-        var previousBestItems = previousVersionScores.Where(whereClause).Select(bestItemFactory(db)).ToList();
-
+            if (whereClause(score) && score.Song.Version != currentVersionName)
+            {
+                previousBestItems.Add(bestItemFactory(db).Invoke(score));
+            }
+        }
+        
         currentBestItems.Sort((x, y) => -comparison(x, y));
         previousBestItems.Sort((x, y) => -comparison(x, y));
 

@@ -10,7 +10,7 @@ using Lapis.Operations.ImageOperation;
 
 namespace Lapis.ImageGenerators;
 
-public class PlateImageGenerator : ImageGenerator
+public class PlateImageGenerator : ImageGeneratorBase
 {
     public string Generate(List<PlateCommand.SongToBeDisplayed> songsToBeDisplayed,
         List<PlateCommand.SongToBeDisplayed> allSongs, string username, MaiCommand maiCommand,

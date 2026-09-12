@@ -1,4 +1,5 @@
-﻿using EleCho.GoCqHttpSdk.Message;
+﻿using System;
+using EleCho.GoCqHttpSdk.Message;
 using EleCho.GoCqHttpSdk.Post;
 using Lapis.Settings;
 

@@ -164,10 +164,9 @@ public class GuessWordsCommand : VocabularyCommandBase
         }
 
         var count = Directory.GetFiles(AppContext.BaseDirectory + "resource/vocabulary/").Length;
-        var indexRegex = new Regex("^[1-" + count + "]$");
-        if (indexRegex.IsMatch(arguments[0]))
+        if (int.TryParse(arguments[0], out var index) && index >= 1 && index <= count)
         {
-            StartGuessing(int.Parse(arguments[0]) - 1, source);
+            StartGuessing(index - 1, source);
             return;
         }
 
@@ -185,7 +184,7 @@ public class GuessWordsCommand : VocabularyCommandBase
             return;
         }
 
-        var i = new Random().Next(0, VocabularyCommandInstance.Vocabularies[vocabularyIndex].Words.Length);
+        var i = Program.Random.Next(0, VocabularyCommandInstance.Vocabularies[vocabularyIndex].Words.Length);
         var word = VocabularyCommandInstance.Vocabularies[vocabularyIndex].Words[i];
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("试试看吧！");

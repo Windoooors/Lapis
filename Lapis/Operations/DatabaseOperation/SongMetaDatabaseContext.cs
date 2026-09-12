@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Lapis.Operations.DatabaseOperation;
@@ -24,6 +25,9 @@ public class SongMetaDatabaseContext : DbContext
             .WithMany(m => m.Charts)
             .HasForeignKey(a => new { a.SongId });
         chartMetaEntityBuilder.HasKey(x => x.ChartId);
+        chartMetaEntityBuilder
+            .Property(c => c.ChartId)
+            .ValueGeneratedOnAdd();
 
         var songMetaEntityBuilder = modelBuilder.Entity<SongMetaData>();
 
@@ -88,6 +92,8 @@ public class SongMetaData
 
 public class ChartMetaData
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ChartId { get; set; }
 
     public int SongId { get; set; }

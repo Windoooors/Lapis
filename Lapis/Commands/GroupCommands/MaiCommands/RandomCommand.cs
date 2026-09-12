@@ -35,7 +35,7 @@ public class RandomCommand : MaiCommandBase
                 return;
             }
 
-            var random = new Random();
+            var random = Program.Random;
             var j = random.Next(0, songs.Length);
 
             var isCompressed =

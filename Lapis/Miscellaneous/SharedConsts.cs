@@ -32,8 +32,8 @@ public static class SharedConsts
         { "祝", "maimai でらっくす FESTiVAL" },
         { "双", "maimai でらっくす BUDDiES" },
         { "宴", "maimai でらっくす BUDDiES" },
-        { "镜", "maimai でらっくす PRiSM" },
-        { "彩", "maimai でらっくす PRiSM" }
+        { "鏡", "maimai でらっくす PRiSM" },
+        { "彩", "maimai でらっくす PRiSM PLUS" }
     };
 
     public static readonly Dictionary<string, List<string>> VersionNameToPlateCharacters = new()
@@ -57,7 +57,8 @@ public static class SharedConsts
         ["maimai でらっくす UNiVERSE"] = ["宙", "星"],
         ["maimai でらっくす FESTiVAL"] = ["祭", "祝"],
         ["maimai でらっくす BUDDiES"] = ["双", "宴"],
-        ["maimai でらっくす PRiSM"] = ["镜", "彩"]
+        ["maimai でらっくす PRiSM"] = ["鏡"],
+        ["maimai でらっくす PRiSM PLUS"] = ["彩"]
     };
 
     public static readonly Dictionary<string, string> DxVersionToChineseVersionName = new()
@@ -67,7 +68,8 @@ public static class SharedConsts
         { "maimai でらっくす UNiVERSE", "舞萌DX 2022" },
         { "maimai でらっくす FESTiVAL", "舞萌DX 2023" },
         { "maimai でらっくす BUDDiES", "舞萌DX 2024" },
-        { "maimai でらっくす PRiSM", "舞萌DX 2025" }
+        { "maimai でらっくす PRiSM", "舞萌DX 2025" },
+        { "maimai でらっくす PRiSM PLUS", "舞萌DX 2026" }
     };
 
     public static Dictionary<string, string> Categories = new()
@@ -93,7 +95,8 @@ public static class SharedConsts
         { "樱", "櫻" },
         { "堇", "菫" },
         { "辉", "輝" },
-        { "华", "華" }
+        { "华", "華" },
+        { "镜", "鏡" }
     };
 
     public static readonly string[] SpecialCharacters =

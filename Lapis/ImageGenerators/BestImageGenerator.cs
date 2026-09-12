@@ -7,7 +7,7 @@ using Lapis.Operations.ImageOperation;
 
 namespace Lapis.ImageGenerators;
 
-public class BestImageGenerator : ImageGenerator
+public class BestImageGenerator : ImageGeneratorBase
 {
     private string _difficultyFactorFormat = "0.0";
 

@@ -105,11 +105,11 @@ public class MarryCommand : GroupMemberCommandBase
                 .Where(x => x.AgreedEula || !SettingsPool.GetValue(_eulaSettingsIdentifierPair, source.GroupId))
                 .Select(x => x).ToArray();
 
-            var i = new Random().Next(0, memberArray.Length);
+            var i = Program.Random.Next(0, memberArray.Length);
 
             while (memberArray[i].QqId == source.Sender.UserId ||
                    CouplesOperator.IsMarried(memberArray[i].QqId, source.GroupId))
-                i = new Random().Next(0, memberArray.Length);
+                i = Program.Random.Next(0, memberArray.Length);
 
             var memberId = memberArray[i].QqId;
             CouplesOperator.AddCouple(source.Sender.UserId, memberId, source.GroupId);

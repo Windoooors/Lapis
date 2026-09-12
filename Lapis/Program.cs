@@ -9,7 +9,6 @@ using Lapis.Commands.PrivateCommands;
 using Lapis.Commands.UniversalCommands;
 using Lapis.Operations.ApiOperation;
 using Lapis.Operations.DatabaseOperation;
-using Lapis.Operations.ImageOperation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -47,6 +46,16 @@ public class DatabaseHandler
     public static DatabaseHandler Instance;
     public GroupMemberDatabaseOperator GroupMemberDatabaseOperator = new();
     public SongMetaDatabaseOperator SongMetaDatabaseOperator = new();
+    
+    public static string EscapeLikeString(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+
+        return input
+            .Replace(@"\", @"\\")
+            .Replace("%", @"\%")
+            .Replace("_", @"\_");
+    }
 
     public DatabaseHandler()
     {
@@ -110,6 +119,8 @@ public class Program
     public static CqWsSession Session;
 
     public static ILogger<Program> Logger;
+
+    public static Random Random;
 
     private static readonly List<Task> InitializationTasks = new();
 
@@ -217,6 +228,8 @@ public class Program
 
     public static Task Main()
     {
+        Random = new Random();
+        
         var keepAlive = new ManualResetEvent(false);
 
         AppDomain.CurrentDomain.ProcessExit += (s, e) => keepAlive.Set();
